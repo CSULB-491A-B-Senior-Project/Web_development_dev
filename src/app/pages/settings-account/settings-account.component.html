@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>&lt;crescendo&gt;</title>
+</head>
+<body>
+    <div class="settings-container">
+  
+        <div class="settings-sidebar">
+            <h1>Settings</h1>
+            <h1>Profile</h1>
+            <h1>Delete Account</h1>
+        </div>
+        <h1>Account Information</h1>
+        <h3>Name: {{ firstName}} {{ lastName }}</h3>
+        <h3>Email: {{ email }}</h3>
+        <h3>Username: {{ username }}</h3>
+        <h1>Change Information</h1>
+        <button (click)="updateUserProfile()">Update</button>
+    </div>
+</body>
+</html>
