@@ -1,17 +1,33 @@
 <a routerLink="/settings-account">Settings</a>
-<div class="home-container">
-  <div class="header-buttons">
-    <button class="login-btn">Log in</button>
-    <button class="signup-btn">Sign Up</button>
-  </div>
+<div class="page-wrapper">
+  <div class="home-container">
+    <div class="welcome-container">
+      <div class="logo">
+        <img src="assets/crescendo-logo-no-text.png" alt="crescendo logo" class="crescendo-logo" />
+      </div>
+      <h1>welcome to crescendo</h1>
+    </div>
+    <form class="form">
+      <input type="text"
+             formControlName="username"
+             placeholder="Phone number, username, or email"
+             autocomplete="username" />
+      <input type="password"
+             formControlName="password"
+             placeholder="Password"
+             autocomplete="current-password" />
 
-  <div class="logo">
-    <img src="assets/crescendo-logo-no-text.png" alt="crescendo logo" class="crescendo-logo" />
+      <button type="submit">
+        Log in
+      </button>
+      <div class="or">
+        <span></span><p>OR</p><span></span>
+      </div>
+      <a class="forgot" href="">Forgot password?</a>
+      <div class="signup-inline">
+        Don't have an account?
+        <a class="signup" href=""> Sign up</a>
+      </div>
+    </form>
   </div>
-
-  <h1>welcome to crescendo</h1>
-  <p>
-    Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem
-    ipsum lorem ipsum lorem ipsum
-  </p>
 </div>
