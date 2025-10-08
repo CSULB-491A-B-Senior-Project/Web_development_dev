@@ -7,70 +7,109 @@ main {
   padding: 0;
 }
 
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black;
+}
+
 .home-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  width: fit-content;
+  height: fit-content;
   justify-content: center;
-  height: 100vh;
-  background-color: #000;
+  background-color: #2A2A2A;
   color: #fff;
   text-align: center;
   padding: 0 1rem;
   position: relative;
+  padding: 64px;
+  border-radius: 32px;
 
-  .header-buttons {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+  .welcome-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .logo {
+      margin-bottom: 2rem;
+    }
+
+    .crescendo-logo {
+      width: 400px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+      text-transform: lowercase;
+    }
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    padding-left: 20vh;
+    gap: 4px;
+
+    input {
+      background: #1f1f1f;
+      color: white;
+      padding: 8px;
+      border-radius: 8px;
+      width: 35vh;
+      height: 48px;
+    }
 
     button {
-      font-size: 1rem;
-      font-weight: bold;
-      padding: 0.5rem 1rem;
-      margin-left: 0.5rem;
-      border-radius: 5px;
-      border: 2px solid #b78cff;
+      background: #D0B0FF;
+      margin-top: 16px;
+      padding: 8px;
+      border-radius: 8px;
+      width: 35vh;
       cursor: pointer;
-      transition: 0.2s all;
+      transition: 0.2s;
+      font-size: 14px;
+      font-weight: bold;
 
       &:hover {
-        opacity: 0.8;
+        background: #c06effff;
       }
     }
 
-    .login-btn {
-      background: transparent;
-      color: #b78cff;
+    .or {
+      margin-top: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+
+      span {
+        display: block;
+        height: 1px;
+        background-color: #5F5F68;
+        width: 100%;
+      }
     }
 
-    .signup-btn {
-      background: #b78cff;
-      color: #fff;
-      border: none;
+    .forgot {
+      margin: 4px;
+      color: #D0B0FF;
     }
-  }
 
-  .logo {
-    margin-bottom: 2rem;
-  }
+    .signup-inline {
+      margin: 32px 0px 0px 0px;
 
-  .crescendo-logo {
-      width: 400px;
-      height: auto;
-  }
-
-  h1 {
-    font-size: 2.5rem;
-    font-weight: 400;
-    margin-bottom: 1rem;
-    text-transform: lowercase;
-  }
-
-  p {
-    max-width: 500px;
-    line-height: 1.5rem;
-    font-size: 1rem;
-    color: #ddd;
+      .signup {
+        color: #D0B0FF;
+      }
+    }
   }
 }
+
