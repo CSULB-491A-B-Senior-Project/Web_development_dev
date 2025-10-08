@@ -1,9 +1,18 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --input-border: #2a2a2f;
+  --btn-primary: #D0B0FF;
+  --btn-hover: #c06effff;
+  --txt-primary: #D0B0FF;
+  --border-color: #1d1d22;
+}
+
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
+    background: #000;
+    color: #fff;
     box-sizing: border-box;
     font-family: "Tw Cen MT", "Century Gothic", Arial, sans-serif;
 }
