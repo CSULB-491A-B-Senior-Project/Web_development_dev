@@ -1,17 +1,37 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+
 
 @Component({
   selector: 'app-settings-account',
   templateUrl: './settings-account.component.html',
-  styleUrls: ['./settings-account.component.css']
+  styleUrls: ['./settings-account.component.css'],
+  imports: [ReactiveFormsModule]
 })
 export class SettingsAccountComponent {
   firstName: string = 'First';
   lastName: string = 'Last';
   email: string = 'email@email.com';
   username: string = 'username';
-
   updateUserProfile() {
     // enter logic here
   }
+
+  protected newFirstName = new FormControl<string>('', Validators.required);
+  protected newLastName = new FormControl<string>('', Validators.required);
+  protected newEmail = new FormControl<string>('', [Validators.required, Validators.email]);
+  protected newUsername = new FormControl<string>('', Validators.required);
+  protected oldPassword = new FormControl<string>('', Validators.required);
+  protected newPassword = new FormControl<string>('', Validators.required);
+  protected confirmNewPassword = new FormControl<string>('', Validators.required);
 }
+
+// @Component({
+//   selector: 'app-form',
+//   templateUrl: './form.component.html',
+//   styleUrl: './form.component.scss',
+//   standalone: true,
+// })
+// export class FormComponent {
+// }
