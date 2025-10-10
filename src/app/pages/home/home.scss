@@ -22,7 +22,6 @@ main {
   width: fit-content;
   height: fit-content;
   justify-content: center;
-  background-color: #2A2A2A;
   color: #fff;
   text-align: center;
   padding: 0 1rem;
@@ -53,61 +52,92 @@ main {
   }
 
   .form {
-    display: flex;
+    display: grid;
+    gap: 12px;
     flex-direction: column;
-    padding-left: 20vh;
-    gap: 4px;
+    margin-left: 20vh;
+    padding: 28px 26px 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    height: fit-content;
+    width: 420px;
 
     input {
+      width: 100%;
+      color: var(--text);
       background: #1f1f1f;
-      color: white;
-      padding: 8px;
-      border-radius: 8px;
-      width: 35vh;
-      height: 48px;
-    }
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      padding: 12px 12px;
+      transition: border-color .15s ease, box-shadow .15s ease;
 
-    button {
-      background: #D0B0FF;
-      margin-top: 16px;
-      padding: 8px;
-      border-radius: 8px;
-      width: 35vh;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
-      font-weight: bold;
+      &::placeholder {
+        color: #696d76;
+      }
 
-      &:hover {
-        background: #c06effff;
+      &:focus {
+        outline: none;
+        border-color: #3a3a44;
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
       }
     }
 
-    .or {
-      margin-top: 14px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
+    .btn {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      color: black;
+      background: var(--btn-primary);
+      transition: transform .2s ease, background .2s;
 
-      span {
-        display: block;
+      &:hover {
+        background: var(--btn-hover);
+      }
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      color: var(--muted);
+
+      &::before, &::after {
+        content: "";
         height: 1px;
-        background-color: #5F5F68;
-        width: 100%;
+        background: #24242a;
+        flex: 1;
       }
     }
 
     .forgot {
-      margin: 4px;
-      color: #D0B0FF;
+      color: var(--txt-primary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     .signup-inline {
       margin: 32px 0px 0px 0px;
 
       .signup {
-        color: #D0B0FF;
+        color: var(--txt-primary);
+        text-decoration: none;
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
       }
     }
   }
