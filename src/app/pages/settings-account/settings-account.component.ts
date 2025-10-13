@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-
-
+import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-settings-account',
   templateUrl: './settings-account.component.html',
-  styleUrls: ['./settings-account.component.css'],
-  imports: [ReactiveFormsModule]
+  styleUrls: ['./settings-account.component.scss'],
+  imports: [RouterLink, ReactiveFormsModule]
 })
 export class SettingsAccountComponent {
   firstName: string = 'First';
