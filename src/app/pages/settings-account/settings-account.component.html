@@ -10,7 +10,7 @@
     <div class="settings-sidebar">
         <a routerLink="/main-page"><img src="././assets/crescendo-logo-no-text.png"/></a>
         <h1>Settings</h1>
-        <h2><a routerLink="/settings-profile">Profile</a></h2>
+        <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
         <h2 class="active">Account</h2>
         <h2 style="color:rgb(206, 0, 0)">Delete Account</h2>
     </div>
@@ -24,35 +24,35 @@
 
         <!-- Form to change user information -->
         <h1>Edit personal info</h1>
-        <form>
+        <form [formGroup]="accountForm" (ngSubmit)="updateUserProfile()">
             <label><strong>New first name</strong>
-                <input [class.disabled]="newFirstName.invalid" type="text" [formControl]="newFirstName" name="firstName"/></label>
+                <input type="text" [formControlName]="firstName" name="newFirstName"/></label>
             <label><strong>New last name</strong>
-                <input [class.disabled]="newLastName.invalid" type="text" [formControl]="newLastName" name="lastName"/></label>
+                <input type="text" [formControlName]="lastName" name="newLastName"/></label>
             <label><strong>New email</strong>
-                <input [class.disabled]="newEmail.invalid" type="email" [formControl]="newEmail" name="email"/></label>
+                <input type="email" [formControlName]="email" name="newEmail"/></label>
             <label><strong>New username</strong>
-                <input [class.disabled]="newUsername.invalid" type="text" [formControl]="newUsername" name="username"/></label>
+                <input type="text" [formControlName]="username" name="newUsername"/></label>
         </form>
-        <button [class.disabled]="newFirstName.invalid" (click)="updateUserProfile()">Update</button>
+        <button type="submit" [disabled]="accountForm.invalid" (click)="updateUserProfile()">Update</button>
 
         <h1>Change password</h1>
         <p>Changing your password description, reqs, etc.</p>
-        <form>
+        <!-- <form>
             <label><strong>Old password</strong><input type="password" [formControl]="oldPassword" name="oldPassword"/></label>
             <label><strong>New password</strong><input type="password" [formControl]="newPassword" name="newPassword"/></label>
             <label><strong>Confirm new password</strong><input type="password" [formControl]="confirmNewPassword" name="confirmNewPassword"/></label>
         </form>
-        <button [class.disabled]="newFirstName.invalid">Update</button>
+        <button type="submit" [disabled]="accountForm.invalid">Update</button> -->
 
         <br>
-        <div>{{ newFirstName.value }}</div>
+        <!-- <div>{{ newFirstName.value }}</div>
         <div>{{ newLastName.value }}</div>
         <div>{{ newEmail.value }}</div>
         <div>{{ newUsername.value }}</div>
         <div>{{ oldPassword.value }}</div>
         <div>{{ newPassword.value }}</div>
-        <div>{{ confirmNewPassword.value }}</div>
+        <div>{{ confirmNewPassword.value }}</div> -->
 
     </div>
 </body>

@@ -6,7 +6,7 @@ body {
   overflow: auto;
 
   h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 600;
     margin-top: 5rem;
     margin-bottom: 2.8rem;
@@ -26,8 +26,11 @@ body {
   padding: 30px 20px 0px 40px;
   background-color: #222222;
   color: white;
-  
-  text-decoration: none;
+
+  a {
+    color:white;
+    text-decoration: none;
+  }
 
   img {
     width: 100px;
@@ -76,16 +79,13 @@ input {
 
   &:focus {
     border-color: #c06eff;
-    background-color: transparent;
+    background: #1f1f1f;
     outline: none;
-    // box-shadow: 0 0 0 3px rgba(192, 110, 255, 0.4);
-    // border-color: #3a3a44;
-    // box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
   }
 
   &.disabled {
     border-color: #3a3a44;
-    // background: #1f1f1f;
   }
 }
 
