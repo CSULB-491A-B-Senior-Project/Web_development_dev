@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="../../assets/crescendo-logo-no-text.png">
+    <link rel="icon" type="image/x-icon" href="././assets/crescendo-logo-no-text.png">
     <title>&lt;crescendo&gt;</title>
 </head>
 <body>
     <div class="settings-sidebar">
-        <a routerLink="/main-page"><img src="../../assets/crescendo-logo-no-text.png"/></a>
+        <a routerLink="/main-page"><img src="././assets/crescendo-logo-no-text.png"/></a>
         <h1>Settings</h1>
+        <h2><a routerLink="/settings-profile">Profile</a></h2>
         <h2 class="active">Account</h2>
-        <h2>Profile</h2>
         <h2 style="color:rgb(206, 0, 0)">Delete Account</h2>
     </div>
 
@@ -25,10 +25,14 @@
         <!-- Form to change user information -->
         <h1>Edit personal info</h1>
         <form>
-            <label><strong>New first name</strong><input type="text" [formControl]="newFirstName" name="firstName"/></label>
-            <label><strong>New last name</strong><input type="text" [formControl]="newLastName" name="lastName"/></label>
-            <label><strong>New email</strong><input type="email" [formControl]="newEmail" name="email"/></label>
-            <label><strong>New username</strong><input type="text" [formControl]="newUsername" name="username"/></label>
+            <label><strong>New first name</strong>
+                <input [class.disabled]="newFirstName.invalid" type="text" [formControl]="newFirstName" name="firstName"/></label>
+            <label><strong>New last name</strong>
+                <input [class.disabled]="newLastName.invalid" type="text" [formControl]="newLastName" name="lastName"/></label>
+            <label><strong>New email</strong>
+                <input [class.disabled]="newEmail.invalid" type="email" [formControl]="newEmail" name="email"/></label>
+            <label><strong>New username</strong>
+                <input [class.disabled]="newUsername.invalid" type="text" [formControl]="newUsername" name="username"/></label>
         </form>
         <button [class.disabled]="newFirstName.invalid" (click)="updateUserProfile()">Update</button>
 
@@ -49,16 +53,6 @@
         <div>{{ oldPassword.value }}</div>
         <div>{{ newPassword.value }}</div>
         <div>{{ confirmNewPassword.value }}</div>
-
-        <!-- <form #userForm="ngForm">
-            <input type="text" name="firstName" placeholder="First Name" [(ngModel)]="firstName" />
-            <input type="text" name="lastName" placeholder="Last Name" [(ngModel)]="lastName" />
-            <input type="email" name="email" placeholder="Email" [(ngModel)]="email" />
-            <input type="text" name="username" placeholder="Username" [(ngModel)]="username" />
-            <input type="password" name="oldPassword" placeholder="Old Password" [(ngModel)]="oldPassword" />
-            <input type="password" name="newPassword" placeholder="New Password" [(ngModel)]="newPassword" />
-            <input type="password" name="confirmNewPassword" placeholder="Confirm New Password" [(ngModel)]="confirmNewPassword" />
-        </form> -->
 
     </div>
 </body>
