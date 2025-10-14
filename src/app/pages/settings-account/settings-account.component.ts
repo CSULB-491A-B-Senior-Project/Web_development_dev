@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-settings-account',
@@ -16,29 +17,32 @@ export class SettingsAccountComponent implements OnInit {
   email: string = 'email@email.com';
   username: string = 'username';
 
-  ngOnInit(): void {
-    this.accountForm = new FormGroup({
-      newFirstName: new FormControl('', []),
-      newLastName: new FormControl('', []),
-      newEmail: new FormControl('', [Validators.email]),
-      newUsername: new FormControl('', [])
-    },
-    [this.atLeastOneFieldRequiredValidator]  // Custom form level validator
-    );
-  }
+  // atLeastOneFieldRequired(form: FormGroup) {
+  //   const { firstName, lastName, email, username } = form.value;
+  //   return firstName || lastName || email || username
+  //   ? null
+  //   : { atLeastOneRequired: true };
+  // }
+  
+  atLeastOneFieldRequired = (group: AbstractControl): ValidationErrors | null => {
+    const fg = group as FormGroup;
+    const { newFirstName, newLastName, newEmail, newUsername } = fg.value;
 
-  atLeastOneFieldRequiredValidator: ValidatorFn = (control: FormGroup): { [key: string]: boolean } | null {
-    const formValues = form.value;
     if (
-      formValues.firstName ||
-      formValues.lastName ||
-      formValues.email ||
-      formValues.username
+      (newFirstName && newFirstName.trim()) ||
+      (newLastName && newLastName.trim()) ||
+      (newEmail && newEmail.trim()) ||
+      (newUsername && newUsername.trim())
     ) {
-      return null;  // Valid
+      return null; // ✅ valid
     }
-    return { atLeastOneRequired: true };  // Invalid
-  }
+    return { atLeastOneRequired: true }; // ❌ invalid
+  };
+
+  get atLeastOneRequiredError(): boolean {
+    return !!this.accountForm?.errors?.['atLeastOneRequired']
+    && (this.accountForm.dirty || this.accountForm.touched);
+    }
 
   updateUserProfile() { // FIX
     if (this.accountForm.valid) {
@@ -47,6 +51,17 @@ export class SettingsAccountComponent implements OnInit {
     } else {
       console.log('Form is invalid!');
     }
+  };
+
+  ngOnInit(): void {
+    this.accountForm = new FormGroup({
+      newFirstName: new FormControl('', []),
+      newLastName: new FormControl('', []),
+      newEmail: new FormControl('', [Validators.email]),
+      newUsername: new FormControl('', [])
+    },
+    [this.atLeastOneFieldRequired]  // Custom form level validator
+    );
   }
 }
 

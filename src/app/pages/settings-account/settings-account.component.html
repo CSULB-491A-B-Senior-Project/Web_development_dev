@@ -34,7 +34,10 @@
             <label><strong>New username</strong>
                 <input type="text" [formControlName]="username" name="newUsername"/></label>
         </form>
-        <button type="submit" [disabled]="accountForm.invalid" (click)="updateUserProfile()">Update</button>
+        <button type="submit" [disabled]="accountForm.invalid">Update</button>
+
+        <div class="error" [hidden]="!atLeastOneRequiredError">
+    Please fill at least one field.</div>
 
         <h1>Change password</h1>
         <p>Changing your password description, reqs, etc.</p>

@@ -16,22 +16,6 @@
     </div>
 
     <div class="settings-container">
-        <!-- Display user account information -->
-        <h1>Account info</h1>
-        <h3>Name: {{ firstName}} {{ lastName }}</h3>
-        <h3>Email: {{ email }}</h3>
-        <h3>Username: {{ username }}</h3>
-
-        <!-- Form to change user information -->
-        <h1>Edit personal info</h1>
-        <form>
-            <label><strong>New first name</strong>
-                <input [class.disabled]="newFirstName.invalid" type="text" [formControl]="newFirstName" name="firstName"/></label>
-        </form>
-        <button [class.disabled]="newFirstName.invalid" (click)="updateUserProfile()">Update</button>
-
-        <br>
-        <div>{{ newFirstName.value }}</div>
     </div>
 </body>
 </html>
