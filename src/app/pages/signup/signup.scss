@@ -1,0 +1,137 @@
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: black;
+}
+
+.card {
+  width: min(420px, 92vw);
+  padding: 28px 26px 24px;
+  border: 1px solid #1d1d22;
+  border-radius: 4px;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 18px;
+  user-select: none;
+  max-width: inherit;
+
+  .crescendo-logo {
+    width: min(250px, 40vw);
+  }
+
+  h1 {
+      font-weight: 100;
+  }
+}
+
+
+.btn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: black;
+  background: var(--btn-primary);
+  transition: transform .2s ease, background .2s;
+
+  &:hover {
+    background: var(--btn-hover);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--muted);
+
+  &::before, &::after {
+    content: "";
+    height: 1px;
+    background: #24242a;
+    flex: 1;
+  }
+}
+
+form {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: block;
+  font-size: .9rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  color: var(--text);
+  background: #1f1f1f;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  padding: 12px 12px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+
+  &::placeholder {
+    color: #696d76;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #3a3a44;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
+  }
+}
+
+.legal {
+  font-size: .82rem;
+  color: var(--muted);
+  text-align: center;
+  margin: 6px 0 4px;
+}
+
+.legal a {
+  color: var(--txt-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.footer-card {
+  width: min(420px, 92vw);
+  margin-top: 14px;
+  text-align: center;
+  padding: 18px 24px;
+  color: var(--text);
+  background: #0f0f12;
+  border: 1px solid #1d1d22;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+.footer-card a {
+  color: var(--txt-primary);
+  text-decoration: none;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

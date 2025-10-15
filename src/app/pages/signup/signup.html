@@ -1,0 +1,44 @@
+<div class="page-wrapper">
+  <section class="card" role="region" aria-labelledby="logo">
+    <div class="logo" id="logo" aria-label="crescendo">
+      <img src="assets/crescendo-logo-no-text.png" alt="crescendo logo" class="crescendo-logo" />
+      <h1>crescendo</h1>
+    </div>
+
+    <p class="lead">Sign up to see latest albums and ratings from your friends.</p>
+
+    <div class="divider" role="separator" aria-label="or">OR</div>
+
+    <form novalidate>
+      <input type="text"
+              id="email"
+              formControlName="email"
+              placeholder="Email" />
+
+      <input type="password"
+              id="password"
+              formControlName="password"
+              placeholder="Password" />
+
+      <input type="text"
+              id="fullname"
+              formControlName="fullname"
+              placeholder="Full Name" />
+
+      <input type="text"
+              id="username"
+              formControlName="username"
+              placeholder="Username" />
+
+      <p class="legal">
+        By signing up, you agree to our <a routerLink="">Terms</a>.
+      </p>
+
+      <button class="btn" type="button">Sign up</button>
+    </form>
+  </section>
+
+  <div class="footer-card" role="region" aria-label="Sign in">
+    Have an account? <a routerLink="">Log in</a>
+  </div>
+</div>

@@ -7,70 +7,139 @@ main {
   padding: 0;
 }
 
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black;
+}
+
 .home-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  width: fit-content;
+  height: fit-content;
   justify-content: center;
-  height: 100vh;
-  background-color: #000;
   color: #fff;
   text-align: center;
   padding: 0 1rem;
   position: relative;
+  padding: 64px;
+  border-radius: 32px;
 
-  .header-buttons {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+  .welcome-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 
-    button {
-      font-size: 1rem;
-      font-weight: bold;
-      padding: 0.5rem 1rem;
-      margin-left: 0.5rem;
-      border-radius: 5px;
-      border: 2px solid #b78cff;
-      cursor: pointer;
-      transition: 0.2s all;
+    .logo {
+      margin-bottom: 2rem;
+    }
 
-      &:hover {
-        opacity: 0.8;
+    .crescendo-logo {
+      width: 400px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+      text-transform: lowercase;
+    }
+  }
+
+  .form {
+    display: grid;
+    gap: 12px;
+    flex-direction: column;
+    margin-left: 20vh;
+    padding: 28px 26px 24px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    height: fit-content;
+    width: 420px;
+
+    input {
+      width: 100%;
+      color: var(--text);
+      background: #1f1f1f;
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      padding: 12px 12px;
+      transition: border-color .15s ease, box-shadow .15s ease;
+
+      &::placeholder {
+        color: #696d76;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #3a3a44;
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
       }
     }
 
-    .login-btn {
-      background: transparent;
-      color: #b78cff;
+    .btn {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      color: black;
+      background: var(--btn-primary);
+      transition: transform .2s ease, background .2s;
+
+      &:hover {
+        background: var(--btn-hover);
+      }
+
+      &:active {
+        transform: scale(0.97);
+      }
     }
 
-    .signup-btn {
-      background: #b78cff;
-      color: #fff;
-      border: none;
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+      color: var(--muted);
+
+      &::before, &::after {
+        content: "";
+        height: 1px;
+        background: #24242a;
+        flex: 1;
+      }
     }
-  }
 
-  .logo {
-    margin-bottom: 2rem;
-  }
+    .forgot {
+      color: var(--txt-primary);
+      text-decoration: none;
 
-  .crescendo-logo {
-      width: 400px;
-      height: auto;
-  }
+      &:hover {
+        text-decoration: underline;
+      }
+    }
 
-  h1 {
-    font-size: 2.5rem;
-    font-weight: 400;
-    margin-bottom: 1rem;
-    text-transform: lowercase;
-  }
+    .signup-inline {
+      margin: 32px 0px 0px 0px;
 
-  p {
-    max-width: 500px;
-    line-height: 1.5rem;
-    font-size: 1rem;
-    color: #ddd;
+      .signup {
+        color: var(--txt-primary);
+        text-decoration: none;
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
   }
 }
+
