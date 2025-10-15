@@ -1,0 +1,40 @@
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  padding: 16px 3vw 8px 3vw;
+  justify-content: space-between;
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    text-decoration: none;
+    img {
+      width: 96px;
+      height: auto;
+    }
+
+    .logo-text {
+      color: white;
+      font-size: 32px;
+    }
+  }
+
+  .profile {
+      text-decoration: none;
+      color: white;
+      align-items: center;
+      display: flex;
+      gap: 16px;
+      font-size: 18px;
+      font-weight: 600;
+
+      img {
+          height:48px;
+          width: auto;
+      }
+  }
+}
