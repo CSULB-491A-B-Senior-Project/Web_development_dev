@@ -1,0 +1,10 @@
+.page-wrapper {
+  display: flex;
+  padding: 32px 64px 32px 64px;
+}
+
+.cards {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
