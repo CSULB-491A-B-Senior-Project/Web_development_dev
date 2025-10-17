@@ -25,6 +25,19 @@
 
         <h1>About me section</h1>
         <p>Share a short bio to let others know who you are.</p>
+        <form (ngSubmit)="onSubmit()">
+            <!-- <label for="editable"></label> -->
+            <textarea
+                id="editable"
+                [formControl]="editableText"
+                rows="5"
+                placeholder="Type something..."
+            ></textarea>
+
+            <button type="submit">Submit</button>
+        </form>
+
+
 
         <h1>Edit favorite artists</h1>
         <p>Update your list of top artists to keep it fresh.</p>

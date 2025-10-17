@@ -11,5 +11,12 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink, ReactiveFormsModule]
 })
 export class SettingsProfileComponent {
+  editableText = new FormControl(''); // initial empty or default value
+
+  onSubmit() {
+    const submittedText = this.editableText.value;
+    this.editableText.setValue(submittedText); // reassigns the value (optional here)
+    // console.log('Submitted:', submittedText);
+  }
 
 }
