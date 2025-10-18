@@ -25,18 +25,20 @@
 
         <h1>About me section</h1>
         <p>Share a short bio to let others know who you are.</p>
-        <form (ngSubmit)="onSubmit()">
-            <!-- <label for="editable"></label> -->
-            <textarea
-                id="editable"
-                [formControl]="editableText"
-                rows="5"
-                placeholder="Type something..."
-            ></textarea>
-
+        <form (ngSubmit)="onSubmit()" class="bio-form">
+            <div class="textarea-wrapper">
+                <textarea
+                [(ngModel)]="text"
+                name="editableText"
+                maxlength="150"
+                rows="1"
+                class="expanding-textarea"
+                (input)="autoResize($event)"
+                ></textarea>
+                <small class="char-count">{{ text.length }}/150 characters</small>
+            </div>
             <button type="submit">Submit</button>
         </form>
-
 
 
         <h1>Edit favorite artists</h1>
