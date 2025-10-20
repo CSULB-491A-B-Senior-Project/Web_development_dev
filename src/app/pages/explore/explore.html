@@ -1,0 +1,15 @@
+<div class="page-wrapper">
+  <div class="cards">
+    <app-explore-card *ngFor="let it of items(); trackBy: trackById"
+                      [username]="it.username"
+                      [title]="it.title"
+                      [genres]="it.genres"
+                      [dateLabel]="it.dateLabel"
+                      [imageUrl]="it.imageUrl"
+                      [isArtist]="it.isArtist"
+                      [favorites]="it.favorites"
+                      [rating]="it.rating"
+                      [viewLink]="['/details', it.id]">
+    </app-explore-card>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+header {
+    margin: 30px;
+    img {
+        width: 80px;
+    }
+}
+.artist-container {
+    background-color: red;
+    color: white;
+    text-align: center;
+    margin-left: 50px;
+    margin-right: 50px;
+    height: 100%;
+
+}
+.artist-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin-right: 20px;
+    }
+    h1 {
+        font-size: 36px;
+        margin: 0;
+    }
+}
+.artist-bio {
+    background-color: #222222;
+    border-radius: 5px;
+    width: 25%;
+    float:left;
+    display: flex;
+
+}
+.artist-albums {
+    background: pink;
+    width: 70%;    
+    float: right;
+    display: flex;
+    // flex-wrap: wrap;
+    // justify-content: center;
+    // gap: 20px;
+}
+.album {
+    background-color: #222222;;
+    width: 200px;
+    height: 200px;
+    border-color: white;
+    border-width: 10px;
+    // box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    
+}
