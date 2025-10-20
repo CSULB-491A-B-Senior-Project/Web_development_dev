@@ -5,6 +5,7 @@
 
 .cards {
   display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 3 per row */
   gap: 12px;
   width: 100%;
 }
