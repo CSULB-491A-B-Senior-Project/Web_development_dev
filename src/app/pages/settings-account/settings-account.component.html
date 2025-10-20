@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="../../assets/crescendo-logo-no-text.png">
+    <link rel="icon" type="image/x-icon" href="././assets/crescendo-logo-no-text.png">
     <title>&lt;crescendo&gt;</title>
 </head>
 <body>
     <div class="settings-sidebar">
-        <img src="../../assets/crescendo-logo-no-text.png"/>
+        <a routerLink="/main-page"><img src="././assets/crescendo-logo-no-text.png"/></a>
         <h1>Settings</h1>
+        <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
         <h2 class="active">Account</h2>
-        <h2>Profile</h2>
         <h2 style="color:rgb(206, 0, 0)">Delete Account</h2>
     </div>
 
@@ -24,41 +24,38 @@
 
         <!-- Form to change user information -->
         <h1>Edit personal info</h1>
-        <form>
-            <label><strong>New first name</strong><input type="text" [formControl]="newFirstName" name="firstName"/></label>
-            <label><strong>New last name</strong><input type="text" [formControl]="newLastName" name="lastName"/></label>
-            <label><strong>New email</strong><input type="email" [formControl]="newEmail" name="email"/></label>
-            <label><strong>New username</strong><input type="text" [formControl]="newUsername" name="username"/></label>
+        <form [formGroup]="accountForm" (ngSubmit)="updateUserProfile()">
+            <label><strong>New first name</strong>
+                <input type="text" [formControlName]="firstName" name="newFirstName"/></label>
+            <label><strong>New last name</strong>
+                <input type="text" [formControlName]="lastName" name="newLastName"/></label>
+            <label><strong>New email</strong>
+                <input type="email" [formControlName]="email" name="newEmail"/></label>
+            <label><strong>New username</strong>
+                <input type="text" [formControlName]="username" name="newUsername"/></label>
         </form>
-        <button [class.disabled]="newFirstName.invalid" (click)="updateUserProfile()">Update</button>
+        <button type="submit" [disabled]="accountForm.invalid">Update</button>
+
+        <div class="error" [hidden]="!atLeastOneRequiredError">
+    Please fill at least one field.</div>
 
         <h1>Change password</h1>
         <p>Changing your password description, reqs, etc.</p>
-        <form>
+        <!-- <form>
             <label><strong>Old password</strong><input type="password" [formControl]="oldPassword" name="oldPassword"/></label>
             <label><strong>New password</strong><input type="password" [formControl]="newPassword" name="newPassword"/></label>
             <label><strong>Confirm new password</strong><input type="password" [formControl]="confirmNewPassword" name="confirmNewPassword"/></label>
         </form>
-        <button [class.disabled]="newFirstName.invalid">Update</button>
+        <button type="submit" [disabled]="accountForm.invalid">Update</button> -->
 
         <br>
-        <div>{{ newFirstName.value }}</div>
+        <!-- <div>{{ newFirstName.value }}</div>
         <div>{{ newLastName.value }}</div>
         <div>{{ newEmail.value }}</div>
         <div>{{ newUsername.value }}</div>
         <div>{{ oldPassword.value }}</div>
         <div>{{ newPassword.value }}</div>
-        <div>{{ confirmNewPassword.value }}</div>
-
-        <!-- <form #userForm="ngForm">
-            <input type="text" name="firstName" placeholder="First Name" [(ngModel)]="firstName" />
-            <input type="text" name="lastName" placeholder="Last Name" [(ngModel)]="lastName" />
-            <input type="email" name="email" placeholder="Email" [(ngModel)]="email" />
-            <input type="text" name="username" placeholder="Username" [(ngModel)]="username" />
-            <input type="password" name="oldPassword" placeholder="Old Password" [(ngModel)]="oldPassword" />
-            <input type="password" name="newPassword" placeholder="New Password" [(ngModel)]="newPassword" />
-            <input type="password" name="confirmNewPassword" placeholder="Confirm New Password" [(ngModel)]="confirmNewPassword" />
-        </form> -->
+        <div>{{ confirmNewPassword.value }}</div> -->
 
     </div>
 </body>
