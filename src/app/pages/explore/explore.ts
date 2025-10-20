@@ -44,7 +44,40 @@ export class Explore {
       isArtist: false,
       favorites: 24500,
       rating: 4.2
-    }
+    },
+    {
+      id: 3,
+      username: 'another_user',
+      title: 'Another Title 1',
+      genres: ['ambient', 'electronic', 'metal'],
+      dateLabel: '2d',
+      imageUrl: 'https://picsum.photos/seed/card-3/600/600',
+      isArtist: true,
+      favorites: 1231231,
+      rating: 5.0
+    },
+    {
+      id: 4,
+      username: 'another_user 123',
+      title: 'Another Title 3',
+      genres: ['rap'],
+      dateLabel: '1w',
+      imageUrl: 'https://picsum.photos/seed/card-4/600/600',
+      isArtist: false,
+      favorites: 24,
+      rating: 3.0
+    },
+    {
+      id: 5,
+      username: 'another_use12r',
+      title: 'Another T13itle',
+      genres: ['ambient', 'edm'],
+      dateLabel: '11w',
+      imageUrl: 'https://picsum.photos/seed/card-5/600/600',
+      isArtist: true,
+      favorites: 1299,
+      rating: 1.2
+    },
   ]);
 
   trackById = (_: number, it: Item) => it.id;
