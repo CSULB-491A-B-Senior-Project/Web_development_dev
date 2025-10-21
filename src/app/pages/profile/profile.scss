@@ -139,11 +139,16 @@
   margin: 0;
   display: grid;
   gap: 10px;
-}
 
-.fav-artists a {
-  color: var(--txt-secondary);
-  text-decoration: none;
+  a {
+    color: var(--txt-secondary);
+    text-decoration: none;
+    transition: color 0.05s ease;
+
+    &:hover {
+      color: var(--txt-primary);
+    }
+  }
 }
 
 /* Albums */
