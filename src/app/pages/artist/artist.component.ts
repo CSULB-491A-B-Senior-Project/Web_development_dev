@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
     selector: 'app-artist',
     templateUrl: './artist.component.html',
     styleUrls: ['./artist.component.scss'],
-    imports: [RouterLink]
+    imports: [ RouterLink ]
 })
 export class ArtistComponent {
 
