@@ -12,7 +12,6 @@ import { RouterLink } from '@angular/router';
 })
 export class SettingsProfileComponent {
   editableText = new FormControl('');
-
   text: string = '';
 
   // auto resizing the box to fit the text
@@ -27,4 +26,27 @@ export class SettingsProfileComponent {
     this.editableText.setValue(submittedText); // reassigns the value (optional here)
   }
 
+  selectedFile: File | null = null;
+  selectedFileName: string = '';
+  maxFileSizeMB = 3;
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+
+      if (fileSizeMB > this.maxFileSizeMB) {
+        console.warn(`File too large: ${fileSizeMB.toFixed(2)} MB`);
+        alert(`File must be smaller than ${this.maxFileSizeMB} MB.`);
+        return;
+      }
+
+      this.selectedFile = file;
+      this.selectedFileName = input.files[0].name;
+    }
+    else {
+      this.selectedFileName = '';
+    }
+  }
 }
