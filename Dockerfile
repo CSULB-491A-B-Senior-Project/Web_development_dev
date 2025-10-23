@@ -16,14 +16,21 @@ COPY . .
 # Build the application for production
 RUN npm run build -- --configuration production
 
-# Stage 2: Serve the application with NGINX
-FROM nginx:1.29-alpine-slim
+#debug
+RUN ls -la /app/dist
+
+# Stage 2: Serve with NGINX
+FROM nginx:alpine
 
 # Copy the built application from the build stage
-COPY --from=build /app/dist/browser /usr/share/nginx/html
+COPY --from=build /app/dist/crescendo/browser /usr/share/nginx/html
+
+COPY redirect.js /etc/nginx/njs/redirect.js
 
 # Copy the NGINX configuration file
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/nginx.conf
+
+
 
 # Expose port 80
 EXPOSE 80
