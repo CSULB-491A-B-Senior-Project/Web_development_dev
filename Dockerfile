@@ -25,10 +25,10 @@ FROM nginx:alpine
 # Copy the built application from the build stage
 COPY --from=build /app/dist/crescendo/browser /usr/share/nginx/html
 
-COPY redirect.js /etc/nginx/njs/redirect.js
+# COPY redirect.js /etc/nginx/njs/redirect.js
 
 # Copy the NGINX configuration file
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 
 
