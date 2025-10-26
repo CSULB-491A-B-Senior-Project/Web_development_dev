@@ -1,1 +1,65 @@
-<p>album-details works!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="././assets/crescendo-logo-no-text.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>&lt;crescendo&gt | Album Details;</title>
+</head>
+<body>
+    <header>
+        <img src="././assets/crescendo-logo-no-text.png" alt="crescendo logo" class="logo">
+    </header>
+    <div class="settings-sidebar">
+    <!-- Optional sidebar content -->
+    </div>
+
+    <main class="settings-container album-review-container">
+        <section class="album-header">
+            <div class="album-artwork" aria-label="Album artwork"></div>
+                <div class="album-details">
+                <header>
+                    <h1>
+                    Album Name
+                    <span class="year">Year</span>
+                    </h1>
+                    <h3>Artists Names</h3>
+                    <div class="star-rating" aria-label="5-star rating">★★★★★</div>
+                </header>
+            </div>
+        </section>
+
+        <section class="tracklist">
+            <h3>Tracklist</h3>
+            <ul>
+            <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
+            <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
+            <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
+            <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
+            <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
+            <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
+            </ul>
+        </section>
+
+        <section class="comment-section">
+            <button class="add-comment-button">Add Comment</button>
+
+            <div class="comments">
+            <article class="comment">
+                <p class="username">username</p>
+                <p class="comment-text">comment text</p>
+                <div class="comment-meta">
+                    1 • 1<i class="fa-solid fa-thumbs-up"></i> • 1<i class="fa-solid fa-thumbs-down"></i> • Reply
+                </div>
+            </article>
+
+            <article class="comment">
+                <p class="username">username</p>
+                <p class="comment-text">comment text</p>
+                <div class="comment-meta">1w • 1<i class="fa-solid fa-thumbs-up"></i> • Reply</div>
+            </article>
+            </div>
+        </section>
+    </main>
+</body>

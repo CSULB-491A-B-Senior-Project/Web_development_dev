@@ -14,7 +14,7 @@ export const routes: Routes = [
   { path: 'signup', component: Signup }, //signup page
   { path: 'main-page', component: MainPageComponent } ,//main-page
   { path: 'artist', component: ArtistComponent }, //artist page
-  { path: 'album', component: AlbumDetailsComponent}, // album-details page
+  { path: 'album-details', component: AlbumDetailsComponent}, // album-details page
   { path: 'settings-account', component: SettingsAccountComponent }, //settings-accounts page
   { path: 'signup', component: Signup },
   {
