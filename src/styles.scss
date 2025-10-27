@@ -1,3 +1,5 @@
+// var(--xxxx)
+
 :root {
   --input-border: #2a2a2f;
   --btn-primary: #D0B0FF;
@@ -20,3 +22,14 @@ html, body {
 *, *::before, *::after {
     box-sizing: inherit;
 }
+
+// primary button style
+button {
+  background: var(--btn-primary);
+  color: black;
+  border: 0;
+  padding: .35rem .8rem;
+  font-weight: 700;
+  border-radius: 9px;
+  cursor: pointer;
+        }

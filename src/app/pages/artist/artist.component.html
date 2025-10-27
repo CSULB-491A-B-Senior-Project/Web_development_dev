@@ -8,42 +8,49 @@
 </head>
 <body>
     <header>
-        <img src="././assets/crescendo-logo-no-text.png" alt="crescendo logo" class="logo">
+        <a routerLink="/explore-page"><img src="././assets/crescendo-logo-no-text.png" alt="crescendo logo" class="logo"></a>
     </header>
     <div class="artist-container">
+        <!--ARTIST HEADER-->
         <div class="artist-header">
             <img src="././assets/profile.png" alt="artist avatar">
-            <h1 class="name">Artist Name</h1>
+            <div class="artist-info">
+                <h1 class="name">Artist Name</h1>
+                <p># of followers</p>
+            </div>
             <button>Follow</button>
-            <h2># of followers</h2>
         </div>
-        <div class="artist-bio">
-            <p>About the artist. blah blah blah.</p>
-        </div>
-        <div class="artist-albums">
-            <h2>Albums</h2>
-            <div class="album-grid">
-                <div class="album">
-                    <img src="" alt="album cover">
-                    <h3>Album Title</h3>
-                    <p>Release Date</p>
-                </div>
-                <div class="album">
-                    <img src="" alt="album cover">
-                    <h3>Album Title</h3>
-                    <p>Release Date</p>
-                </div>
-                <div class="album">
-                    <img src="" alt="album cover">
-                    <h3>Album Title</h3>
-                    <p>Release Date</p>
+        
+        <!--ARTIST BODY-->
+        <div class="artist-body">
+            <!--ARTIST BIO-->
+            <div class="bio-container">
+                <p>About the artist. blah blah blah.</p>
+            </div>
+            <div class="album-container">
+                <h3>Sort (chip style?)</h3>
+                <div class="album-grid">
+                    <div class="album">
+                        <img src="https://picsum.photos/seed/card-4/200/" alt="album cover">
+                        <strong>Album Title</strong>
+                        <p>Release Date</p>
+                    </div>
+                    <div class="album">
+                        <!-- <img src="" alt="album cover">
+                        <h3>Album Title</h3>
+                        <p>Release Date</p> -->
+                    </div>
+                    <app-album-card *ngFor="let it of items(); trackBy: trackById"
+                        [title]="it.title"
+                        [genres]="it.genres"
+                        [dateLabel]="it.dateLabel"
+                        [imageUrl]="it.imageUrl">
+                    </app-album-card>
+                    
                 </div>
             </div>
         </div>
     </div>
 <br><br><br>
-    <footer>
-        <p>&copy; 2024 &lt;crescendo&gt;. All rights reserved.</p>
-    </footer>
 </body>
 </html>

@@ -26,14 +26,6 @@
     align-items: center;
     min-height: 28px;
 
-    .username-follow {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-
-        .username {
-            opacity: .9;
-        }
 
         // .follow {
         //     background: var(--btn-primary);
@@ -44,7 +36,6 @@
         //     border-radius: 10px;
         //     cursor: pointer;
         // }
-    }
 
     .date {
         color: var(--txt-primary);
@@ -119,12 +110,7 @@
         }
     }
 
-    .view-more {
-        margin-left: auto;
-        color: var(--txt-primary);
-        font-weight: 700;
-        text-decoration: none;
-    }
+    
 }
 
 /* mobile: stack image on top */
