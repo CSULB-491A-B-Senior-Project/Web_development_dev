@@ -28,7 +28,7 @@
                 <p>About the artist. blah blah blah.</p>
             </div>
             <div class="album-container">
-
+                <!--SORT MENU-->
                 <div class="sort">
                     <h4>SORT BY</h4>
                     <div class="genres">
@@ -37,8 +37,9 @@
                         <p class="chip more">Clear Filter</p>
                     </div>
                 </div>
-                
+                <!--ALBUM GRID-->
                 <div class="album-grid">
+                    <!--INDIVIDUAL ALBUM-->
                     <div class="album">
                         <img src="https://picsum.photos/seed/card-4/200/" alt="album cover">
                         <strong>Album Title</strong>
@@ -49,13 +50,13 @@
                         <h3>Album Title</h3>
                         <p>Release Date</p> -->
                     </div>
+                    <!--ALBUM CARD TEMPLATE-->
                     <app-album-card *ngFor="let it of items(); trackBy: trackById"
                         [title]="it.title"
                         [genres]="it.genres"
                         [dateLabel]="it.dateLabel"
                         [imageUrl]="it.imageUrl">
                     </app-album-card>
-                    
                 </div>
             </div>
         </div>
