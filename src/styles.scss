@@ -32,4 +32,27 @@ button {
   font-weight: 700;
   border-radius: 9px;
   cursor: pointer;
-        }
+}
+
+/* genre chips */
+.genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-top: .25rem;
+    min-height: 22px;
+}
+
+.chip {
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    background: rgba(167,139,250,.15);
+    color: var(--txt-primary);
+    font-size: .85rem;
+    white-space: nowrap;
+}
+
+.chip.more {
+    background: transparent;
+    border: 1px dashed rgba(167,139,250,.45);
+}

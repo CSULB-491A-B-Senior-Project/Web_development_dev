@@ -12,7 +12,7 @@ header {
 }
 
 .artist-header {
-    margin: 20px 50px 20px 50px;
+    margin: 20px 50px 0px 50px;
     align-items: center;
     flex-wrap: wrap;
     display: flex;
@@ -32,7 +32,6 @@ header {
     }
     p {
         font-size: 20px;
-        // align-self: center;
     }
     .artist-info {
         display: flex;
@@ -61,9 +60,18 @@ header {
     width: 25%;
     float:left;
     padding: 20px;
+    margin-top: 50px;
 }
+.sort {
+    display: flex;
+    justify-content: right;
+    h4 {
+        margin-bottom: 0px;
+        padding-right: 10px;
+    }
+}
+
 .album-container {
-    // background: pink;
     width: 73%;
     float: right;
     padding-left: 13px;

@@ -15,34 +15,6 @@
     margin: 0 auto;
 }
 
-.row {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-}
-
-.header {
-    justify-content: space-between;
-    align-items: center;
-    min-height: 28px;
-
-
-        // .follow {
-        //     background: var(--btn-primary);
-        //     color: black;
-        //     border: 0;
-        //     padding: .35rem .8rem;
-        //     font-weight: 700;
-        //     border-radius: 10px;
-        //     cursor: pointer;
-        // }
-
-    .date {
-        color: var(--txt-primary);
-        white-space: nowrap;
-    }
-}
-
 .thumb {
     width: min(100%, var(--image-size));
     aspect-ratio: 1/1;
@@ -92,25 +64,6 @@
 .chip.more {
     background: transparent;
     border: 1px dashed rgba(167,139,250,.45);
-}
-
-.meta {
-    margin-top: .75rem;
-    gap: 1.25rem;
-
-    .item {
-        display: inline-flex;
-        align-items: center;
-        gap: .4rem;
-
-        svg {
-            width: 20px;
-            height: 20px;
-            fill: var(--txt-primary);
-        }
-    }
-
-    
 }
 
 /* mobile: stack image on top */
