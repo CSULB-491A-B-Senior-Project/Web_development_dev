@@ -33,5 +33,9 @@ export const routes: Routes = [
   },
   { path: 'settings-profile', component: SettingsProfileComponent }, //settings-profile page
   { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent) },
+  {
+    path: 'lists/new',
+    loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
+  },
 ];
 export class AppRoutingModule { }
