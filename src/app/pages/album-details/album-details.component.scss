@@ -88,6 +88,16 @@ header {
 
         &:hover {
           background-color: #1a1a1a;
+
+          .duration {
+            color: #b78cff;
+            font-size: 0.95rem;
+          }
+
+          .track-name {
+            color: #b78cff;
+            font-weight: 500;
+          }
         }
 
         .track-name {
@@ -155,7 +165,7 @@ header {
         transition: color 0.2s ease;
 
             &:hover {
-                color: #b78cff;
+              color: #b78cff;
             }
         }
       }
