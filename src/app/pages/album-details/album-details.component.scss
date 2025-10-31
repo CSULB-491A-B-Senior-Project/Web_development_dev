@@ -144,9 +144,9 @@ header {
         background-color: var(--btn-hover);
       }
 
-      &:focus {
-        background-color: #ff495d;
-      }
+      // &:focus {
+      //   background-color: #ff495d;
+      // }
     }
 
     .comments {
@@ -175,10 +175,10 @@ header {
         }
 
         .comment-meta i {
-        margin: 0 0.3rem;
-        cursor: pointer;
-        color: #aaa;
-        transition: color 0.2s ease;
+          margin: 0 0.3rem;
+          cursor: pointer;
+          color: #aaa;
+          transition: color 0.2s ease;
 
             &:hover {
               color: var(--txt-primary);

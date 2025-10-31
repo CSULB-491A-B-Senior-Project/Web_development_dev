@@ -73,8 +73,8 @@ body {
 
   button {
     align-self: flex-end;
-    background-color: #b78cff;
-    color: white;
+    background-color: var(--btn-primary);
+    color: black;
     width: 100px;
     height: 40px;
     border: none;
@@ -84,11 +84,7 @@ body {
     margin-top: 5px;
 
     &:not(.disabled):hover {
-      opacity: 0.7;
-    }
-
-    &:not(.disabled):focus {
-      background-color: #ff495d;
+      background-color: var(--btn-hover);
     }
 
     &.disabled {
@@ -140,8 +136,8 @@ body {
   gap: 0.5rem;
 
   .custom-upload-button {
-    background-color: #b78cff;
-    color: white;
+    background-color: var(--btn-primary);;
+    color: black;
     padding: 0.6em 1.2em;
     border-radius: 5px;
     font-size: 1rem;
@@ -151,11 +147,7 @@ body {
     transition: opacity 0.2s ease;
 
     &:not(.disabled):hover {
-      opacity: 0.7;
-    }
-
-    &:not(.disabled):focus {
-      background-color: #ff495d;
+      background-color: var(--btn-hover);
     }
 
     &.disabled {
