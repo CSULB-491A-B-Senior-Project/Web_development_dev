@@ -58,11 +58,23 @@ header {
         font-size: 1.2rem;
         font-weight: 600;
         margin-bottom: 2rem;
+
+        &.artist-names {
+          color: white;
+          // font-weight: 400;
+          // margin-left: 0.5rem;
+          cursor: pointer;
+          transition: color 160ms ease-in-out;
+
+          &:hover {
+            color: var(--txt-primary);
+          }
+        } 
       }
 
       .star-rating {
         font-size: 1.4rem;
-        color: #b78cff;
+        color: var(--txt-primary);
         letter-spacing: 0.1rem;
       }
     }
@@ -90,12 +102,12 @@ header {
           background-color: #1a1a1a;
 
           .duration {
-            color: #b78cff;
+            color: var(--txt-secondary);
             font-size: 0.95rem;
           }
 
           .track-name {
-            color: #b78cff;
+            color: var(--txt-primary);
             font-weight: 500;
           }
         }
@@ -118,8 +130,8 @@ header {
     gap: 1.5rem;
 
     .add-comment-button {
-      background-color: #b78cff;
-      color: white;
+      background-color: var(--btn-primary);
+      color: black;
       width: 150px;
       height: 40px;
       border: none;
@@ -129,7 +141,7 @@ header {
       align-self: flex-start;
 
       &:hover {
-        opacity: 0.7;
+        background-color: var(--btn-hover);
       }
 
       &:focus {
@@ -151,6 +163,10 @@ header {
         .username {
           font-weight: 600;
           margin-bottom: 0.3rem;
+
+          &:hover {
+            color: var(--txt-primary);
+          }
         }
 
         .comment-text {
@@ -165,7 +181,7 @@ header {
         transition: color 0.2s ease;
 
             &:hover {
-              color: #b78cff;
+              color: var(--txt-primary);
             }
         }
       }

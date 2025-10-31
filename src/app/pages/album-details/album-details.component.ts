@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
   selector: 'app-album-details',
   imports: [RouterLink],
   templateUrl: './album-details.component.html',
-  styleUrl: './album-details.component.scss'
+  styleUrls: ['./album-details.component.scss']
 })
 export class AlbumDetailsComponent {
 
