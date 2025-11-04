@@ -33,29 +33,27 @@
             <button class="add-comment-button" type="button" (click)="openCommentModal()">Add Comment</button>
  
             <div class="comments">
-              <article class="comment" *ngFor="let c of comments()">
-                <p class="username">{{ c.author || 'username' }}</p>
-                <p class="comment-text">{{ c.text }}</p>
-                <div class="comment-meta">
-                  {{ c.createdAt | date:'short' }} • Reply
-                </div>
-              </article>
-            </div>
+                <article class="comment" *ngFor="let c of comments()">
+                    <p class="username">{{ c.author || 'username' }}</p>
+                    <p class="comment-text">{{ c.text }}</p>
+                    <div class="comment-meta">
+                    {{ c.createdAt | date:'short' }} • Reply
+                    </div>
+                </article>
 
-            <div class="comments">
-            <article class="comment">
-                <p class="username">username</p>
-                <p class="comment-text">comment text</p>
-                <div class="comment-meta">
-                    1d • 1<i class="fa-solid fa-thumbs-up"></i> • 1<i class="fa-solid fa-thumbs-down"></i> • Reply
-                </div>
-            </article>
- 
-            <article class="comment">
-                 <p class="username">username</p>
-                 <p class="comment-text">comment text</p>
-                 <div class="comment-meta">1w • 1<i class="fa-solid fa-thumbs-up"></i> • Reply</div>
-            </article>
+                <article class="comment">
+                    <p class="username">username</p>
+                    <p class="comment-text">comment text</p>
+                    <div class="comment-meta">
+                        1d • 1<i class="fa-solid fa-thumbs-up"></i> • 1<i class="fa-solid fa-thumbs-down"></i> • Reply
+                    </div>
+                </article>
+
+                <article class="comment">
+                    <p class="username">username</p>
+                    <p class="comment-text">comment text</p>
+                    <div class="comment-meta">1w • 1<i class="fa-solid fa-thumbs-up"></i> • Reply</div>
+                </article>
             </div>
          </section>
 
