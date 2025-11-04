@@ -136,17 +136,13 @@ header {
       height: 40px;
       border: none;
       border-radius: 5px;
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: 600;
       align-self: flex-start;
 
       &:hover {
         background-color: var(--btn-hover);
       }
-
-      // &:focus {
-      //   background-color: #ff495d;
-      // }
     }
 
     .comments {
@@ -204,5 +200,78 @@ header {
       align-items: center;
       gap: 0.3rem;
     }
+  }
+  
+  /* Modal styles */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.6);
+    z-index: 60;
+    padding: 1rem;
+  }
+
+  .modal {
+    background: #0f0f0f;
+    color: #fff;
+    padding: 1.25rem;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 640px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    outline: none;
+  }
+
+  .modal label {
+    display: block;
+    margin-top: 0.75rem;
+  }
+
+  .modal input,
+  .modal textarea {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #333;
+    padding: 0.5rem;
+    color: #fff;
+    border-radius: 6px;
+    margin-top: 0.25rem;
+  }
+
+  .modal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .btn {
+    background: #b78cff;
+    color: #000;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+  }
+
+  .btn.primary {
+    background: #9a5fff;
+    color: #fff;
+  }
+
+  .error {
+    color: #ffb3c1;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+
+  textarea,
+  input,
+  button,
+  select {
+    font: inherit;           
+    color: inherit;
   }
 }
