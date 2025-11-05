@@ -27,22 +27,6 @@
 
   input {
     width: 30%;
-    color: var(--text);
-    background: #1f1f1f;
-    border: 1px solid var(--input-border);
-    border-radius: 4px;
-    padding: 12px 12px;
-    transition: border-color .15s ease, box-shadow .15s ease;
-
-    &::placeholder {
-      color: #696d76;
-    }
-
-    &:focus {
-      outline: none;
-      border-color: #3a3a44;
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
-    }
   }
 
   .profile {
