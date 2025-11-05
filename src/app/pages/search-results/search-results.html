@@ -1,0 +1,92 @@
+<div class="page-wrapper">
+  <!-- Top bar -->
+  <header class="toolbar">
+    <nav class="tabs" role="tablist">
+      <button [class.active]="tab() === 'all'" (click)="setTab('all')">All</button>
+      <button [class.active]="tab() === 'users'" (click)="setTab('users')">Users</button>
+      <button [class.active]="tab() === 'albums'" (click)="setTab('albums')">Albums</button>
+      <button [class.active]="tab() === 'reviews'" (click)="setTab('reviews')">Reviews</button>
+    </nav>
+
+    <div class="right-controls">
+      <select [(ngModel)]="sort">
+        <option value="relevance">Relevance</option>
+        <option value="recent">Recent</option>
+        <option value="popular">Most liked</option>
+        <option value="rating">Highest rated</option>
+      </select>
+
+      <div class="view-toggle" role="tablist" aria-label="View toggle">
+        <button [class.active]="view() === 'grid'" (click)="setView('grid')" aria-pressed="{{view() === 'grid'}}">Grid</button>
+        <button [class.active]="view() === 'list'" (click)="setView('list')" aria-pressed="{{view() === 'list'}}">List</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  
+
+  <div class="meta-row">
+    <span class="count">{{ resultCount() }} results</span>
+  </div>
+
+  <!-- Results: GRID (Instagram-like) -->
+  <div *ngIf="view() === 'grid'" class="cards">
+    <app-explore-card *ngFor="let it of filtered(); trackBy: trackById"
+                      [username]="it.username"
+                      [title]="it.title"
+                      [genres]="it.genres"
+                      [dateLabel]="it.dateLabel"
+                      [imageUrl]="it.imageUrl"
+                      [isArtist]="it.isArtist"
+                      [favorites]="it.favorites"
+                      [rating]="it.rating"
+                      [viewLink]="['/details', it.id]">
+    </app-explore-card>
+  </div>
+
+  <!-- Results: LIST (Letterboxd-like rows) -->
+  <ul *ngIf="view() === 'list'" class="list">
+    <li *ngFor="let it of filtered(); trackBy: trackById" class="row">
+      <a [routerLink]="['/details', it.id]" class="thumb">
+        <img [src]="it.imageUrl" [alt]="it.title" />
+      </a>
+      <div class="info">
+        <div class="top">
+          <a [routerLink]="['/details', it.id]" class="title">{{ it.title }}</a>
+          <span class="dot">•</span>
+          <a [routerLink]="['/profile', it.username]" class="user">@{{ it.username }}</a>
+          <span class="spacer"></span>
+          <span class="date">{{ it.dateLabel }}</span>
+        </div>
+        <div class="mid">
+          <span class="chips">
+            <span class="chip" *ngFor="let g of it.genres | slice:0:3">{{ g }}</span>
+          </span>
+        </div>
+        <div class="bottom">
+          <span class="metric">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s-6.7-4.2-9.3-7C-1 10.1 2.4 3 8 5.2 10 6 12 8 12 8s2-2 4-2.8C21.6 3 25 10.1 21.3 14c-2.6 2.8-9.3 7-9.3 7z" />
+            </svg>
+          </span>
+          {{ it.favorites | number }}
+        <span class="metric">
+          <!-- star -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 2l3 6 6.7 1-4.8 4.7 1.2 6.6L12 17l-6.1 3.3 1.2-6.6L2.3 9 9 8z" />
+          </svg>
+        </span>
+          {{ it.rating }}
+          <span class="type" [attr.data-type]="it.type">{{ it.type }}</span>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <!-- Empty state -->
+  <div class="empty" *ngIf="resultCount() === 0">
+    <img src="/assets/placeholder.png" alt="No results" />
+    <p>No results for “{{ query() }}”. Try different keywords.</p>
+  </div>
+</div>

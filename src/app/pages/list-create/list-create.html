@@ -1,0 +1,80 @@
+<div class="container">
+  <div class="header">
+    <h1 class="header-text">New List</h1>
+    <button type="button" class="button-save" (click)="submit()">Save List</button>
+  </div>
+  <hr class="divider" />
+
+
+  <div class="list-form">
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="input-container">
+        <div class="list-info">
+          <div class="name-and-search">
+            <div class="form-group">
+              <label for="listName" class="input-label">List Name</label>
+              <input id="listName" class="form-control" type="text" formControlName="listName" placeholder="My Favorite Albums" />
+              <small class="error" *ngIf="form.get('listName')?.touched && form.get('listName')?.invalid">Required</small>
+            </div>
+
+
+            <div class="form-group">
+              <label for="albumSearch" class="input-label">Add Albums</label>
+              <input
+                      id="albumSearch"
+                      class="form-control"
+                      type="text"
+                      [formControl]="albumSearch"
+                      (input)="onSearchInput($any($event.target).value)"
+                      placeholder="Search for albums..."
+                />
+
+
+              <ul class="list-group" *ngIf="showResults && results.length">
+                <li class="list-group-item" *ngFor="let album of results" (click)="addAlbum(album)">
+                  <img [src]="album.albumCover" class="item-image" alt="cover" />
+                  <div class="item-meta">
+                    <span class="item-title">{{ album.name }}</span>
+                    <span class="item-sub">{{ album.releaseYear }} • {{ album.artist.artistName }}</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+
+          <div class="list-description">
+            <div class="form-group">
+              <label for="description" class="input-label">Description</label>
+<textarea id="description" class="form-control description" rows="4" formControlName="description" placeholder="Optional description..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="list-container" *ngIf="selected.length">
+        <div cdkDropList (cdkDropListDropped)="drop($event)" class="grid">
+          <div class="album-card"
+               *ngFor="let album of selected; let i = index"
+               cdkDrag
+               [cdkDragData]="album">
+            <div class="album-data">
+              <img class="album-cover" [src]="album.albumCover" alt="album cover" />
+              <div class="album-meta">
+                <div class="album-title">{{ album.name }}</div>
+                <div class="album-sub">
+                  {{ album.artist.artistName }} • {{ album.releaseYear }}
+                </div>
+                <label class="card-index">{{ i + 1 }}</label>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button type="button" class="icon danger" (click)="removeAlbum(album)" title="Remove">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
