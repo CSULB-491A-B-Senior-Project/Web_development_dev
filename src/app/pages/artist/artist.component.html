@@ -1,22 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="././assets/crescendo-logo-no-text.png">
     <title>&lt;crescendo&gt | Artist;</title>
 </head>
+<div class="page-wrapper">
 <body>
     <header>
-        <a routerLink="/explore-page"><img src="././assets/crescendo-logo-no-text.png" alt="crescendo logo" class="logo"></a>
+        <a routerLink="/explore"><img src="././assets/crescendo-logo-no-text.png" alt="crescendo logo" class="logo"></a>
     </header>
     <div class="artist-container">
         <!--ARTIST HEADER-->
         <div class="artist-header">
             <img src="././assets/profile.png" alt="artist avatar">
             <div class="artist-info">
-                <h1 class="name">Artist Name</h1>
-                <p># of followers</p>
+                <h1 class="name">{{ artist_1.name }}</h1>
+                <p><span style="color: var(--btn-primary);">{{ artist_1.followers }}</span> of followers</p>
             </div>
             <button>Follow</button>
         </div>
@@ -25,35 +24,24 @@
         <div class="artist-body">
             <!--ARTIST BIO-->
             <div class="bio-container">
-                <p>About the artist. blah blah blah.</p>
+                <p>{{ artist_1.bio }}</p>
             </div>
             <div class="album-container">
                 <!--SORT MENU-->
                 <div class="sort">
                     <h4>SORT BY</h4>
                     <div class="genres">
-                        <p class="chip">A to Z</p>
-                        <p class="chip">Date</p>
-                        <p class="chip more">Clear Filter</p>
+                        <button class="chip">A to Z</button>
+                        <button class="chip">Most Recent</button>
+                        <button class="chip">Oldest to Newest</button>
+                        <button class="chip more">Clear Filter</button>
                     </div>
                 </div>
                 <!--ALBUM GRID-->
                 <div class="album-grid">
-                    <!--INDIVIDUAL ALBUM-->
-                    <div class="album">
-                        <img src="https://picsum.photos/seed/card-4/200/" alt="album cover">
-                        <strong>Album Title</strong>
-                        <p>Release Date</p>
-                    </div>
-                    <div class="album">
-                        <!-- <img src="" alt="album cover">
-                        <h3>Album Title</h3>
-                        <p>Release Date</p> -->
-                    </div>
                     <!--ALBUM CARD TEMPLATE-->
-                    <app-album-card *ngFor="let it of items(); trackBy: trackById"
+                    <app-album-card *ngFor="let it of albums(); trackBy: trackById"
                         [title]="it.title"
-                        [genres]="it.genres"
                         [dateLabel]="it.dateLabel"
                         [imageUrl]="it.imageUrl">
                     </app-album-card>
@@ -61,6 +49,5 @@
             </div>
         </div>
     </div>
-<br><br><br>
 </body>
-</html>
+</div>

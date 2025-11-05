@@ -3,10 +3,18 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AlbumCard } from '../../ui/album-card/album-card';
 
-type Item = {
-    id: number;
+type artist = {
+    artistId: number;
+    name: string;
+    followers: number;
+    albums: string[];
+    bio: string;
+    profileUrl: string;
+};
+
+type Album = {
+    albumId: number;
     title: string;
-    genres: string[];
     dateLabel: string;
     imageUrl: string;
 };
@@ -17,43 +25,47 @@ type Item = {
     imports: [RouterLink, AlbumCard, CommonModule]
 })
 export class ArtistComponent {
-    items = signal<Item[]>([
+    artist_1 = {
+        artistId: 999,
+        name: 'Artist Name',
+        followers: 9999,
+        albums: ['Album 1', 'Album 2', 'Album 3'],
+        bio: 'This is a sample biography of the artist. It provides some background information and interesting facts about the artist\'s career and achievements. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+        profileUrl: 'https://picsum.photos/seed/artist-profile/600/600'
+    };
+
+    albums = signal<Album[]>([
     {
-        id: 1,
-        title: 'Title',
-        genres: ['hip-hop', 'lofi', 'indie', 'pop'],
-        dateLabel: 'Today',
+        albumId: 1,
+        title: 'Album A',
+        dateLabel: 'Oct. 20, 2025',
         imageUrl: 'https://picsum.photos/seed/card-1/600/600'
     },
     {
-        id: 2,
-        title: 'Title',
-        genres: ['ambient', 'electronic'],
-        dateLabel: 'Yesterday',
+        albumId: 2,
+        title: 'Album B',
+        dateLabel: 'Oct. 21, 2025',
         imageUrl: 'https://picsum.photos/seed/card-2/600/600'
     },
     {
-        id: 3,
-        title: 'Title',
-        genres: ['ambient', 'electronic', 'metal'],
-        dateLabel: '2d',
+        albumId: 3,
+        title: 'Album C',
+        dateLabel: 'Oct. 22, 2025',
         imageUrl: 'https://picsum.photos/seed/card-3/600/600'
     },
     {
-        id: 4,
-        title: 'Title',
-        genres: ['rap'],
-        dateLabel: '1w',
+        albumId: 4,
+        title: 'Album D',
+        dateLabel: 'Oct. 23, 2025',
         imageUrl: 'https://picsum.photos/seed/card-4/600/600'
     },
     {
-        id: 5,
-        title: 'Title',
-        genres: ['ambient', 'edm'],
-        dateLabel: '11w',
+        albumId: 5,
+        title: 'Album E',
+        dateLabel: 'Oct. 24, 2025',
         imageUrl: 'https://picsum.photos/seed/card-5/600/600'
     },
     ]);
 
-    trackById = (_: number, it: Item) => it.id;
+    trackById = (_: number, it: Album) => it.albumId;
 }
