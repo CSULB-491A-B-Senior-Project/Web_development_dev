@@ -1,0 +1,16 @@
+<div class="card">
+  <div class="thumb">
+    <img [src]="imageUrl()"
+          [alt]="title()"
+          (error)="usePlaceholder($event)" />
+  </div>
+
+  <div class="row title-line">
+    <h3 class="title">{{ title() }}</h3>
+  </div>
+
+  <div class="row meta">
+    <span class="date" *ngIf="dateLabel()">{{ dateLabel() }}</span>
+  </div>
+</div>
+
