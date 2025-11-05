@@ -29,6 +29,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/profile/profile')
           .then(m => m.ProfileComponent)
       },
+      {
+        path: 'search',
+        loadComponent: () =>
+          import('./pages/search-results/search-results').then(m => m.SearchResults)
+      },
     ]
   },
   { path: 'settings-profile', component: SettingsProfileComponent }, //settings-profile page
@@ -36,6 +41,11 @@ export const routes: Routes = [
   {
     path: 'lists/new',
     loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
+  },
+  {
+    path: 'search',
+    loadComponent: () =>
+      import('./pages/search-results/search-results').then(m => m.SearchResults)
   },
 ];
 export class AppRoutingModule { }

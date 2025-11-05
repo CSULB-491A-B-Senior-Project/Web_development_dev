@@ -1,0 +1,246 @@
+:host {
+  display: block;
+  color: var(--text);
+}
+
+.page-wrapper {
+  padding: 16px;
+}
+
+/* Toolbar */
+.toolbar {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .right-controls {
+    display: flex;
+    justify-content: end;
+    gap: 12px;
+    margin-left: 10vw;
+    align-items: center;
+    color: var(--txt-secondary);
+
+    select {
+        background: var(--border-color);
+      border: none;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 100vh;
+    }
+  }
+
+  .view-toggle {
+    background: var(--border-color);
+    border: none;
+    border-radius: 100vh;
+    padding: 4px;
+    display: grid;
+    grid-auto-flow: column;
+    gap: 4px;
+
+    button {
+      background: transparent;
+      color: var(--txt-secondary);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 100vh;
+      cursor: pointer;
+      transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
+    }
+
+    button.active {
+      background: var(--chip-selected);
+      color: var(--txt-primary);
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 6px;
+
+  button {
+    background: var(--border-color);
+    color: var(--txt-secondary);
+    padding: 6px 10px;
+    border-radius: 100vh;
+    border: 0px;
+    cursor: pointer;
+    transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
+  }
+
+  button.active {
+    background: var(--chip-selected);
+    color: var(--txt-primary);
+  }
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  color: white;
+}
+
+/* Grid cards – reuse ExploreCard grid */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+
+  app-explore-card {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 1200px) {
+  .cards app-explore-card {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 900px) {
+  .cards app-explore-card {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 600px) {
+  .cards app-explore-card {
+    grid-column: span 12;
+  }
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+
+  .row {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 12px;
+    align-items: center;
+    background: var(--border-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px;
+
+    .thumb {
+      display: block;
+      border-radius: 8px;
+      overflow: hidden;
+
+      img {
+        display: block;
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+      }
+    }
+
+    .info {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+
+      .top {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+
+        .title {
+          color: white;
+          text-decoration: none;
+          font-weight: bold;
+        }
+
+        .user {
+          color: var(--txt-primary);
+          text-decoration: none;
+        }
+
+        .date {
+          color: var(--muted);
+        }
+
+        .spacer {
+          flex: 1;
+        }
+      }
+
+      .mid .chip {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--chip-selected);
+        border: none;
+        color: var(--txt-primary);
+        margin-right: 6px;
+      }
+
+      .bottom {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+
+        .metric {
+          color: var(--txt-primary);
+          display: inline-flex;
+          align-items: center;
+
+          svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--txt-primary);
+          }
+        }
+
+        .type {
+          margin-left: auto;
+          padding: 2px 8px;
+          border-radius: 999px;
+          border: 1px solid var(--txt-primary);
+          text-transform: capitalize;
+        }
+
+        .type[data-type='album'] {
+          border-color: #3b82f6;
+        }
+
+        .type[data-type='album'] {
+          border-color: #3b82f6;
+        }
+
+        .type[data-type='review'] {
+          border-color: #f59e0b;
+        }
+      }
+    }
+  }
+}
+
+/* Empty */
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 0;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
+.empty img {
+  width: 128px;
+  height: 128px;
+  opacity: 0.3;
+}
