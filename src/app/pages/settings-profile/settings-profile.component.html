@@ -16,6 +16,50 @@
     </div>
 
     <div class="settings-container">
+        <!-- Display user profile settings -->
+        <h1>Customize background</h1>
+        <p>Upload a new image to personalize your profile background.</p>
+        <div class="file-upload-container">
+            <button type="button" class="custom-upload-button" (click)="fileInput.click()">
+                <span>Upload</span>
+                <input
+                #fileInput
+                type="file"
+                accept=".jpg,.png,.jpeg"
+                (change)="onFileSelected($event)"
+                style="display: none;"
+                />
+            </button>
+            <span class="file-name">{{ selectedFileName || 'No file selected' }}</span>
+        </div>
+
+
+        <h1>Select music</h1>
+        <p>Choose a track that reflects your vibe or mood.</p>
+
+        <h1>About me section</h1>
+        <p>Share a short bio to let others know who you are.</p>
+        <form (ngSubmit)="onSubmit()" class="bio-form">
+            <div class="textarea-wrapper">
+                <textarea
+                [(ngModel)]="text"
+                name="editableText"
+                maxlength="150"
+                rows="1"
+                class="expanding-textarea"
+                (input)="autoResize($event)"
+                ></textarea>
+                <small class="char-count">{{ text.length }}/150 characters</small>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+
+
+        <h1>Edit favorite artists</h1>
+        <p>Update your list of top artists to keep it fresh.</p>
+
+        <h1>Edit favorite albums</h1>  <!-- Playlists or albums ???-->
+        <p>Showcase the albums that shaped your sound and story.</p>
     </div>
 </body>
 </html>

@@ -6,14 +6,23 @@ body {
   overflow: auto;
 
   h1 {
-    font-size: 2.5rem;
-    font-weight: 600;
-    margin-top: 5rem;
-    margin-bottom: 2.8rem;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 5rem;
+  margin-bottom: 2.5rem;
   }
+
   h3 {
     font-weight: 600;
     margin-bottom: 1rem;
+  }
+
+  p {
+  font-size: 1.1rem;
+  margin-top: -2rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  max-width: 600px;
   }
 }
 
@@ -53,3 +62,113 @@ body {
   margin-left: 350px;
   padding: 10px 50px 50px 100px;
 }
+
+.bio-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+  max-width: 40rem;
+
+  button {
+    align-self: flex-end;
+    background-color: #b78cff;
+    color: white;
+    width: 100px;
+    height: 40px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 5px;
+
+    &:not(.disabled):hover {
+      opacity: 0.7;
+    }
+
+    &:not(.disabled):focus {
+      background-color: #ff495d;
+    }
+
+    &.disabled {
+      background: #aaa;
+    }
+  }
+}
+
+.textarea-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  .expanding-textarea {
+    width: 100%;
+    padding: 0.8em;
+    font-size: 1em;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: height 0.2s ease;
+
+    &:focus {
+      border-color: #c06eff;
+      background: #1f1f1f;
+      outline: none;
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
+    }
+  }
+
+  .char-count {
+    margin-top: 0.4em;
+    font-size: 0.85em;
+    color: #aaa;
+    align-self: flex-end; // aligns to the right within flex container
+  }
+}
+
+.file-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  .custom-upload-button {
+    background-color: #b78cff;
+    color: white;
+    padding: 0.6em 1.2em;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s ease;
+
+    &:not(.disabled):hover {
+      opacity: 0.7;
+    }
+
+    &:not(.disabled):focus {
+      background-color: #ff495d;
+    }
+
+    &.disabled {
+      background: #aaa;
+    }
+  }
+
+  .file-name {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-top: 0.3rem;
+  }
+}
+
+
+

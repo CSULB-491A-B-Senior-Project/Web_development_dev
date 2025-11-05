@@ -33,6 +33,16 @@ yarn-error.log
 !.vscode/extensions.json
 .history/*
 
+# Visual Studio and VSCode
+.vs/
+*.db
+*.sqlite
+*.testlog.json
+*.cache.json
+*.wsuo
+*.testlog
+*.manifest
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
