@@ -11,7 +11,6 @@ import { ProfileComponent } from './pages/profile/profile';
 export const routes: Routes = [
   { path: '', component: Home }, //default route
   { path: 'signup', component: Signup }, //signup page
-  { path: 'artist', component: ArtistComponent }, //artist page
   { path: 'settings-profile', component: SettingsProfileComponent }, //settings-profile page
   { path: 'settings-account', component: SettingsAccountComponent }, //settings-accounts page
   { path: 'explore-page', component: Explore }, //explore page
@@ -30,6 +29,10 @@ export const routes: Routes = [
           .then(m => m.ProfileComponent)
       },
       {
+        path: 'artist',
+        loadComponent: () => import('./pages/artist/artist.component')
+          .then(m => m.ArtistComponent)
+      }
         path: 'search',
         loadComponent: () =>
           import('./pages/search-results/search-results').then(m => m.SearchResults)
