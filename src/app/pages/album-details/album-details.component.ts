@@ -36,7 +36,6 @@ export class AlbumDetailsComponent {
   // derived count
   commentCount = computed(() => this.comments().length);
 
-  // NOTE: author removed from the form; only comment text is editable
   commentForm = this.fb.group({
     text: ['', [Validators.required, Validators.maxLength(1000)]],
   });
@@ -61,12 +60,20 @@ export class AlbumDetailsComponent {
 
     const newComment: CommentItem = {
       id: Date.now(),
-      author: this.username, // use placeholder username for display
+      author: this.username,
       text: (text ?? '').trim(),
       createdAt: new Date().toISOString(),
     };
 
     this.comments.update(prev => [...prev, newComment]);
     this.closeCommentModal();
+  }
+
+  text: string = '';
+
+  autoResize(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    textarea.style.height = 'auto'; // reset height
+    textarea.style.height = textarea.scrollHeight + 'px'; // set to scroll height
   }
 }

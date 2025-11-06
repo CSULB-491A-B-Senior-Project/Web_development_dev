@@ -68,12 +68,17 @@
             </div>
 
             <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
-              <!-- author input removed: user cannot edit name -->
               <label>
                 Comment
-                <textarea rows="4" formControlName="text" placeholder="Write your comment..."></textarea>
+                <textarea
+                formControlName="text"
+                maxlength="150"
+                rows="4"
+                class="expanding-textarea"
+                (input)="autoResize($event)"
+                ></textarea>
               </label>
-              <div class="error" *ngIf="commentForm.controls.text?.invalid && commentForm.controls.text?.touched">
+              <div class="error" *ngIf="commentForm.controls.text.invalid && commentForm.controls.text.touched">
                 Comment is required (max 1000).
               </div>
 
