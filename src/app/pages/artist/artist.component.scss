@@ -2,13 +2,6 @@
     padding-bottom: 300px;
 }
 
-// header {
-//     margin: 30px;
-//     img {
-//         width: 80px;
-//     }
-// }
-
 .artist-container {
     color: white;
     margin-left: 100px;
@@ -59,7 +52,7 @@
 }
 
 .bio-container {
-    background-color: #222222;
+    background-color: var(--border-color);
     border-radius: 5px;
     width: 25%;
     float:left;
@@ -92,30 +85,9 @@
     gap: 5px;
 }
 
-.album {
-    background-color: #222222;;
-    width: 200px;
-    height: 200px;
-    border-color: white;
-    border-width: 10px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    img {
-        padding-bottom: 10px;
-    }
-}
-
 .chip {
     font-size: 11px;
-    padding: 0px 10px px 10px;
-    height: 23px;
-    transition: transform .2s ease, background .2s;
     &:hover {
-        background: var(--btn-hover);
         color: white;
-    }
-    &:active {
-        transform: scale(0.97);
     }
 }

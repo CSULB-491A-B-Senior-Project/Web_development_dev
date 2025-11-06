@@ -32,7 +32,8 @@ export const routes: Routes = [
         path: 'artist',
         loadComponent: () => import('./pages/artist/artist.component')
           .then(m => m.ArtistComponent)
-      }
+      },
+      {
         path: 'search',
         loadComponent: () =>
           import('./pages/search-results/search-results').then(m => m.SearchResults)
