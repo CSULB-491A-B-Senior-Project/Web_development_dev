@@ -37,7 +37,36 @@
                     <p class="username">{{ c.author || 'username' }}</p>
                     <p class="comment-text">{{ c.text }}</p>
                     <div class="comment-meta">
-                    {{ c.createdAt | date:'short' }} • Reply
+                      {{ c.createdAt | date:'short' }}
+                      <button type="button" class="reply-button" (click)="openReply(c.id)" aria-expanded="{{ replyTargetId() === c.id }}">
+                        Reply
+                      </button>
+                    </div>
+
+                    <!-- existing replies -->
+                    <div class="replies" *ngIf="c.replies?.length">
+                      <article class="reply" *ngFor="let r of c.replies">
+                        <p class="username">{{ r.author || 'username' }}</p>
+                        <p class="comment-text">{{ r.text }}</p>
+                        <div class="comment-meta">{{ r.createdAt | date:'short' }}</div>
+                      </article>
+                    </div>
+
+                    <!-- reply form shown for this comment -->
+                    <div class="reply-form" *ngIf="replyTargetId() === c.id">
+                      <form [formGroup]="replyForm" (ngSubmit)="submitReply(c.id)">
+                        <label>
+                          Reply
+                          <textarea formControlName="text" maxlength="500" rows="3" class="expanding-textarea"></textarea>
+                        </label>
+                        <div class="error" *ngIf="replyForm.controls.text.invalid && replyForm.controls.text.touched">
+                          Reply is required (max 500).
+                        </div>
+                        <div class="modal-actions">
+                          <button type="button" class="btn" (click)="closeReply()">Cancel</button>
+                          <button type="submit" class="btn primary" [disabled]="replyForm.invalid">Submit</button>
+                        </div>
+                      </form>
                     </div>
                 </article>
 

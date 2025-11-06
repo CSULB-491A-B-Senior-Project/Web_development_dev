@@ -5,11 +5,19 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { NgOptimizedImage } from '@angular/common';
 
 interface CommentItem {
-  id: number;
+  id: string;
   author: string;
   text: string;
   createdAt: string;
+  replies?: Reply[];
 }
+interface Reply { 
+  id: string; 
+  author: string; 
+  text: string; 
+  createdAt: string; 
+}
+
 
 @Component({
   selector: 'app-album-details',
@@ -59,7 +67,7 @@ export class AlbumDetailsComponent {
     const { text } = this.commentForm.value as { text: string };
 
     const newComment: CommentItem = {
-      id: Date.now(),
+      id: this.cryptoRandomId(),
       author: this.username,
       text: (text ?? '').trim(),
       createdAt: new Date().toISOString(),
@@ -69,6 +77,49 @@ export class AlbumDetailsComponent {
     this.closeCommentModal();
   }
 
+  // which comment currently has the open reply form
+  replyTargetId = signal<string | null>(null);
+
+  // single form reused for replies
+  replyForm = this.fb.group({
+    text: ['', [Validators.required, Validators.maxLength(500)]]
+  });
+
+
+  openReply(commentId: string) {
+    this.replyForm.reset();
+    this.replyTargetId.set(commentId);
+    // optional: focus logic can be added if needed
+  }
+
+  closeReply() {
+    this.replyTargetId.set(null);
+    this.replyForm.reset();
+  }
+
+  submitReply(parentId: string): void {
+    if (this.replyForm.invalid) return;
+
+    // safe access to the control value without indexing into `controls`
+    const control = this.replyForm.get('text');
+    const raw = control?.value ?? '';
+    const text = String(raw).trim();
+    if (!text) return;
+
+    const newReply: Reply = {
+      id: this.cryptoRandomId(),
+      author: this.username,
+      text,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.comments.update(list =>
+      list.map(c => c.id === parentId ? { ...c, replies: [...(c.replies ?? []), newReply] } : c)
+    );
+
+    this.closeReply();
+  }
+
   text: string = '';
 
   autoResize(event: Event): void {
@@ -76,4 +127,12 @@ export class AlbumDetailsComponent {
     textarea.style.height = 'auto'; // reset height
     textarea.style.height = textarea.scrollHeight + 'px'; // set to scroll height
   }
+
+  // small helper — replace with UUID util or server id
+  private cryptoRandomId(): string {
+    return Math.random().toString(36).slice(2, 9);
+  }
 }
+
+
+
