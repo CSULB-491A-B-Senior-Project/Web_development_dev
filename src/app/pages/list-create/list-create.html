@@ -57,8 +57,8 @@
         <div cdkDropList (cdkDropListDropped)="drop($event)" class="grid">
           <div class="album-card"
                *ngFor="let album of selected; let i = index"
-               cdkDrag
-               [cdkDragData]="album">
+                cdkDrag
+                [cdkDragData]="album">
             <div class="album-data">
               <img class="album-cover" [src]="album.albumCover" alt="album cover" />
               <div class="album-meta">

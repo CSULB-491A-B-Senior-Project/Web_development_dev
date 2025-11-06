@@ -68,4 +68,27 @@ export class ArtistComponent {
     ]);
 
     trackById = (_: number, it: Album) => it.albumId;
+    
+    // 🔽 Sort alphabetically by title
+    sortByTitleAsc() {
+        const sorted = [...this.albums()].sort((a, b) => a.title.localeCompare(b.title));
+        this.albums.set(sorted);
+    }
+    sortByTitleDesc() {
+        const sorted = [...this.albums()].sort((a, b) => b.title.localeCompare(a.title));
+    this.albums.set(sorted);
+    }
+    // 🔽 Sort by date (using Date parsing)
+    sortByDateAsc() {
+        const sorted = [...this.albums()].sort(
+        (a, b) => new Date(a.dateLabel).getTime() - new Date(b.dateLabel).getTime()
+        );
+        this.albums.set(sorted);
+    }
+    sortByDateDesc() {
+        const sorted = [...this.albums()].sort(
+        (a, b) => new Date(b.dateLabel).getTime() - new Date(a.dateLabel).getTime()
+        );
+        this.albums.set(sorted);
+    }
 }
