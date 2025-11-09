@@ -7,7 +7,7 @@
         <h1>Settings</h1>
         <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
         <h2 class="active">Account</h2>
-        <h2 style="color:rgb(206, 0, 0)">Delete Account</h2>
+        <button class="delete">Delete Account</button>
     </div>
 
     <div class="settings-container">
@@ -19,38 +19,58 @@
 
         <!-- Form to change user information -->
         <h1>Edit personal info</h1>
+        <p>Fill in at least one to update your information.</p>
         <form [formGroup]="accountForm" (ngSubmit)="updateUserProfile()">
             <label><strong>New first name</strong>
-                <input type="text" [formControlName]="firstName" name="newFirstName"/></label>
+                <input type="text" formControlName="firstName" name="newFirstName"/></label>
             <label><strong>New last name</strong>
-                <input type="text" [formControlName]="lastName" name="newLastName"/></label>
+                <input type="text" formControlName="lastName" name="newLastName"/></label>
             <label><strong>New email</strong>
-                <input type="email" [formControlName]="email" name="newEmail"/></label>
+                <input type="email" formControlName="email" name="newEmail"/></label>
             <label><strong>New username</strong>
-                <input type="text" [formControlName]="username" name="newUsername"/></label>
+                <input type="text" formControlName="username" name="newUsername"/></label>
+            
+            <div *ngIf="atLeastOneRequiredError" class="error">
+                Please fill at least one field.</div>
+            <div *ngIf="accountForm.get('email')?.invalid && accountForm.get('email')?.touched" class="error">
+                Please enter a valid email address.</div>
+            <button type="submit" [disabled]="accountForm.invalid">Update</button>
         </form>
-        <button type="submit" [disabled]="accountForm.invalid">Update</button>
 
-        <div class="error" [hidden]="!atLeastOneRequiredError">
-    Please fill at least one field.</div>
-
+        <!-- Form to change user password -->
         <h1>Change password</h1>
         <p>Changing your password description, reqs, etc.</p>
-        <!-- <form>
-            <label><strong>Old password</strong><input type="password" [formControl]="oldPassword" name="oldPassword"/></label>
-            <label><strong>New password</strong><input type="password" [formControl]="newPassword" name="newPassword"/></label>
-            <label><strong>Confirm new password</strong><input type="password" [formControl]="confirmNewPassword" name="confirmNewPassword"/></label>
+        <form [formGroup]="passwordForm" (ngSubmit)="updateUserPassword()">
+            <label><strong>Old password</strong>
+                <input
+                    [type]="show ? 'text' : 'password'"
+                    formControlName="oldPassword"
+                    name="oldPassword"/></label>
+            <label><strong>New password</strong>
+                <input [type]="show ? 'text' : 'password'"
+                    formControlName="newPassword"
+                    name="newPassword"/></label>
+            <label><strong>Confirm new password</strong>
+                <input [type]="show ? 'text' : 'password'"
+                    formControlName="confirmNewPassword"
+                    name="confirmNewPassword"/></label>
+            
+            <div *ngIf="passwordMatchError" class="error">
+                Passwords do not match. Try again.</div>
+            <button type="submit" [disabled]="passwordForm.invalid">Update</button>
+            <button
+                type="button"
+                (click)="togglePasswordVisibility()"
+                class="toggle-btn"
+                aria-label="Show or hide password">
+                <img width="40px" [src]="show ? '/assets/hidepassword.png' : '/assets/showpassword.png'">
+            </button>
         </form>
-        <button type="submit" [disabled]="accountForm.invalid">Update</button> -->
 
         <br>
-        <!-- <div>{{ newFirstName.value }}</div>
-        <div>{{ newLastName.value }}</div>
-        <div>{{ newEmail.value }}</div>
-        <div>{{ newUsername.value }}</div>
-        <div>{{ oldPassword.value }}</div>
-        <div>{{ newPassword.value }}</div>
-        <div>{{ confirmNewPassword.value }}</div> -->
+        <div>{{ oldPassword }}</div>
+        <div>{{ newPassword }}</div>
+        <div>{{ confirmNewPassword }}</div>
 
     </div>
 </body>
