@@ -1,7 +1,4 @@
 body {
-  background-color: black;
-  width: 100vw;
-  height: 100vh;
   display: flex;
   overflow: auto;
 
@@ -25,7 +22,7 @@ body {
   top: 0;
   left: 0;
   padding: 30px 0px 0px 60px;
-  background-color: #222222;
+  background-color: #12101a;
   color: white;
 
   a {
@@ -111,7 +108,6 @@ button {
   color: white;
   width: 100px;
   height: 40px;
-  border: none;
   border-radius: 5px;
   font-size: 1rem;
   font-weight: 600;
@@ -122,10 +118,28 @@ button {
   }
 
   &:not(.disabled):focus {
-    background-color: #ff495d;
+    background-color: var(--chip-selected);
   }
 
-  &.disabled {
-    background: #aaa;
+  &:disabled {
+    background: var(--chip-selected);
   }
 } 
+
+.password-btns {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  img {
+    width: 30px;
+  }
+
+  &:not(.disabled):focus {
+    background-color: transparent;
+  }
+}

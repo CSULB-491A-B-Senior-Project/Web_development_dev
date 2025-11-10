@@ -34,7 +34,7 @@
                 Please fill at least one field.</div>
             <div *ngIf="accountForm.get('email')?.invalid && accountForm.get('email')?.touched" class="error">
                 Please enter a valid email address.</div>
-            <button type="submit" [disabled]="accountForm.invalid">Update</button>
+            <button type="submit" [disabled]="!accountForm.dirty">Update</button>
         </form>
 
         <!-- Form to change user password -->
@@ -42,8 +42,7 @@
         <p>Changing your password description, reqs, etc.</p>
         <form [formGroup]="passwordForm" (ngSubmit)="updateUserPassword()">
             <label><strong>Old password</strong>
-                <input
-                    [type]="show ? 'text' : 'password'"
+                <input [type]="show ? 'text' : 'password'"
                     formControlName="oldPassword"
                     name="oldPassword"/></label>
             <label><strong>New password</strong>
@@ -57,14 +56,16 @@
             
             <div *ngIf="passwordMatchError" class="error">
                 Passwords do not match. Try again.</div>
-            <button type="submit" [disabled]="passwordForm.invalid">Update</button>
-            <button
-                type="button"
-                (click)="togglePasswordVisibility()"
-                class="toggle-btn"
-                aria-label="Show or hide password">
-                <img width="40px" [src]="show ? '/assets/hidepassword.png' : '/assets/showpassword.png'">
-            </button>
+
+            <div class="password-btns">
+                <button type="submit" [disabled]="!passwordForm.dirty">Update</button>
+                <button
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    class="toggle-btn">
+                    <img [src]="show ? '/assets/hidepassword.png' : '/assets/showpassword.png'">
+                </button>
+            </div>
         </form>
 
         <br>

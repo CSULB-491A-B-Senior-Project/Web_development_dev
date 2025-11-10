@@ -92,7 +92,5 @@ export class SettingsAccountComponent {
 
   togglePasswordVisibility() {
     this.show = !this.show;
-    // if (field === 'new') this.showNewPassword = !this.showNewPassword;
-    // if (field === 'confirm') this.showConfirmPassword = !this.showConfirmPassword;
   }
 }
