@@ -44,6 +44,9 @@ export class AlbumDetailsComponent {
   readonly title = 'Album Name';
   readonly artist = 'Artist Names';
 
+  // favorite state
+  isFavorited = signal(false);
+
   // placeholder username (use real user data later)
   readonly username = 'username';
 
@@ -132,6 +135,12 @@ export class AlbumDetailsComponent {
       this.setCommentRating(prevVal);
       return;
     }
+  }
+
+  toggleFavorite(): void {
+    this.isFavorited.update(fav => !fav);
+    // TODO: persist to API
+    console.log('Favorite status:', this.isFavorited());
   }
 
   // --- Modal open flows ---
