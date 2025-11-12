@@ -6,11 +6,11 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angul
 import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-settings-account',
-  templateUrl: './settings-account.component.html',
-  styleUrls: ['./settings-account.component.scss'],
+  templateUrl: './settings-account.html',
+  styleUrls: ['./settings-account.scss'],
   imports: [RouterLink, ReactiveFormsModule, CommonModule],
 })
-export class SettingsAccountComponent {
+export class SettingsAccount {
   // USER PROFILE DATA
   firstName: string = 'First';
   lastName: string = 'Last';
@@ -43,11 +43,18 @@ export class SettingsAccountComponent {
     // PASSWORD FORM GROUP
     this.passwordForm = this.fb.group({
       oldPassword: ['', Validators.required],
-      newPassword: ['', Validators.required],
+      newPassword: ['', 
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(25),
+          Validators.pattern(/^(?=.*[0-9])(?=.*[!@#$%^&*])/),
+        ],],
       confirmNewPassword: ['', Validators.required],
     });
   }
 
+  // FUNCTION: UPDATE USER PROFILE
   updateUserProfile() {
     const { firstName, lastName, email, username } = this.accountForm.value;
     const emailControl = this.accountForm.controls['email'];
@@ -74,8 +81,9 @@ export class SettingsAccountComponent {
     this.accountForm.reset();
   }
 
+  // FUNCTION: UPDATE USER PASSWORD
   updateUserPassword() {
-    const { oldPassword, newPassword, confirmNewPassword } = this.passwordForm.value;
+    const { newPassword, confirmNewPassword } = this.passwordForm.value;
     if (newPassword !== confirmNewPassword) {
       this.passwordMatchError = true;
       return;
@@ -90,7 +98,25 @@ export class SettingsAccountComponent {
     this.passwordForm.reset();
   }
 
+  // FUNCTION: TOGGLE PASSWORD VISIBILITY
   togglePasswordVisibility() {
     this.show = !this.show;
+  }
+
+  // FUNCTIONS: PASSWORD REQUIREMENTS
+  get getPassword(): string{
+    return this.passwordForm.get('newPassword')?.value || '';
+  }
+  minRequirement(): boolean {
+    return this.getPassword.length >= 8;
+  }
+  maxRequirement(): boolean {
+    return this.getPassword.length <= 25;
+  }
+  numberRequirement(): boolean {
+    return /[0-9]/.test(this.getPassword);
+  }
+  specialCharRequirement(): boolean {
+    return /[!@#$%^&*]/.test(this.getPassword);
   }
 }

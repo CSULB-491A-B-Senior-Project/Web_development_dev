@@ -7,17 +7,17 @@
         <h1>Settings</h1>
         <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
         <h2 class="active">Account</h2>
-        <button class="delete">Delete Account</button>
+        <!-- <button class="delete">Delete Account</button> -->
     </div>
 
     <div class="settings-container">
-        <!-- Display user account information -->
+        <!-- DISPLAY USER ACCOUNT INFO -->
         <h1>Account info</h1>
         <h3>Name: {{ firstName}} {{ lastName }}</h3>
         <h3>Email: {{ email }}</h3>
         <h3>Username: {{ username }}</h3>
 
-        <!-- Form to change user information -->
+        <!-- FORM: CHANGE USER INFO -->
         <h1>Edit personal info</h1>
         <p>Fill in at least one to update your information.</p>
         <form [formGroup]="accountForm" (ngSubmit)="updateUserProfile()">
@@ -30,35 +30,43 @@
             <label><strong>New username</strong>
                 <input type="text" formControlName="username" name="newUsername"/></label>
             
+            <!--ACCOUNT ERRORS-->
             <div *ngIf="atLeastOneRequiredError" class="error">
                 Please fill at least one field.</div>
             <div *ngIf="accountForm.get('email')?.invalid && accountForm.get('email')?.touched" class="error">
                 Please enter a valid email address.</div>
+            
             <button type="submit" [disabled]="!accountForm.dirty">Update</button>
         </form>
 
-        <!-- Form to change user password -->
+        <!-- FORM: CHANGE USER PASSWORD -->
         <h1>Change password</h1>
-        <p>Changing your password description, reqs, etc.</p>
+        <p>Please verify your old password.</p>
         <form [formGroup]="passwordForm" (ngSubmit)="updateUserPassword()">
-            <label><strong>Old password</strong>
+            <label><strong>Old password <span class="required">*</span></strong>
                 <input [type]="show ? 'text' : 'password'"
                     formControlName="oldPassword"
                     name="oldPassword"/></label>
-            <label><strong>New password</strong>
+            <p>Your new password should have:</p>
+                    <span class=requirement [class.met]="!minRequirement"><p><br>&nbsp;&nbsp;&nbsp;Minimum 8 characters</p></span>
+                    <span class=requirement [class.met]="!maxRequirement"><p><br>&nbsp;&nbsp;&nbsp;Maximum 25 characters</p></span>
+                    <span class=requirement [class.met]="!numberRequirement"><p><br>&nbsp;&nbsp;&nbsp;At least 1 number</p></span>
+                    <span class=requirement [class.met]="!specialCharRequirement"><p><br>&nbsp;&nbsp;&nbsp;At least 1 special character</p></span>
+            <label><strong>New password <span class="required">*</span></strong>
                 <input [type]="show ? 'text' : 'password'"
                     formControlName="newPassword"
                     name="newPassword"/></label>
-            <label><strong>Confirm new password</strong>
+            <label><strong>Confirm new password <span class="required">*</span></strong>
                 <input [type]="show ? 'text' : 'password'"
                     formControlName="confirmNewPassword"
                     name="confirmNewPassword"/></label>
             
+            <!--PASSWORD ERRORS-->
             <div *ngIf="passwordMatchError" class="error">
                 Passwords do not match. Try again.</div>
 
             <div class="password-btns">
-                <button type="submit" [disabled]="!passwordForm.dirty">Update</button>
+                <button type="submit" [disabled]="passwordForm.invalid">Update</button>
                 <button
                     type="button"
                     (click)="togglePasswordVisibility()"
@@ -72,6 +80,10 @@
         <div>{{ oldPassword }}</div>
         <div>{{ newPassword }}</div>
         <div>{{ confirmNewPassword }}</div>
-
+        <div>{{ getPassword }}</div>
+        <div>more than 8?: {{ minRequirement() }}</div>
+        <div>less than 25?: {{ maxRequirement() }}</div>
+        <div>has number?: {{ numberRequirement() }}</div>
+        <div>has special char?: {{ specialCharRequirement() }}</div>
     </div>
 </body>

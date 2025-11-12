@@ -42,21 +42,21 @@ body {
     padding: 0px 10px 0px 10px;
   }
 
-  .delete {
-    background-color: transparent;
-    color: rgb(206, 0, 0);
-    border: solid 3px rgb(206, 0, 0);
-    width: 180px;
-    border-radius: 5px;
-    font-size: 1.2rem;
-    font-weight: 800;
-    &:hover {
-      opacity: 0.7;
-    }
-    &:focus {
-      background-color: #ff495d;
-    }
-  }
+  // .delete {
+  //   background-color: transparent;
+  //   color: rgb(206, 0, 0);
+  //   border: solid 3px rgb(206, 0, 0);
+  //   width: 180px;
+  //   border-radius: 5px;
+  //   font-size: 1.2rem;
+  //   font-weight: 800;
+  //   &:hover {
+  //     opacity: 0.7;
+  //   }
+  //   &:focus {
+  //     background-color: #ff495d;
+  //   }
+  // }
 }
 
 .settings-container {
@@ -142,4 +142,12 @@ button {
   &:not(.disabled):focus {
     background-color: transparent;
   }
+}
+
+.required {
+  color: rgb(206, 0, 0);
+}
+
+.requirement.met {
+  color: var(--chip-selected);
 }
