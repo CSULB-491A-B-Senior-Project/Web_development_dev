@@ -2,13 +2,6 @@
     padding-bottom: 300px;
 }
 
-header {
-    margin: 30px;
-    img {
-        width: 80px;
-    }
-}
-
 .artist-container {
     color: white;
     margin-left: 100px;
@@ -59,12 +52,12 @@ header {
 }
 
 .bio-container {
-    background-color: #222222;
+    border: 1px solid var(--border-color);
     border-radius: 5px;
     width: 25%;
     float:left;
     padding: 20px;
-    margin-top: 50px;
+    margin-top: 38px;
 }
 .sort {
     display: flex;
@@ -93,7 +86,7 @@ header {
 }
 
 .album {
-    background-color: #222222;;
+    background-color: #222222;
     width: 200px;
     height: 200px;
     border-color: white;

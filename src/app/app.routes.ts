@@ -11,10 +11,8 @@ import { ProfileComponent } from './pages/profile/profile';
 export const routes: Routes = [
   { path: '', component: Home }, //default route
   { path: 'signup', component: Signup }, //signup page
-  { path: 'artist', component: ArtistComponent }, //artist page
   { path: 'settings-profile', component: SettingsProfileComponent }, //settings-profile page
   { path: 'settings-account', component: SettingsAccountComponent }, //settings-accounts page
-  { path: 'explore-page', component: Explore }, //explore page
   {
     path: '',
     component: MainLayout,
@@ -34,18 +32,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/search-results/search-results').then(m => m.SearchResults)
       },
+      {
+        path: 'artist',
+        loadComponent: () =>
+          import('./pages/artist/artist.component').then(m => m.ArtistComponent)
+      },
+      {
+        path: 'lists/new',
+        loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
+      },
     ]
-  },
-  { path: 'settings-profile', component: SettingsProfileComponent }, //settings-profile page
-  { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent) },
-  {
-    path: 'lists/new',
-    loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
-  },
-  {
-    path: 'search',
-    loadComponent: () =>
-      import('./pages/search-results/search-results').then(m => m.SearchResults)
   },
 ];
 export class AppRoutingModule { }
