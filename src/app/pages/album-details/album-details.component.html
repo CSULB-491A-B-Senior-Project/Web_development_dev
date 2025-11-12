@@ -3,119 +3,278 @@
 </div>
 
 <main class="settings-container album-review-container">
-        <section class="album-header">
-            <div class="album-artwork" aria-label="Album artwork"></div>
-                <div class="album-details">
-                    <header>
-                        <h1>
-                            Album Name
-                            <span class="year">Year</span>
-                        </h1>
-                        <h3 class="artist-names">Artists Names</h3>
-                        <div class="star-rating" aria-label="5-star rating">★★★★★</div>
-                    </header>
+  <section class="album-header">
+    <div class="album-artwork" aria-label="Album artwork"></div>
+
+    <div class="album-details">
+      <header>
+        <h1>
+          {{ title }}
+          <span class="year">Year</span>
+        </h1>
+        <h3 class="artist-names">{{ artist }}</h3>
+
+        <!-- Average (read-only) star rating for the album -->
+        <div class="star-rating avg" aria-label="Average album rating">
+          @for (star of stars; track i; let i = $index) {
+            <button
+              type="button"
+              class="star-button"
+              role="img"
+              aria-hidden="true"
+              [class.filled]="averageRating() >= (i + 1)">
+              <i class="fa-solid fa-star" aria-hidden="true"></i>
+              <span class="visually-hidden">{{ i + 1 }} star{{ i + 1 > 1 ? 's' : '' }}</span>
+            </button>
+          }
+          <span class="current-rating" aria-live="polite">
+            {{ averageRating() ? (averageRating() + ' / 5') : 'No ratings yet' }}
+          </span>
+        </div>
+      </header>
+    </div>
+  </section>
+
+  <section class="tracklist">
+    <h3>Tracklist</h3>
+    <ul>
+      <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
+      <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
+      <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
+      <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
+      <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
+      <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
+    </ul>
+  </section>
+
+  <section class="comment-section">
+    <!-- actions row: Add comment button only (rating moved to modal) -->
+    <div class="comment-actions">
+      <button class="add-comment-button" type="button" (click)="openCommentModal()">Add Review</button>
+    </div>
+
+    <div class="comments">
+      @for (c of comments(); track c.id) {
+        <article class="comment">
+          <p class="username">{{ c.author || 'username' }}</p>
+
+          @if (editTargetId() === c.id) {
+            <!-- inline edit form for comment author (kept as optional inline edit) -->
+            <div>
+              <form [formGroup]="editForm" (ngSubmit)="submitEdit(c.id)">
+                <label>
+                  <textarea formControlName="text" maxlength="1000" rows="3" class="expanding-textarea" (input)="autoResize($event)"></textarea>
+                </label>
+
+                <div class="comment-rating" style="margin-top:0.5rem;" aria-label="Edit rating for this comment">
+                  @for (star of stars; track i; let i = $index) {
+                    <button
+                      type="button"
+                      class="star-button"
+                      (click)="setEditRating(i + 1)"
+                      [class.filled]="editRating() >= (i + 1)"
+                      [attr.aria-label]="(i + 1) + ' star'">
+                      <i class="fa-solid fa-star" aria-hidden="true"></i>
+                    </button>
+                  }
+                  <span class="current-rating" aria-live="polite">{{ editRating() ? (editRating() + ' / 5') : 'Rate' }}</span>
                 </div>
-        </section>
 
-        <section class="tracklist">
-            <h3>Tracklist</h3>
-            <ul>
-            <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
-            <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
-            <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
-            <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
-            <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
-            <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
-            </ul>
-        </section>
-
-        <section class="comment-section">
-            <button class="add-comment-button" type="button" (click)="openCommentModal()">Add Comment</button>
- 
-            <div class="comments">
-                <article class="comment" *ngFor="let c of comments()">
-                    <p class="username">{{ c.author || 'username' }}</p>
-                    <p class="comment-text">{{ c.text }}</p>
-                    <div class="comment-meta">
-                      {{ c.createdAt | date:'short' }}
-                      <button type="button" class="reply-button" (click)="openReply(c.id)" aria-expanded="{{ replyTargetId() === c.id }}">
-                        Reply
-                      </button>
-                    </div>
-
-                    <!-- existing replies -->
-                    <div class="replies" *ngIf="c.replies?.length">
-                      <article class="reply" *ngFor="let r of c.replies">
-                        <p class="username">{{ r.author || 'username' }}</p>
-                        <p class="comment-text">{{ r.text }}</p>
-                        <div class="comment-meta">{{ r.createdAt | date:'short' }}</div>
-                      </article>
-                    </div>
-
-                    <!-- reply form shown for this comment -->
-                    <div class="reply-form" *ngIf="replyTargetId() === c.id">
-                      <form [formGroup]="replyForm" (ngSubmit)="submitReply(c.id)">
-                        <label>
-                          Reply
-                          <textarea formControlName="text" maxlength="500" rows="3" class="expanding-textarea"></textarea>
-                        </label>
-                        <div class="error" *ngIf="replyForm.controls.text.invalid && replyForm.controls.text.touched">
-                          Reply is required (max 500).
-                        </div>
-                        <div class="modal-actions">
-                          <button type="button" class="btn" (click)="closeReply()">Cancel</button>
-                          <button type="submit" class="btn primary" [disabled]="replyForm.invalid">Submit</button>
-                        </div>
-                      </form>
-                    </div>
-                </article>
-
-                <article class="comment">
-                    <p class="username">username</p>
-                    <p class="comment-text">comment text</p>
-                    <div class="comment-meta">
-                        1d • 1<i class="fa-solid fa-thumbs-up"></i> • 1<i class="fa-solid fa-thumbs-down"></i> • Reply
-                    </div>
-                </article>
-
-                <article class="comment">
-                    <p class="username">username</p>
-                    <p class="comment-text">comment text</p>
-                    <div class="comment-meta">1w • 1<i class="fa-solid fa-thumbs-up"></i> • Reply</div>
-                </article>
+                <div class="modal-actions" style="margin-top:0.5rem;">
+                  <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
+                  <button type="submit" class="btn primary" [disabled]="editForm.invalid">Save</button>
+                </div>
+              </form>
             </div>
-         </section>
-
-        <!-- Comment modal -->
-        <div class="modal-backdrop" *ngIf="showCommentModal()" (click)="closeCommentModal()">
-          <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" (keydown.escape)="closeCommentModal()" tabindex="0">
-            <h3>Add a comment</h3>
-
-            <!-- show posting username (not editable) -->
-            <div class="modal-author" aria-hidden="true">
-              Posting as <strong>{{ username }}</strong>
+          } @else {
+            <div>
+              <p class="comment-text">{{ c.text }}</p>
             </div>
+          }
 
-            <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
-              <label>
-                Comment
-                <textarea
-                formControlName="text"
-                maxlength="150"
-                rows="4"
-                class="expanding-textarea"
-                (input)="autoResize($event)"
-                ></textarea>
-              </label>
-              <div class="error" *ngIf="commentForm.controls.text.invalid && commentForm.controls.text.touched">
-                Comment is required (max 1000).
-              </div>
+          <!-- rating badge for posted comment (read-only) -->
+          @if (c.rating) {
+            <div class="comment-rating">
+              @for (star of stars; track i; let i = $index) {
+                <button
+                  type="button"
+                  class="star-button"
+                  aria-hidden="true"
+                  [class.filled]="c.rating >= (i + 1)">
+                  <i class="fa-solid fa-star" aria-hidden="true"></i>
+                </button>
+              }
+              <span class="current-rating">{{ c.rating }} / 5</span>
+            </div>
+          }
 
-              <div class="modal-actions">
-                <button type="button" class="btn" (click)="closeCommentModal()">Cancel</button>
-                <button type="submit" class="btn primary" [disabled]="commentForm.invalid">Submit</button>
-              </div>
-            </form>
+          <div class="comment-meta">
+            <span class="date">{{ c.createdAt | date:'short' }}</span>
+
+            <button
+              type="button"
+              class="reply-button like"
+              (click)="toggleLike(c.id)"
+              [attr.aria-pressed]="c.userReaction === 'like'">
+              <i class="fa-solid fa-thumbs-up"></i>
+              <span class="count">{{ c.likes }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="reply-button dislike"
+              (click)="toggleDislike(c.id)"
+              [attr.aria-pressed]="c.userReaction === 'dislike'">
+              <i class="fa-solid fa-thumbs-down"></i>
+              <span class="count">{{ c.dislikes }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="reply-button"
+              (click)="openReply(c.id)"
+              [attr.aria-expanded]="replyTargetId() === c.id">
+              Reply
+            </button>
+
+            <!-- Edit button opens the modal for editing this comment -->
+            @if (c.author === username) {
+              <button
+                type="button"
+                class="reply-button"
+                (click)="openEditModal(c.id)"
+                [attr.aria-pressed]="editingId() === c.id">
+                Edit
+              </button>
+            }
+          </div>
+
+          <!-- existing replies -->
+          @if (c.replies?.length) {
+            <div class="replies">
+              @for (r of c.replies; track r.id) {
+                <article class="reply">
+                  <p class="username">{{ r.author || 'username' }}</p>
+                  <p class="comment-text">{{ r.text }}</p>
+                  <div class="comment-meta">
+                    <span class="date">{{ r.createdAt | date:'short' }}</span>
+
+                    <button
+                      type="button"
+                      class="reply-button like"
+                      (click)="toggleLike(r.id)"
+                      [attr.aria-pressed]="r.userReaction === 'like'">
+                      <i class="fa-solid fa-thumbs-up"></i>
+                      <span class="count">{{ r.likes }}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="reply-button dislike"
+                      (click)="toggleDislike(r.id)"
+                      [attr.aria-pressed]="r.userReaction === 'dislike'">
+                      <i class="fa-solid fa-thumbs-down"></i>
+                      <span class="count">{{ r.dislikes }}</span>
+                    </button>
+                  </div>
+                </article>
+              }
+            </div>
+          }
+
+          <!-- reply form shown for this comment -->
+          @if (replyTargetId() === c.id) {
+            <div class="reply-form">
+              <form [formGroup]="replyForm" (ngSubmit)="submitReply(c.id)">
+                <label>
+                  <textarea formControlName="text" maxlength="500" rows="3" class="expanding-textarea" (input)="autoResize($event)"></textarea>
+                </label>
+                @if (replyForm.controls['text'].invalid && replyForm.controls['text'].touched) {
+                  <div class="error">
+                    Reply is required (max 500).
+                  </div>
+                }
+                <div class="modal-actions">
+                  <button type="button" class="btn" (click)="closeReply()">Cancel</button>
+                  <button type="submit" class="btn primary" [disabled]="replyForm.invalid">Submit</button>
+                </div>
+              </form>
+            </div>
+          }
+        </article>
+      }
+    </div>
+  </section>
+
+  <!-- Comment modal (used for create / overwrite / edit) -->
+  @if (showCommentModal()) {
+    <div class="modal-backdrop" (click)="closeCommentModal()">
+      <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" (keydown.escape)="closeCommentModal()" tabindex="0">
+        <h3>{{ editingId() ? 'Edit your review' : (userReviewIndex() !== -1 ? 'Add / Overwrite your review' : 'Add a review') }}</h3>
+
+        <!-- show posting username (not editable) -->
+        <div class="modal-author" aria-hidden="true">
+          Posting as <strong>{{ username }}</strong>
+        </div>
+
+        <!-- modal rating controls (can submit rating-only) -->
+        <div class="modal-rating" style="margin-top:0.5rem;">
+          <label style="display:block;margin-bottom:0.35rem;"></label>
+          <div class="comment-rating" role="radiogroup" aria-label="Rating in modal" (mouseleave)="hoverRating.set(0)">
+            @for (star of stars; track i; let i = $index) {
+              <button
+                type="button"
+                class="star-button"
+                (click)="setCommentRating(i + 1)"
+                (mouseenter)="hoverRating.set(i + 1)"
+                (focus)="hoverRating.set(i + 1)"
+                (blur)="hoverRating.set(0)"
+                [class.filled]="hoverRating() >= (i + 1) || commentRating() >= (i + 1)"
+                [attr.aria-label]="(i + 1) + ' star'">
+                <i class="fa-solid fa-star" aria-hidden="true"></i>
+                <span class="visually-hidden">{{ i + 1 }} star{{ i + 1 > 1 ? 's' : '' }}</span>
+              </button>
+            }
+            <span class="current-rating" aria-live="polite" style="margin-left:0.5rem;">
+              {{ commentRating() ? (commentRating() + ' / 5') : 'No rating' }}
+            </span>
           </div>
         </div>
-     </main>
+
+        <!-- overwrite confirmation when user already has a review and not editing a specific comment -->
+        @if (!editingId() && userReviewIndex() !== -1) {
+          <div class="overwrite-warning">
+            <p>You already have a review. Submitting here will overwrite your previous review and rating.</p>
+            <label class="checkbox-label">
+              <input type="checkbox" (change)="confirmOverwrite.set($any($event.target).checked)" />
+              I understand and want to overwrite my previous review
+            </label>
+          </div>
+        }
+
+        <form [formGroup]="commentForm" (ngSubmit)="submitComment()" style="margin-top:0.75rem;">
+          <label>
+            <!-- Comment (optional) -->
+            <textarea
+              formControlName="text"
+              maxlength="1000"
+              rows="4"
+              class="expanding-textarea"
+              (input)="autoResize($event)"
+              placeholder="Write your review (optional)"></textarea>
+          </label>
+          @if (commentForm.controls.text.invalid && commentForm.controls.text.touched) {
+            <div class="error">
+              Comment must be at most 1000 characters.
+            </div>
+          }
+
+          <div class="modal-actions" style="margin-top:0.75rem;">
+            <button type="button" class="btn" (click)="closeCommentModal()">Cancel</button>
+            <button type="submit" class="btn primary" [disabled]="!canSubmit()">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</main>
