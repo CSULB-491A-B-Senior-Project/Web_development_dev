@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 })
 export class AlbumCard {
   title = input.required<string>();
+  artist = input.required<string>();
   genres = input<string[] | undefined>(undefined);
   dateLabel = input<string>('');
   imageUrl = input<string>('/assets/placeholder.png');
