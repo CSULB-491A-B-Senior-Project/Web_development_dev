@@ -1,10 +1,10 @@
 import { RouterModule, Routes } from '@angular/router';
 import { Home } from './pages/home/home';
-import { SettingsAccountComponent } from './pages/settings-account/settings-account';
+import { SettingsAccount } from './pages/settings-account/settings-account';
 import { Signup } from './pages/signup/signup';
 import { MainLayout } from './layouts/main-layout/main-layout';
-import { SettingsProfileComponent } from './pages/settings-profile/settings-profile';
-import { ArtistComponent } from './pages/artist/artist';
+import { SettingsProfile } from './pages/settings-profile/settings-profile';
+import { Artist } from './pages/artist/artist';
 import { Explore } from './pages/explore/explore';
 import { ProfileComponent } from './pages/profile/profile';
 
@@ -26,7 +26,7 @@ export const routes: Routes = [
       {
         path: 'profile',
         loadComponent: () => import('./pages/profile/profile')
-          .then(m => m.Profile)
+          .then(m => m.ProfileComponent)
       },
       {
         path: 'artist',
