@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
 import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -88,9 +87,7 @@ export class SettingsAccount {
       this.passwordMatchError = true;
       return;
     }
-
     this.passwordMatchError = false;
-
     if (newPassword == confirmNewPassword) {
       this.newPassword = newPassword;
     }
@@ -104,19 +101,17 @@ export class SettingsAccount {
   }
 
   // FUNCTIONS: PASSWORD REQUIREMENTS
-  get getPassword(): string{
-    return this.passwordForm.get('newPassword')?.value || '';
-  }
-  minRequirement(): boolean {
-    return this.getPassword.length >= 8;
-  }
-  maxRequirement(): boolean {
-    return this.getPassword.length <= 25;
-  }
-  numberRequirement(): boolean {
-    return /[0-9]/.test(this.getPassword);
-  }
-  specialCharRequirement(): boolean {
-    return /[!@#$%^&*]/.test(this.getPassword);
+  minRequirement = false;
+  maxRequirement = false;
+  numberRequirement = false;
+  specialCharRequirement = false;
+
+  ngOnInit() {
+    this.passwordForm.get('newPassword')?.valueChanges.subscribe(value => {
+      this.minRequirement = value.length >= 8;
+      this.maxRequirement = value.length <= 25;
+      this.numberRequirement = /[0-9]/.test(value);
+      this.specialCharRequirement = /[!@#$%^&*]/.test(value);
+    });
   }
 }

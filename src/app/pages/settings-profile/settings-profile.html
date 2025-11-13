@@ -1,22 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="././assets/crescendo-logo-no-text.png">
-    <title>&lt;crescendo&gt;</title>
-</head>
 <body>
     <div class="settings-sidebar">
-        <a routerLink="/explore"><img src="././assets/crescendo-logo-no-text.png"/></a>
+        <a class="logo" routerLink="/explore"><img src="././assets/crescendo-logo-no-text.png"/></a>
         <h1>Settings</h1>
         <h2 class="active">Edit Profile</h2>
         <h2><a routerLink="/settings-account">Account</a></h2>
-        <h2 style="color:rgb(206, 0, 0)">Delete Account</h2>
     </div>
 
     <div class="settings-container">
-        <!-- Display user profile settings -->
+        <!-- CUSTOMIZE BACKGROUND -->
         <h1>Customize background</h1>
         <p>Upload a new image to personalize your profile background.</p>
         <div class="file-upload-container">
@@ -30,13 +21,15 @@
                 style="display: none;"
                 />
             </button>
-            <span class="file-name">{{ selectedFileName || 'No file selected' }}</span>
+            <span class="file-name">{{ selectedFileName
+                || 'No file selected. Must not exceed 5MB. File types .jpg, .png, .jpeg accepted.' }}</span>
         </div>
 
-
+        <!-- CUSTOMIZE MUSIC -->
         <h1>Select music</h1>
         <p>Choose a track that reflects your vibe or mood.</p>
 
+        <!-- CUSTOMIZE BIO -->
         <h1>About me section</h1>
         <p>Share a short bio to let others know who you are.</p>
         <form (ngSubmit)="onSubmit()" class="bio-form">
@@ -54,12 +47,12 @@
             <button type="submit">Submit</button>
         </form>
 
-
+        <!-- CUSTOMIZE FAVORITE ARTISTS-->
         <h1>Edit favorite artists</h1>
         <p>Update your list of top artists to keep it fresh.</p>
 
+        <!-- CUSTOMIZE FAVORITE ALBUMS-->
         <h1>Edit favorite albums</h1>  <!-- Playlists or albums ???-->
         <p>Showcase the albums that shaped your sound and story.</p>
     </div>
 </body>
-</html>

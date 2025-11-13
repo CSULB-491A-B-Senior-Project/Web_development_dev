@@ -1,9 +1,6 @@
-<head>
-    <title>&lt;crescendo&gt;</title>
-</head>
 <body>
     <div class="settings-sidebar">
-        <a routerLink="/explore"><img src="././assets/crescendo-logo-no-text.png"/></a>
+        <a routerLink="/explore" class="logo"><img src="././assets/crescendo-logo-no-text.png"/></a>
         <h1>Settings</h1>
         <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
         <h2 class="active">Account</h2>
@@ -47,12 +44,13 @@
                 <input [type]="show ? 'text' : 'password'"
                     formControlName="oldPassword"
                     name="oldPassword"/></label>
-            <p>Your new password should have:</p>
-                    <span class=requirement [class.met]="!minRequirement"><p><br>&nbsp;&nbsp;&nbsp;Minimum 8 characters</p></span>
-                    <span class=requirement [class.met]="!maxRequirement"><p><br>&nbsp;&nbsp;&nbsp;Maximum 25 characters</p></span>
-                    <span class=requirement [class.met]="!numberRequirement"><p><br>&nbsp;&nbsp;&nbsp;At least 1 number</p></span>
-                    <span class=requirement [class.met]="!specialCharRequirement"><p><br>&nbsp;&nbsp;&nbsp;At least 1 special character</p></span>
-            <label><strong>New password <span class="required">*</span></strong>
+            <p>Your new password should have:
+                <span class=requirement [class.met]="minRequirement"><br>&nbsp;&nbsp;&nbsp;Minimum 8 characters</span>
+                <span class=requirement [class.met]="maxRequirement"><br>&nbsp;&nbsp;&nbsp;Maximum 25 characters</span>
+                <span class=requirement [class.met]="numberRequirement"><br>&nbsp;&nbsp;&nbsp;At least 1 number</span>
+                <span class=requirement [class.met]="specialCharRequirement"><br>&nbsp;&nbsp;&nbsp;At least 1 special character</span>
+            </p>
+                    <label><strong>New password <span class="required">*</span></strong>
                 <input [type]="show ? 'text' : 'password'"
                     formControlName="newPassword"
                     name="newPassword"/></label>
@@ -75,15 +73,5 @@
                 </button>
             </div>
         </form>
-
-        <br>
-        <div>{{ oldPassword }}</div>
-        <div>{{ newPassword }}</div>
-        <div>{{ confirmNewPassword }}</div>
-        <div>{{ getPassword }}</div>
-        <div>more than 8?: {{ minRequirement() }}</div>
-        <div>less than 25?: {{ maxRequirement() }}</div>
-        <div>has number?: {{ numberRequirement() }}</div>
-        <div>has special char?: {{ specialCharRequirement() }}</div>
     </div>
 </body>

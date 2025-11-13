@@ -148,6 +148,9 @@ button {
   color: rgb(206, 0, 0);
 }
 
-.requirement.met {
-  color: var(--chip-selected);
+.requirement {
+  color: white;
+  &.met {
+    color: var(--chip-selected);
+  }
 }
