@@ -28,4 +28,4 @@ export const appConfig: ApplicationConfig = {
       multi: true
     }
   ]
-};
+}; 

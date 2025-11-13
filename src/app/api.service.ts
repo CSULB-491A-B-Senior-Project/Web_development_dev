@@ -101,12 +101,12 @@ export class ApiService {
     );
   }
 
-  /**
-   * Logout user
-   */
-  public logout(): void {
-    this.removeToken();
-  }
+  // /**
+  //  * Logout user
+  //  */
+  // public logout(): void {
+  //   this.removeToken();
+  // }
 
   /**
    * Generic GET request with authentication
