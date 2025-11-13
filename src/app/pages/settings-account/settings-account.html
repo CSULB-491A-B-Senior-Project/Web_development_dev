@@ -1,0 +1,77 @@
+<body>
+    <div class="settings-sidebar">
+        <a routerLink="/explore" class="logo"><img src="././assets/crescendo-logo-no-text.png"/></a>
+        <h1>Settings</h1>
+        <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
+        <h2 class="active">Account</h2>
+        <!-- <button class="delete">Delete Account</button> -->
+    </div>
+
+    <div class="settings-container">
+        <!-- DISPLAY USER ACCOUNT INFO -->
+        <h1>Account info</h1>
+        <h3>Name: {{ firstName}} {{ lastName }}</h3>
+        <h3>Email: {{ email }}</h3>
+        <h3>Username: {{ username }}</h3>
+
+        <!-- FORM: CHANGE USER INFO -->
+        <h1>Edit personal info</h1>
+        <p>Fill in at least one to update your information.</p>
+        <form [formGroup]="accountForm" (ngSubmit)="updateUserProfile()">
+            <label><strong>New first name</strong>
+                <input type="text" formControlName="firstName" name="newFirstName"/></label>
+            <label><strong>New last name</strong>
+                <input type="text" formControlName="lastName" name="newLastName"/></label>
+            <label><strong>New email</strong>
+                <input type="email" formControlName="email" name="newEmail"/></label>
+            <label><strong>New username</strong>
+                <input type="text" formControlName="username" name="newUsername"/></label>
+            
+            <!--ACCOUNT ERRORS-->
+            <div *ngIf="atLeastOneRequiredError" class="error">
+                Please fill at least one field.</div>
+            <div *ngIf="accountForm.get('email')?.invalid && accountForm.get('email')?.touched" class="error">
+                Please enter a valid email address.</div>
+            
+            <button type="submit" [disabled]="!accountForm.dirty">Update</button>
+        </form>
+
+        <!-- FORM: CHANGE USER PASSWORD -->
+        <h1>Change password</h1>
+        <p>Please verify your old password.</p>
+        <form [formGroup]="passwordForm" (ngSubmit)="updateUserPassword()">
+            <label><strong>Old password <span class="required">*</span></strong>
+                <input [type]="show ? 'text' : 'password'"
+                    formControlName="oldPassword"
+                    name="oldPassword"/></label>
+            <p>Your new password should have:
+                <span class=requirement [class.met]="minRequirement"><br>&nbsp;&nbsp;&nbsp;Minimum 8 characters</span>
+                <span class=requirement [class.met]="maxRequirement"><br>&nbsp;&nbsp;&nbsp;Maximum 25 characters</span>
+                <span class=requirement [class.met]="numberRequirement"><br>&nbsp;&nbsp;&nbsp;At least 1 number</span>
+                <span class=requirement [class.met]="specialCharRequirement"><br>&nbsp;&nbsp;&nbsp;At least 1 special character</span>
+            </p>
+                    <label><strong>New password <span class="required">*</span></strong>
+                <input [type]="show ? 'text' : 'password'"
+                    formControlName="newPassword"
+                    name="newPassword"/></label>
+            <label><strong>Confirm new password <span class="required">*</span></strong>
+                <input [type]="show ? 'text' : 'password'"
+                    formControlName="confirmNewPassword"
+                    name="confirmNewPassword"/></label>
+            
+            <!--PASSWORD ERRORS-->
+            <div *ngIf="passwordMatchError" class="error">
+                Passwords do not match. Try again.</div>
+
+            <div class="password-btns">
+                <button type="submit" [disabled]="passwordForm.invalid">Update</button>
+                <button
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    class="toggle-btn">
+                    <img [src]="show ? '/assets/hidepassword.png' : '/assets/showpassword.png'">
+                </button>
+            </div>
+        </form>
+    </div>
+</body>

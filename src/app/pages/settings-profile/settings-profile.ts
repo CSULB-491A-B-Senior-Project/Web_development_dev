@@ -6,11 +6,11 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-settings-profile',
-  templateUrl: './settings-profile.component.html',
-  styleUrls: ['./settings-profile.component.scss'],
+  templateUrl: './settings-profile.html',
+  styleUrls: ['./settings-profile.scss'],
   imports: [RouterLink, ReactiveFormsModule, FormsModule]
 })
-export class SettingsProfileComponent {
+export class SettingsProfile {
   editableText = new FormControl('');
   text: string = '';
 

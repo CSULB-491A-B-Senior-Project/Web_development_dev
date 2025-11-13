@@ -1,13 +1,25 @@
 // COLOR PALETTE, use var(--xxxx)
 :root {
+  // MAIN COLOR PALLETE
+  --primary: #D0B0FF;
+  --primary-light: #d0b0ffb7;
+  --primary-lighter: #d0b0ff64;
+
+  --secondary: #c06effff;
+  --other1: #501DAF;
+  --other2: #000240;
+
   --input-border: #2a2a2f;
+  --border-color: #1d1d22;
+
   --btn-primary: #D0B0FF;
   --btn-secondary: #b78cff;
   --btn-hover: #c06effff;
+
   --txt-primary: #D0B0FF;
-  --border-color: #1d1d22;
-  --txt-box: #1f1f1f;
   --txt-secondary: #A8A8A8;
+
+  --txt-box: #1f1f1f;
   --chip-selected: #312D41;
   --app-font: Tw Cen MT, Century Gothic, Arial, sans-serif;
 }
@@ -25,6 +37,18 @@ html, body {
 
 *, *::before, *::after {
     box-sizing: inherit;
+}
+
+// STYLING
+h1{
+  text-shadow: 0 0 20px var(--primary-light);
+}
+
+.logo {
+  text-shadow: 0 0 20px var(--primary);
+  img {
+    filter: drop-shadow(0 0 10px var(--primary-light));
+  }
 }
 
 // PRIMARY INPUT STYLE
@@ -58,6 +82,7 @@ button {
   border-radius: 9px;
   cursor: pointer;
   transition: transform .2s ease, background .2s;
+  filter: drop-shadow(0 0px 15px var(--primary-lighter));
 
   &:hover {
     background: var(--btn-hover);
@@ -92,7 +117,7 @@ button {
 footer {
   width: 100%;
   height: 60px;
-  background: var(--txt-box);
+  background: #0a090f;
   color: white;
   text-align: center;
   justify-content: center;
