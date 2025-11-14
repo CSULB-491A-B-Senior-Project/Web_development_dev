@@ -7,6 +7,7 @@ import { SettingsProfile } from './pages/settings-profile/settings-profile';
 import { Artist } from './pages/artist/artist';
 import { Explore } from './pages/explore/explore';
 import { ProfileComponent } from './pages/profile/profile';
+import { Admin } from './pages/admin/admin';
 
 export const routes: Routes = [
   { path: '', component: Home }, //default route
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'settings-profile', component: SettingsProfile }, //settings-profile page
   { path: 'settings-account', component: SettingsAccount }, //settings-accounts page
   { path: 'explore-page', component: Explore }, //explore page
+  { path: 'admin', component: Admin }, //admin page
   {
     path: '',
     component: MainLayout,
