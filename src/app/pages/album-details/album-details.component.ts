@@ -279,6 +279,12 @@ export class AlbumDetailsComponent {
     this.editTargetId.set(comment.id);
   }
 
+  startEditReply(reply: Reply): void {
+    if (reply.author !== this.username) return;
+    this.editForm.patchValue({ text: reply.text ?? '' });
+    this.editTargetId.set(reply.id);
+  }
+
   setEditRating(rating: number): void {
     this.editRating.set(rating);
   }
@@ -309,6 +315,31 @@ export class AlbumDetailsComponent {
 
     this.cancelEdit();
     if (ratingToAttach) this.userRating.set(ratingToAttach);
+  }
+
+  submitEditReply(parentId: string, replyId: string): void {
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+
+    const raw = this.editForm.get('text')?.value ?? '';
+    const text = String(raw).trim();
+    if (!text) return;
+
+    this.comments.update(list =>
+      list.map(c => {
+        if (c.id === parentId && c.replies) {
+          const updatedReplies = c.replies.map(r =>
+            r.id === replyId ? { ...r, text, createdAt: new Date().toISOString() } : r
+          );
+          return { ...c, replies: updatedReplies };
+        }
+        return c;
+      })
+    );
+
+    this.cancelEdit();
   }
 
   // remaining code (replies, likes, helpers) unchanged...

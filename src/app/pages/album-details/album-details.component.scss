@@ -59,16 +59,17 @@ header {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: background-color 0.2s ease-in-out;
-
-        // &:hover {
-        //   // background-color: rgba(255, 255, 255, 0.1);
-        // }
+        transition: transform 0.1s ease-out, 
+        background-color 0.2s ease-in-out;
 
         .fa-heart {
           font-size: 24px;
-          color: var(--txt-primary); // change to red??
+          color: var(--txt-primary);
           transition: color 0.2s ease-in-out;
+        }
+
+        &:active {
+          transform: translateY(-1px) scale(1.1);
         }
       }
 
@@ -158,7 +159,7 @@ header {
         .current-rating {
           font-size: 0.9rem;
           color: #aaa;
-          margin-left: 0.25rem;
+          margin-left: 0.26rem;
         }
 
         /* small utility for accessible hidden text used in template */
@@ -292,22 +293,7 @@ header {
           margin: 0;
           padding: 0;
 
-          .expanding-textarea {
-            width: 100%;
-            min-height: 72px;
-            max-height: 220px;
-            padding: 0.6rem;
-            border-radius: 6px;
-            border: 1px solid #2b2b2b;
-            background: transparent;
-            color: inherit;
-            resize: none;
-            overflow: hidden;
-            box-sizing: border-box;
-          }
-
           .comment-rating {
-            /* rating controls inside the inline edit form (right aligned) */
             margin-left: auto;
             display: flex;
             align-items: center;
@@ -467,6 +453,13 @@ header {
               font-size: 0.85rem;
               color: #aaa;
             }
+
+            form {
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+              margin-top: 0.2rem;
+            }
           }
         }
 
@@ -488,48 +481,65 @@ header {
               font-size: 0.95rem;
             }
 
-            .expanding-textarea {
-              width: 100%;
-              min-height: 56px;
-              max-height: 160px;
-              padding: 0.6rem;
-              border-radius: 6px;
-              border: 1px solid #2b2b2b;
-              background: transparent;
-              color: inherit;
-              resize: none; /* auto-resize handled by TS */
-              overflow: hidden;
-              box-sizing: border-box;
-            }
-
             .error {
               color: #ffb3c1;
               font-size: 0.85rem;
             }
+          }
+        }
 
-            .modal-actions {
-              display: flex;
-              gap: 0.5rem;
-              justify-content: flex-end;
+        // Shared styles for all inline textareas
+        .expanding-textarea {
+          width: 100%;
+          padding: 0.6rem;
+          border-radius: 6px;
+          border: 1px solid #2b2b2b;
+          background: transparent;
+          color: inherit;
+          resize: none;
+          overflow: hidden;
+          box-sizing: border-box;
 
-              .btn {
-                padding: 0.4rem 0.6rem;
-                border-radius: 6px;
-                background: transparent;
-                border: 1px solid #2b2b2b;
-                color: inherit;
-              }
+          &:focus {
+            border-color: var(--txt-primary);
+            background: #222222;
+            outline: none;
+          }
+        }
 
-              .primary {
-                background: var(--btn-primary);
-                color: #000;
-                border-color: var(--btn-primary);
+        > form .expanding-textarea {
+          min-height: 72px;
+          max-height: 220px;
+        }
 
-                &:disabled {
-                  opacity: 0.6;
-                  cursor: not-allowed;
-                }
-              }
+        .reply-form .expanding-textarea,
+        .replies .reply form .expanding-textarea {
+          min-height: 56px;
+          max-height: 160px;
+        }
+
+        // Shared styles for inline form actions
+        .modal-actions {
+          display: flex;
+          gap: 0.5rem;
+          justify-content: flex-end;
+
+          .btn {
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            background: transparent;
+            border: 1px solid #2b2b2b;
+            color: inherit;
+          }
+
+          .primary {
+            background: var(--btn-primary);
+            color: #000;
+            border-color: var(--btn-primary);
+
+            &:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
             }
           }
         }
@@ -816,4 +826,44 @@ header {
   border: 0;
   padding: 0;
   margin: -1px;
+}
+
+.comment-body {
+  margin: 0.5rem 0;
+  white-space: pre-wrap; // preserve line breaks
+}
+
+.inline-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+
+  textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    resize: vertical;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+}
+
+.comment-actions {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  /* center the single primary action on narrow view, left-align on wide view */
+  justify-content: flex-start;
+
+  @media (max-width: 480px) {
+    justify-content: stretch;
+  }
 }

@@ -168,7 +168,21 @@
               @for (r of c.replies; track r.id) {
                 <article class="reply">
                   <p class="username">{{ r.author || 'username' }}</p>
-                  <p class="comment-text">{{ r.text }}</p>
+
+                  @if (editTargetId() === r.id) {
+                    <form [formGroup]="editForm" (ngSubmit)="submitEditReply(c.id, r.id)">
+                      <label>
+                        <textarea formControlName="text" maxlength="1000" rows="2" class="expanding-textarea" (input)="autoResize($event)"></textarea>
+                      </label>
+                      <div class="modal-actions" style="margin-top:0.5rem;">
+                        <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
+                        <button type="submit" class="btn primary" [disabled]="editForm.invalid">Save</button>
+                      </div>
+                    </form>
+                  } @else {
+                    <p class="comment-text">{{ r.text }}</p>
+                  }
+
                   <div class="comment-meta">
                     <span class="date">{{ r.createdAt | date:'short' }}</span>
 
@@ -189,6 +203,12 @@
                       <i class="fa-solid fa-thumbs-down"></i>
                       <span class="count">{{ r.dislikes }}</span>
                     </button>
+
+                    @if (r.author === username && editTargetId() !== r.id) {
+                      <button type="button" class="reply-button" (click)="startEditReply(r)">
+                        Edit
+                      </button>
+                    }
                   </div>
                 </article>
               }
