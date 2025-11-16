@@ -2,31 +2,14 @@ import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChi
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CdkDrag, CdkDropList, CdkDropListGroup, moveItemInArray, CdkDragDrop, CdkDragHandle, CdkDragPreview, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { take } from 'rxjs';
 
-// Mock interfaces, replace with your actual models
-export interface Artist {
-  id: string;
-  artistName: string;
-  artistImage: string;
-}
-
-export interface Album {
-  id: string;
-  name: string;
-  albumCover: string;
-  releaseYear: number;
-  artist: { artistName: string };
-}
-
-export interface Song {
-  id: string;
-  name: string;
-  artistName: string;
-  albumCover: string;
-}
+// Import your services and models
+import { ProfileService } from '../../services/profile.service';
+import { MusicSearchService } from '../../services/music-search.service';
+import { Artist, Album, Song } from '../../models/music.models'; // Corrected path
 
 @Component({
   selector: 'app-settings-profile',
@@ -43,15 +26,13 @@ export interface Song {
     CdkDragHandle,
     CdkDragPreview,
     CdkDragPlaceholder,
-    NgOptimizedImage, // This import makes the [ngSrc] directive work
+    NgOptimizedImage,
   ],
 })
 export class SettingsProfile implements AfterViewInit {
   #fb = inject(FormBuilder);
-  // Mock services - replace with your actual data services
-  // #artistService = inject(ArtistService);
-  // #albumService = inject(AlbumService);
-  // #profileService = inject(ProfileService);
+  #profileService = inject(ProfileService);
+  #musicSearchService = inject(MusicSearchService);
 
   // Signals for state management
   selectedFileName = signal('');
@@ -79,58 +60,30 @@ export class SettingsProfile implements AfterViewInit {
   constructor() {
     this.loadInitialData();
 
-    // Song search logic
+    // Search logic now calls the service
     this.songSearch.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       tap(value => this.showSongResults.set(!!value)),
-      switchMap(term => {
-        if (!term) return of([]);
-        // Replace with actual service call
-        const mockSongs: Song[] = [
-          { id: 's1', name: 'The Less I Know The Better', artistName: 'Tame Impala', albumCover: '/assets/currents.jpg' },
-          { id: 's2', name: 'Pyramids', artistName: 'Frank Ocean', albumCover: '/assets/blonde.jpg' },
-          { id: 's3', name: 'Digital Love', artistName: 'Daft Punk', albumCover: '/assets/discovery.jpg' },
-        ];
-        return of(mockSongs.filter(s => s.name.toLowerCase().includes(term.toLowerCase())));
-      })
+      switchMap(term => this.#musicSearchService.searchSongs(term ?? ''))
     ).subscribe(songs => this.songResults.set(songs));
 
-    // Artist search logic
     this.artistSearch.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       tap(value => this.showArtistResults.set(!!value)),
-      switchMap(term => {
-        if (!term) return of([]);
-        // Replace with actual service call: this.#artistService.search(term)
-        const mockArtists: Artist[] = [
-          { id: '1', artistName: 'Tame Impala', artistImage: '/assets/tame-impala.jpg' },
-          { id: '2', artistName: 'Radiohead', artistImage: '/assets/radiohead.jpg' },
-        ];
-        return of(mockArtists.filter(a => a.artistName.toLowerCase().includes(term.toLowerCase())));
-      })
+      switchMap(term => this.#musicSearchService.searchArtists(term ?? ''))
     ).subscribe(artists => this.artistResults.set(artists));
 
-    // Album search logic
     this.albumSearch.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       tap(value => this.showAlbumResults.set(!!value)),
-      switchMap(term => {
-        if (!term) return of([]);
-        // Replace with actual service call: this.#albumService.search(term)
-        const mockAlbums: Album[] = [
-          { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: '/assets/currents.jpg' },
-          { id: 'a2', name: 'In Rainbows', releaseYear: 2007, artist: { artistName: 'Radiohead' }, albumCover: '/assets/in-rainbows.jpg' },
-        ];
-        return of(mockAlbums.filter(a => a.name.toLowerCase().includes(term.toLowerCase())));
-      })
+      switchMap(term => this.#musicSearchService.searchAlbums(term ?? ''))
     ).subscribe(albums => this.albumResults.set(albums));
   }
 
   ngAfterViewInit(): void {
-    // Use setTimeout to ensure the initial resize happens after the view is fully rendered.
     setTimeout(() => this.autoResizeBio(), 0);
   }
 
@@ -143,31 +96,31 @@ export class SettingsProfile implements AfterViewInit {
   }
 
   loadInitialData() {
-    // Mock loading data from a profile service
-    const initialBio = 'This is my current bio. I love discovering new music and sharing my favorite tracks.';
-    this.bioForm.patchValue({ bio: initialBio });
-    this.favoriteArtists.set([
-        { id: '3', artistName: 'Daft Punk', artistImage: '/assets/daft-punk.jpg' },
-        { id: '1', artistName: 'Tame Impala', artistImage: '/assets/tame-impala.jpg' },
-    ]);
-    this.favoriteAlbums.set([
-        { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: '/assets/discovery.jpg' },
-        { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: '/assets/currents.jpg' },
-    ]);
-    this.favoriteSong.set({ id: 's1', name: 'The Less I Know The Better', artistName: 'Tame Impala', albumCover: '/assets/currents.jpg' });
+    this.#profileService.getProfile().pipe(take(1)).subscribe(profile => {
+      this.bioForm.patchValue({ bio: profile.bio });
+      this.favoriteSong.set(profile.favoriteSong);
+      this.favoriteArtists.set(profile.favoriteArtists);
+      this.favoriteAlbums.set(profile.favoriteAlbums);
+    });
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedFileName.set(input.files[0].name);
+    const file = input.files?.[0];
+    if (file) {
+      this.selectedFileName.set(file.name);
+      this.#profileService.uploadBackgroundImage(file).pipe(take(1)).subscribe(response => {
+        console.log('Image uploaded successfully:', response.url);
+      });
     }
   }
 
   onBioSubmit(): void {
     if (this.bioForm.valid) {
-      console.log('Saving bio:', this.bioForm.value.bio);
-      // Call profile service to save bio
+      const bio = this.bioForm.value.bio ?? '';
+      this.#profileService.updateBio(bio).pipe(take(1)).subscribe(() => {
+        console.log('Bio updated successfully');
+      });
     }
   }
 
@@ -181,8 +134,9 @@ export class SettingsProfile implements AfterViewInit {
   }
 
   saveFavoriteSong(): void {
-    console.log('Saving song:', this.favoriteSong());
-    // Call profile service to save favorite song
+    this.#profileService.updateFavoriteSong(this.favoriteSong()).pipe(take(1)).subscribe(() => {
+      console.log('Favorite song saved successfully');
+    });
   }
 
   addArtist(artist: Artist): void {
@@ -224,12 +178,14 @@ export class SettingsProfile implements AfterViewInit {
   }
 
   saveFavoriteArtists(): void {
-    console.log('Saving artists:', this.favoriteArtists());
-    // Call profile service to save artists
+    this.#profileService.updateFavoriteArtists(this.favoriteArtists()).pipe(take(1)).subscribe(() => {
+      console.log('Favorite artists saved successfully');
+    });
   }
 
   saveFavoriteAlbums(): void {
-    console.log('Saving albums:', this.favoriteAlbums());
-    // Call profile service to save albums
+    this.#profileService.updateFavoriteAlbums(this.favoriteAlbums()).pipe(take(1)).subscribe(() => {
+      console.log('Favorite albums saved successfully');
+    });
   }
 }
