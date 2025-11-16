@@ -9,7 +9,7 @@ import { take } from 'rxjs';
 // Import your services and models
 import { ProfileService } from '../../services/profile.service';
 import { MusicSearchService } from '../../services/music-search.service';
-import { Artist, Album, Song } from '../../models/music.models'; // Corrected path
+import { Artist, Album, Song } from '../../models/music.models';
 
 @Component({
   selector: 'app-settings-profile',
@@ -20,12 +20,6 @@ import { Artist, Album, Song } from '../../models/music.models'; // Corrected pa
     CommonModule,
     RouterLink,
     ReactiveFormsModule,
-    CdkDropListGroup,
-    CdkDropList,
-    CdkDrag,
-    CdkDragHandle,
-    CdkDragPreview,
-    CdkDragPlaceholder,
     NgOptimizedImage,
   ],
 })
@@ -36,14 +30,13 @@ export class SettingsProfile implements AfterViewInit {
 
   // Signals for state management
   selectedFileName = signal('');
+  profilePictureUrl = signal('/assets/default-avatar.png');
   favoriteArtists = signal<Artist[]>([]);
   favoriteAlbums = signal<Album[]>([]);
   favoriteSong = signal<Song | null>(null);
   songResults = signal<Song[]>([]);
-  artistResults = signal<Artist[]>([]);
   albumResults = signal<Album[]>([]);
   showSongResults = signal(false);
-  showArtistResults = signal(false);
   showAlbumResults = signal(false);
 
   // Forms
@@ -51,7 +44,6 @@ export class SettingsProfile implements AfterViewInit {
     bio: ['', [Validators.maxLength(150)]],
   });
   songSearch = new FormControl('');
-  artistSearch = new FormControl('');
   albumSearch = new FormControl('');
 
   // View Children
@@ -60,20 +52,13 @@ export class SettingsProfile implements AfterViewInit {
   constructor() {
     this.loadInitialData();
 
-    // Search logic now calls the service
+    // Search logic for songs and albums
     this.songSearch.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       tap(value => this.showSongResults.set(!!value)),
       switchMap(term => this.#musicSearchService.searchSongs(term ?? ''))
     ).subscribe(songs => this.songResults.set(songs));
-
-    this.artistSearch.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(value => this.showArtistResults.set(!!value)),
-      switchMap(term => this.#musicSearchService.searchArtists(term ?? ''))
-    ).subscribe(artists => this.artistResults.set(artists));
 
     this.albumSearch.valueChanges.pipe(
       debounceTime(300),
@@ -98,10 +83,22 @@ export class SettingsProfile implements AfterViewInit {
   loadInitialData() {
     this.#profileService.getProfile().pipe(take(1)).subscribe(profile => {
       this.bioForm.patchValue({ bio: profile.bio });
+      this.profilePictureUrl.set(profile.profilePictureUrl);
       this.favoriteSong.set(profile.favoriteSong);
       this.favoriteArtists.set(profile.favoriteArtists);
       this.favoriteAlbums.set(profile.favoriteAlbums);
     });
+  }
+
+  onProfilePictureSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      this.#profileService.uploadProfilePicture(file).pipe(take(1)).subscribe(response => {
+        this.profilePictureUrl.set(response.url);
+        console.log('Profile picture uploaded successfully:', response.url);
+      });
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -139,15 +136,11 @@ export class SettingsProfile implements AfterViewInit {
     });
   }
 
-  addArtist(artist: Artist): void {
-    if (!this.favoriteArtists().some(a => a.id === artist.id)) {
-      this.favoriteArtists.update(artists => [...artists, artist]);
-    }
-    this.artistSearch.setValue('');
-  }
-
-  removeArtist(artistToRemove: Artist): void {
-    this.favoriteArtists.update(artists => artists.filter(artist => artist.id !== artistToRemove.id));
+  unfollowArtist(artistToUnfollow: Artist): void {
+    this.#profileService.unfollowArtist(artistToUnfollow.id).pipe(take(1)).subscribe(() => {
+      this.favoriteArtists.update(current => current.filter(artist => artist.id !== artistToUnfollow.id));
+      console.log(`Unfollowed ${artistToUnfollow.artistName}`);
+    });
   }
 
   addAlbum(album: Album): void {
@@ -161,25 +154,11 @@ export class SettingsProfile implements AfterViewInit {
     this.favoriteAlbums.update(albums => albums.filter(album => album.id !== albumToRemove.id));
   }
 
-  dropArtist(event: CdkDragDrop<Artist[]>): void {
-    this.favoriteArtists.update(artists => {
-        const newArray = [...artists];
-        moveItemInArray(newArray, event.previousIndex, event.currentIndex);
-        return newArray;
-    });
-  }
-
   dropAlbum(event: CdkDragDrop<Album[]>): void {
      this.favoriteAlbums.update(albums => {
         const newArray = [...albums];
         moveItemInArray(newArray, event.previousIndex, event.currentIndex);
         return newArray;
-    });
-  }
-
-  saveFavoriteArtists(): void {
-    this.#profileService.updateFavoriteArtists(this.favoriteArtists()).pipe(take(1)).subscribe(() => {
-      console.log('Favorite artists saved successfully');
     });
   }
 

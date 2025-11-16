@@ -36,4 +36,19 @@ export class MusicSearchService {
     ];
     return of(mockAlbums.filter(a => a.name.toLowerCase().includes(term.toLowerCase())));
   }
+
+  getAvailableArtists(): Observable<Artist[]> {
+    // In a real app, this would fetch a list of artists from your backend
+    const mockArtists: Artist[] = [
+      { id: '1', artistName: 'Tame Impala', artistImage: '/assets/tame-impala.jpg' },
+      { id: '2', artistName: 'Radiohead', artistImage: '/assets/radiohead.jpg' },
+      { id: '3', artistName: 'Daft Punk', artistImage: '/assets/daft-punk.jpg' },
+      { id: '4', artistName: 'Kendrick Lamar', artistImage: '/assets/kendrick-lamar.jpg' },
+      { id: '5', artistName: 'Frank Ocean', artistImage: '/assets/frank-ocean.jpg' },
+      { id: '6', artistName: 'Bon Iver', artistImage: '/assets/bon-iver.jpg' },
+      { id: '7', artistName: 'Fleetwood Mac', artistImage: '/assets/fleetwood-mac.jpg' },
+      { id: '8', artistName: 'The Beatles', artistImage: '/assets/the-beatles.jpg' },
+    ];
+    return of(mockArtists);
+  }
 }
