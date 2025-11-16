@@ -73,8 +73,8 @@ body {
 
   button {
     align-self: flex-end;
-    background-color: var(--btn-secondary);
-    color: white;
+    background-color: #b78cff;
+    color: black;
     width: 100px;
     height: 40px;
     border: none;
@@ -141,7 +141,7 @@ body {
 
   .custom-upload-button {
     background-color: #b78cff;
-    color: white;
+    color: black;
     padding: 0.6em 1.2em;
     border-radius: 5px;
     font-size: 1rem;
@@ -167,6 +167,340 @@ body {
     font-size: 0.9rem;
     color: #aaa;
     margin-top: 0.3rem;
+  }
+}
+
+// Global Action Button Style
+.action-button {
+  background-color: #b78cff;
+  color: black;
+  padding: 0.7em 1.5em;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.7;
+  }
+
+  &:not(:disabled):focus {
+    background-color: #ff495d;
+  }
+
+  &.disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
+}
+
+// Styles for Search Containers (used for song search)
+.search-container {
+  position: relative;
+  max-width: 40rem;
+  margin-bottom: 2.5rem;
+
+  .form-control {
+    width: 100%;
+    padding: 0.8em;
+    font-size: 1em;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
+
+    &:focus {
+      border-color: #b78cff;
+      background: #1f1f1f;
+      outline: none;
+      box-shadow: 0 0 0 3px color-mix(in oklab, #b78cff 35%, transparent);
+    }
+  }
+
+  .search-results {
+    position: absolute;
+    width: 100%;
+    background: #1f1f1f;
+    border: 1px solid #444;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #333;
+      }
+
+      .item-image {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 1rem;
+      }
+
+      .item-meta {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .item-title {
+        font-weight: 500;
+      }
+
+      .item-sub {
+        font-size: 0.85em;
+        color: #aaa;
+      }
+    }
+  }
+}
+
+// Styles for Favorite Song Selection
+.favorite-song-card {
+  display: flex;
+  align-items: center;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.75rem;
+  max-width: 40rem;
+  position: relative;
+  margin-bottom: 2.5rem;
+
+  .item-cover {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+  }
+
+  .item-meta {
+    flex-grow: 1;
+    overflow: hidden;
+  }
+
+  .item-title {
+    font-weight: 600;
+  }
+
+  .item-sub {
+    font-size: 0.9em;
+    color: #aaa;
+  }
+
+  .clear-btn {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    line-height: 1;
+    cursor: pointer;
+    color: #888;
+    padding: 2px;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #ff495d;
+    }
+  }
+}
+
+// Styles for Favorites Section
+.favorites-section {
+  .selection-list {
+    max-height: 220px;
+    overflow-y: auto;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    max-width: 100%;
+  }
+
+  .item-card {
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    position: relative;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease, border-color 0.2s ease;
+
+    &:not(.cdk-drag-dragging) {
+      .drag-handle {
+        cursor: grab;
+      }
+    }
+
+    .drag-handle {
+      color: #666;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.5rem;
+      border-radius: 50%;
+      transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    }
+
+    &:hover .drag-handle {
+      color: #b78cff;
+      background-color: #2a2a2a;
+    }
+
+    &.cdk-drag-dragging {
+      // Make the original item being dragged transparent, but keep its space
+      opacity: 0.4;
+    }
+
+    &:active {
+      .drag-handle {
+        cursor: grabbing;
+      }
+    }
+
+    .item-cover {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 1rem;
+    }
+
+    .item-meta {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+
+    .item-title {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-sub {
+      font-size: 0.9em;
+      color: #aaa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      line-height: 1;
+      cursor: pointer;
+      color: #888;
+      padding: 2px;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #ff495d;
+      }
+    }
+  }
+
+  .item-card-preview {
+    // Style the preview to look like the original item card
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    // Ensure it has the same structure as the item-card
+    .item-cover {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-right: 1rem;
+    }
+    .item-meta {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+    .item-title {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-sub {
+      font-size: 0.9em;
+      color: #aaa;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .item-card-placeholder {
+    // The placeholder is now a simple block with a background
+    background: #b78cff;
+    width: 3px; // A thin vertical bar
+    height: 50px; // Match the approximate height of the items
+    border-radius: 2px;
+  }
+
+  .cdk-drag-preview {
+    box-sizing: border-box;
+    border-radius: 8px; // Match the new preview style
+  }
+
+  .cdk-drag-placeholder {
+    // Make the placeholder take up no space to prevent the grid from reflowing.
+    // This is the key to stopping the "jump".
+    opacity: 0;
+  }
+
+  .cdk-drop-list-dragging .item-card:not(.cdk-drag-placeholder) {
+    // Re-introduce the smooth transition for sibling items.
+    // This makes them slide out of the way gracefully.
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .save-favorites-btn {
+    @extend .action-button; // Inherit the global button style
+    margin-top: 2.5rem;
   }
 }
 
