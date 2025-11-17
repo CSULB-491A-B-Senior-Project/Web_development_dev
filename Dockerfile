@@ -25,12 +25,11 @@ FROM nginx:alpine
 # Copy the built application from the build stage
 COPY --from=build /app/dist/crescendo/browser /usr/share/nginx/html
 
-# COPY redirect.js /etc/nginx/njs/redirect.js
+# Remove the default nginx site configuration
+RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy the NGINX configuration file
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-
 
 # Expose port 80
 EXPOSE 80

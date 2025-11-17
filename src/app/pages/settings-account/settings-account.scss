@@ -1,7 +1,4 @@
 body {
-  background-color: black;
-  width: 100vw;
-  height: 100vh;
   display: flex;
   overflow: auto;
 
@@ -9,8 +6,9 @@ body {
     font-size: 2rem;
     font-weight: 600;
     margin-top: 5rem;
-    margin-bottom: 2.8rem;
+    margin-bottom: 2.5rem;
   }
+
   h3 {
     font-weight: 600;
     margin-bottom: 1rem;
@@ -23,8 +21,8 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  padding: 30px 20px 0px 40px;
-  background-color: #222222;
+  padding: 30px 0px 0px 60px;
+  background-color: #12101a;
   color: white;
 
   a {
@@ -43,6 +41,22 @@ body {
     width: fit-content;
     padding: 0px 10px 0px 10px;
   }
+
+  // .delete {
+  //   background-color: transparent;
+  //   color: rgb(206, 0, 0);
+  //   border: solid 3px rgb(206, 0, 0);
+  //   width: 180px;
+  //   border-radius: 5px;
+  //   font-size: 1.2rem;
+  //   font-weight: 800;
+  //   &:hover {
+  //     opacity: 0.7;
+  //   }
+  //   &:focus {
+  //     background-color: #ff495d;
+  //   }
+  // }
 }
 
 .settings-container {
@@ -90,11 +104,10 @@ input {
 }
 
 button {
-  background-color: #b78cff;
+  background-color: var(--btn-secondary);
   color: white;
   width: 100px;
   height: 40px;
-  border: none;
   border-radius: 5px;
   font-size: 1rem;
   font-weight: 600;
@@ -105,10 +118,39 @@ button {
   }
 
   &:not(.disabled):focus {
-    background-color: #ff495d;
+    background-color: var(--chip-selected);
   }
 
-  &.disabled {
-    background: #aaa;
+  &:disabled {
+    background: var(--chip-selected);
   }
 } 
+
+.password-btns {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  img {
+    width: 30px;
+  }
+
+  &:not(.disabled):focus {
+    background-color: transparent;
+  }
+}
+
+.required {
+  color: rgb(206, 0, 0);
+}
+
+.requirement {
+  color: white;
+  &.met {
+    color: var(--chip-selected);
+  }
+}
