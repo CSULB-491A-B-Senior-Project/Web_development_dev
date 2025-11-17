@@ -12,8 +12,8 @@ import { AlbumDetailsComponent } from './pages/album-details/album-details.compo
 export const routes: Routes = [
   { path: '', component: Home }, //default route
   { path: 'signup', component: Signup }, //signup page
-  { path: 'settings-profile', component: SettingsProfileComponent }, //settings-profile page
-  { path: 'settings-account', component: SettingsAccountComponent }, //settings-accounts page
+  { path: 'settings-profile', component: SettingsProfile }, //settings-profile page
+  { path: 'settings-account', component: SettingsAccount }, //settings-accounts page
   {
     path: '',
     component: MainLayout,
