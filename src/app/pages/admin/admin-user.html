@@ -1,0 +1,9 @@
+<app-admin-search
+    [items]="items()"
+    [getId]="getId"
+    [getLabel]="getLabel"
+    [primaryLabel]="'Suspend User(s)'"
+    [secondaryLabel]="'Warn User(s)'"
+    (primary)="onSuspend($event)"
+    (secondary)="onWarn($event)">
+</app-admin-search>
