@@ -22,11 +22,11 @@ type Album = {
 };
 @Component({
     selector: 'app-artist',
-    templateUrl: './artist.component.html',
-    styleUrls: ['./artist.component.scss'],
+    templateUrl: './artist.html',
+    styleUrls: ['./artist.scss'],
     imports: [AlbumCard, CommonModule]
 })
-export class ArtistComponent {
+export class Artist {
     // ARTIST DATA
     artist_1 = {
         artistId: 999,
