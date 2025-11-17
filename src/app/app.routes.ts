@@ -7,6 +7,7 @@ import { SettingsProfile } from './pages/settings-profile/settings-profile';
 import { Artist } from './pages/artist/artist';
 import { Explore } from './pages/explore/explore';
 import { ProfileComponent } from './pages/profile/profile';
+import { AlbumDetailsComponent } from './pages/album-details/album-details.component';
 
 export const routes: Routes = [
   { path: '', component: Home }, //default route
@@ -22,6 +23,10 @@ export const routes: Routes = [
         path: 'explore',
         loadComponent: () => import('./pages/explore/explore')
           .then(m => m.Explore)
+      },
+      {
+        path: 'album-details',
+        component: AlbumDetailsComponent
       },
       {
         path: 'profile',
