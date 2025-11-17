@@ -1,8 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ExploreCard } from '../../ui/explore-card/explore-card';
+import { SearchService, SearchItem } from '../../services/search.service';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 type Item = {
   id: number;
@@ -32,59 +35,80 @@ export class SearchResults {
   tab = signal<'all' | 'users' | 'albums' | 'reviews'>('all');
   sort = signal<'relevance' | 'recent' | 'popular' | 'rating'>('relevance');
 
-  // Fake data (replace with backend later)
-  private readonly allItems = signal<Item[]>([
-    {
-      id: 101,
-      username: 'aurora',
-      title: 'Midnight Echoes',
-      genres: ['ambient', 'electronic'],
-      dateLabel: 'Today',
-      imageUrl: 'https://picsum.photos/seed/sr-1/600/600',
-      isArtist: true,
-      favorites: 3400,
-      rating: 4.6,
-      type: 'album'
-    },
-    {
-      id: 102,
-      username: 'miles',
-      title: 'Lo-Fi Study Session',
-      genres: ['lofi', 'hip-hop'],
-      dateLabel: '2d',
-      imageUrl: 'https://picsum.photos/seed/sr-2/600/600',
-      isArtist: false,
-      favorites: 820,
-      rating: 3.9,
-      type: 'review'
-    },
-    {
-      id: 103,
-      username: 'cassette_club',
-      title: 'Analog Dreams',
-      genres: ['indie', 'pop'],
-      dateLabel: '1w',
-      imageUrl: 'https://picsum.photos/seed/sr-3/600/600',
-      isArtist: true,
-      favorites: 15400,
-      rating: 4.9,
-      type: 'album'
-    },
-    {
-      id: 104,
-      username: 'noisewave',
-      title: 'noisewave',
-      genres: ['electronic'],
-      dateLabel: 'Yesterday',
-      imageUrl: 'https://picsum.photos/seed/sr-4/600/600',
-      isArtist: false,
-      favorites: 260,
-      rating: 0,
-      type: 'user'
-    }
-  ]);
 
-  // Filtering & sorting
+  // Data state
+  items = signal<SearchItem[]>([]);
+  loading = signal(false);
+  error = signal<string | null>(null);
+  resultCount = signal(0);
+
+  searchSubject = new Subject<void>();
+
+  constructor(
+    private searchService: SearchService,
+    private route: ActivatedRoute
+  ) {
+    // Read query from URL on init
+    this.route.queryParams.subscribe(params => {
+      if (params['q']) {
+        this.query.set(params['q']);
+      }
+    });
+
+    // Set up debounced search
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(() => {
+        this.loading.set(true);
+        this.error.set(null);
+
+        return this.searchService.search({
+          query: this.query(),
+          tab: this.tab(),
+          sort: this.sort()
+        });
+      })
+    ).subscribe({
+      next: (response) => {
+        this.items.set(response.items);
+        this.resultCount.set(response.total);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set('Failed to load search results');
+        this.loading.set(false);
+        console.error('Search error:', err);
+      }
+    });
+
+    // Trigger search when query, tab, or sort changes
+    effect(() => {
+      const q = this.query();
+      const t = this.tab();
+      const s = this.sort();
+
+      if (q.trim()) {
+        this.searchSubject.next();
+      } else {
+        this.items.set([]);
+        this.resultCount.set(0);
+      }
+    });
+  }
+
+  setTab(t: 'all' | 'users' | 'albums' | 'reviews') {
+    this.tab.set(t);
+  }
+
+  setView(v: 'grid' | 'list') {
+    this.view.set(v);
+  }
+
+  trackById = (_: number, it: SearchItem) => it.id;
+}
+
+ /* // Filtering & sorting
   filtered = computed(() => {
     const q = this.query().toLowerCase().trim();
     const tab = this.tab();
@@ -129,3 +153,4 @@ export class SearchResults {
   // trackBy to satisfy Angular typing
   trackById = (_: number, it: Item) => it.id;
 }
+*/
