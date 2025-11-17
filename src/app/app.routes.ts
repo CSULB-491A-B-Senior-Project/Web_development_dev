@@ -46,11 +46,6 @@ export const routes: Routes = [
             path: 'lists/new',
             loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
         },
-        {
-            path: 'search',
-            loadComponent: () =>
-                import('./pages/search-results/search-results').then(m => m.SearchResults)
-        },
     ]
     },
 ];
