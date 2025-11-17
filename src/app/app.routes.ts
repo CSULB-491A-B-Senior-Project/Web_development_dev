@@ -20,7 +20,7 @@ export const routes: Routes = [
   { path: 'settings-account', component: SettingsAccount }, //settings-accounts page
   { path: 'settings-profile', component: SettingsProfile }, //settings-profile page
   { path: 'admin-user', component: AdminUser }, //admin user page
-  { path: 'admin-post', component: AdminUser }, //admin post page
+  { path: 'admin-post', component: AdminPost }, //admin post page
   {
     path: '',
     component: MainLayout,

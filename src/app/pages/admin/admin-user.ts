@@ -5,6 +5,7 @@ import { AdminSearch } from '../../ui/admin-search/admin-search';
 type User = {
     id: number;
     username: string;
+    email: string;
 };
 
 @Component({
@@ -25,29 +26,34 @@ export class AdminUser {
     items = signal<User[]>([
     {
         id: 1,
-        username: 'username'
+        username: 'username',
+        email: 'example@gmail.com'
     },
     {
         id: 2,
-        username: 'another_user'
+        username: 'another_user',
+        email: 'example@gmail.com'
     },
     {
         id: 3,
-        username: 'another_user'
+        username: 'another_user',
+        email: 'example@gmail.com'
     },
     {
         id: 4,
-        username: 'another_user 123'
+        username: 'another_user 123',
+        email: 'example@gmail.com'
     },
     {
         id: 5,
-        username: 'another_use12r'
+        username: 'another_use12r',
+        email: 'example@gmail.com'
     },
     ]);
     
     // define the functions as class members
     getId = (u: User) => u.id;
-    getLabel = (u: User) => u.username;
+    getLabel = (u: User) => [u.username, u.email].filter(Boolean).join(' — ');
 
     onSuspend = (ids: (string|number)[]) =>
     alert('Suspending user ids: ' + ids.join(', '));

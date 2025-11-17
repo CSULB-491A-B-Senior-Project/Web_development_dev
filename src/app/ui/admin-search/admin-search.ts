@@ -39,12 +39,14 @@ export class AdminSearch {
     getId = input<(item: any) => Key>((i: any) => i?.id as Key);
 
     /** How to render the label (default: item['username'] || item['label'] || String(item)) */
-    getLabel = input<(item: any) => string>((i: any) =>
-        (i?.username ?? i?.label ?? String(i))
-    );
+    getLabel = input<(item: any) => string>((i: any) => {
+        const parts = [i?.username, i?.label].filter(v => v != null && v !== '');
+        if (parts.length) return parts.join(' — ');
+        try { return JSON.stringify(i); } catch { return String(i); }
+    });
 
     /** Action button labels (optional) */
-    primaryLabel = input<string>('Suspend Selected');
+    primaryLabel = input<string>('hello Selected');
     secondaryLabel = input<string>('Warn Selected');
 
     /** Outputs */
