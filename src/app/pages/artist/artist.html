@@ -1,45 +1,44 @@
 <div class="page-wrapper">
-<body>
-    <div class="artist-container">
-        <!--ARTIST HEADER-->
-        <div class="artist-header">
-            <img src="././assets/profile.png" alt="artist avatar">
-            <div class="artist-info">
-                <h1 class="name">{{ artist_1.name }}</h1>
-                <p><span style="color: var(--btn-primary);">{{ artist_1.followers }}</span> of followers</p>
-            </div>
-            <button>Follow</button>
-        </div>
-        
-        <!--ARTIST BODY-->
-        <div class="artist-body">
-            <!--ARTIST BIO-->
-            <div class="bio-container">
-                <p>{{ artist_1.bio }}</p>
-            </div>
-            <div class="album-container">
-                <!--SORT MENU-->
-                <div class="sort">
-                    <h4>SORT BY</h4>
-                    <div class="genres">
-                        <button (click)=sortByTitleAsc() class="chip">A to Z</button>
-                        <button (click)=sortByTitleDesc() class="chip">Z to A</button>
-                        <button (click)=sortByDateDesc() class="chip">Most Recent</button>
-                        <button (click)=sortByDateAsc() class="chip">Oldest to Newest</button>
-                        <button (click)=clearFilters() class="chip more">Clear Filter</button>
-                    </div>
-                </div>
-                <!--ALBUM GRID-->
-                <div class="album-grid">
-                    <!--ALBUM CARD TEMPLATE-->
-                    <app-album-card *ngFor="let it of albums(); trackBy: trackById"
-                        [title]="it.title"
-                        [dateLabel]="it.dateLabel"
-                        [imageUrl]="it.imageUrl">
-                    </app-album-card>
-                </div>
-            </div>
-        </div>
+  <div class="artist-container">
+    <!--ARTIST HEADER-->
+    <div class="artist-header">
+      <img src="././assets/profile.png" alt="artist avatar">
+      <div class="artist-info">
+        <h1 class="name">{{ artist_1.name }}</h1>
+        <p><span style="color: var(--btn-primary);">{{ artist_1.followers }}</span> of followers</p>
+      </div>
+      <button>Follow</button>
     </div>
-</body>
+
+    <!--SORT MENU-->
+    <div class="sort">
+      <h4>SORT BY</h4>
+      <div class="genres">
+        <button (click)=sortByTitleAsc() class="chip">A to Z</button>
+        <button (click)=sortByTitleDesc() class="chip">Z to A</button>
+        <button (click)=sortByDateDesc() class="chip">Most Recent</button>
+        <button (click)=sortByDateAsc() class="chip">Oldest to Newest</button>
+        <button (click)=clearFilters() class="chip more">Clear Filter</button>
+      </div>
+    </div>
+    <!--ARTIST BODY-->
+    <div class="artist-body">
+      <!--ARTIST BIO-->
+      <div class="bio-container">
+        <p>{{ artist_1.bio }}</p>
+      </div>
+      <div class="album-container">
+        <!--ALBUM GRID-->
+        <div class="album-grid">
+          <!--ALBUM CARD TEMPLATE-->
+          <app-album-card *ngFor="let it of albums(); trackBy: trackById"
+                          [title]="it.title"
+                          [artist]="it.artist"
+                          [dateLabel]="it.dateLabel"
+                          [imageUrl]="it.imageUrl">
+          </app-album-card>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

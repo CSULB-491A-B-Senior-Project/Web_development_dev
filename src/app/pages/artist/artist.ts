@@ -16,6 +16,7 @@ type artist = {
 type Album = {
     albumId: number;
     title: string;
+    artist: string;
     dateLabel: string;
     imageUrl: string;
 };
@@ -40,30 +41,35 @@ export class Artist {
     {
         albumId: 1,
         title: 'Album D',
+        artist: 'Artist A',
         dateLabel: 'Oct. 15, 2025',
         imageUrl: 'https://picsum.photos/seed/card-1/600/600'
     },
     {
         albumId: 2,
         title: 'Album C',
+        artist: 'Artist A',
         dateLabel: 'Oct. 11, 2025',
         imageUrl: 'https://picsum.photos/seed/card-2/600/600'
     },
     {
         albumId: 3,
         title: 'Album A',
+        artist: 'Artist A',
         dateLabel: 'Oct. 13, 2025',
         imageUrl: 'https://picsum.photos/seed/card-3/600/600'
     },
     {
         albumId: 4,
         title: 'Album E',
+        artist: 'Artist A',
         dateLabel: 'Oct. 12, 2025',
         imageUrl: 'https://picsum.photos/seed/card-4/600/600'
     },
     {
         albumId: 5,
         title: 'Album B',
+        artist: 'Artist A',
         dateLabel: 'Oct. 14, 2025',
         imageUrl: 'https://picsum.photos/seed/card-5/600/600'
     },

@@ -117,12 +117,11 @@ button {
 footer {
   width: 100%;
   height: 60px;
-  background: #0a090f;
+  background: var(--border-color);
   color: white;
   text-align: center;
   justify-content: center;
   width: 100%;
-  p {
-    padding-top: 15px;
-  }
+  bottom: 0;
+  align-content: center;
 }

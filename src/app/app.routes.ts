@@ -14,7 +14,6 @@ export const routes: Routes = [
   { path: 'signup', component: Signup }, //signup page
   { path: 'settings-profile', component: SettingsProfile }, //settings-profile page
   { path: 'settings-account', component: SettingsAccount }, //settings-accounts page
-  { path: 'explore-page', component: Explore }, //explore page
   {
     path: '',
     component: MainLayout,
@@ -42,19 +41,17 @@ export const routes: Routes = [
         path: 'search',
         loadComponent: () =>
           import('./pages/search-results/search-results').then(m => m.SearchResults)
-      },
+        },
+        {
+            path: 'lists/new',
+            loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
+        },
+        {
+            path: 'search',
+            loadComponent: () =>
+                import('./pages/search-results/search-results').then(m => m.SearchResults)
+        },
     ]
-  },
-  { path: 'settings-profile', component: SettingsProfile }, //settings-profile page
-  { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent) },
-  {
-    path: 'lists/new',
-    loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
-  },
-  {
-    path: 'search',
-    loadComponent: () =>
-      import('./pages/search-results/search-results').then(m => m.SearchResults)
-  },
+    },
 ];
 export class AppRoutingModule { }
