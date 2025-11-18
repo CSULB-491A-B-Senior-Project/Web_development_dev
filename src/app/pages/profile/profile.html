@@ -41,18 +41,22 @@
   <section class="albums">
     <h2>Favorite Albums</h2>
     <div class="album-grid">
-      <figure *ngFor="let url of favoriteAlbumUrls()">
-        <img *ngIf="url; else favSkeleton" [src]="url" alt="album cover" />
-        <ng-template #favSkeleton><div class="img-skeleton"></div></ng-template>
-      </figure>
+      <app-album-card *ngFor="let it of albums(); trackBy: trackById"
+                      [title]="it.title"
+                      [artist]="it.artist"
+                      [dateLabel]="it.dateLabel"
+                      [imageUrl]="it.imageUrl">
+      </app-album-card>
     </div>
 
     <h2>Recent Albums</h2>
     <div class="album-grid recent">
-      <figure *ngFor="let url of recentAlbumUrls()">
-        <img *ngIf="url; else recSkeleton" [src]="url" alt="album cover" />
-        <ng-template #recSkeleton><div class="img-skeleton"></div></ng-template>
-      </figure>
+      <app-album-card *ngFor="let it of albums(); trackBy: trackById"
+                      [title]="it.title"
+                      [artist]="it.artist"
+                      [dateLabel]="it.dateLabel"
+                      [imageUrl]="it.imageUrl">
+      </app-album-card>
     </div>
   </section>
 </main>
