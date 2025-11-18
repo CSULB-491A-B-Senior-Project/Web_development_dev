@@ -334,7 +334,8 @@ body {
 
 // Styles for Favorites Section
 .favorites-section {
-  .artist-list {
+  .artist-list,
+  .album-list {
     margin-bottom: 2.5rem;
   }
 
@@ -351,12 +352,17 @@ body {
       align-items: center;
       padding: 0.75rem;
       border-radius: 4px;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #2a2a2a;
+      }
 
       .item-image {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         object-fit: cover;
-        border-radius: 50%; // Circular images for artists
+        border-radius: 4px;
         margin-right: 1rem;
       }
 
@@ -364,10 +370,22 @@ body {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        overflow: hidden;
       }
 
       .item-title {
         font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-sub {
+        font-size: 0.85em;
+        color: #aaa;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 
@@ -378,201 +396,47 @@ body {
     }
   }
 
-  .follow-btn {
-    background-color: #b78cff;
-    color: black;
-    border: none;
+  .unfollow-btn {
+    background: none;
+    color: #ccc;
+    border: 1px solid #555;
     border-radius: 20px;
     padding: 0.5em 1.2em;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 
-    &.following {
-      background: none;
-      color: #ccc;
-      border: 1px solid #555;
-    }
-
-    &:hover:not(.following) {
-      opacity: 0.8;
-    }
-
-    &.following:hover {
+    &:hover {
       background-color: #ff495d;
       border-color: #ff495d;
       color: white;
     }
   }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-    max-width: 100%;
-  }
+  .heart-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    padding: 0.25rem;
+    line-height: 1;
 
-  .item-card {
-    background: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #333;
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    position: relative;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease, border-color 0.2s ease;
-
-    &:not(.cdk-drag-dragging) {
-      .drag-handle {
-        cursor: grab;
-      }
+    &:hover {
+      transform: scale(1.2);
     }
 
-    .drag-handle {
-      color: #666;
-      padding: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 0.5rem;
-      border-radius: 50%;
-      transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-    }
-
-    &:hover .drag-handle {
-      color: #b78cff;
-      background-color: #2a2a2a;
-    }
-
-    &.cdk-drag-dragging {
-      // Make the original item being dragged transparent, but keep its space
-      opacity: 0.4;
-    }
-
-    &:active {
-      .drag-handle {
-        cursor: grabbing;
-      }
-    }
-
-    .item-cover {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
-      border-radius: 4px;
-      margin-right: 1rem;
-    }
-
-    .item-meta {
-      flex-grow: 1;
-      overflow: hidden;
-    }
-
-    .item-title {
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-sub {
-      font-size: 0.9em;
-      color: #aaa;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .remove-btn {
-      position: absolute;
-      top: 50%;
-      right: 8px;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 1.5em;
-      line-height: 1;
-      cursor: pointer;
-      color: #888;
-      padding: 2px;
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: #ff495d;
-      }
+    &.hearted {
+      animation: heartBeat 0.3s ease;
     }
   }
 
-  .item-card-preview {
-    // Style the preview to look like the original item card
-    background: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #444;
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    // Ensure it has the same structure as the item-card
-    .item-cover {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
-      border-radius: 4px;
-      margin-right: 1rem;
-    }
-    .item-meta {
-      flex-grow: 1;
-      overflow: hidden;
-    }
-    .item-title {
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .item-sub {
-      font-size: 0.9em;
-      color: #aaa;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
   }
 
-  .item-card-placeholder {
-    // The placeholder is now a simple block with a background
-    background: #b78cff;
-    width: 3px; // A thin vertical bar
-    height: 50px; // Match the approximate height of the items
-    border-radius: 2px;
-  }
-
-  .cdk-drag-preview {
-    box-sizing: border-box;
-    border-radius: 8px; // Match the new preview style
-  }
-
-  .cdk-drag-placeholder {
-    // Make the placeholder take up no space to prevent the grid from reflowing.
-    // This is the key to stopping the "jump".
-    opacity: 0;
-  }
-
-  .cdk-drop-list-dragging .item-card:not(.cdk-drag-placeholder) {
-    // Re-introduce the smooth transition for sibling items.
-    // This makes them slide out of the way gracefully.
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-  }
-
-  .cdk-drag-animating {
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-  }
-
-  .save-favorites-btn {
-    @extend .action-button; // Inherit the global button style
-    margin-top: 2.5rem;
-  }
+  // Remove old drag-drop specific styles if they exist
 }
 
 

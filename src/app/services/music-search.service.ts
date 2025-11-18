@@ -51,4 +51,17 @@ export class MusicSearchService {
     ];
     return of(mockArtists);
   }
+
+  getAvailableAlbums(): Observable<Album[]> {
+    // In a real app, this would fetch a list of albums from your backend
+    const mockAlbums: Album[] = [
+      { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: '/assets/currents.jpg' },
+      { id: 'a2', name: 'In Rainbows', releaseYear: 2007, artist: { artistName: 'Radiohead' }, albumCover: '/assets/in-rainbows.jpg' },
+      { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: '/assets/discovery.jpg' },
+      { id: 'a4', name: 'good kid, m.A.A.d city', releaseYear: 2012, artist: { artistName: 'Kendrick Lamar' }, albumCover: '/assets/gkmc.jpg' },
+      { id: 'a5', name: 'Blonde', releaseYear: 2016, artist: { artistName: 'Frank Ocean' }, albumCover: '/assets/blonde.jpg' },
+      { id: 'a6', name: 'For Emma, Forever Ago', releaseYear: 2007, artist: { artistName: 'Bon Iver' }, albumCover: '/assets/fefa.jpg' },
+    ];
+    return of(mockAlbums);
+  }
 }
