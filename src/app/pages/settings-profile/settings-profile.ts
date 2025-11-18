@@ -8,6 +8,7 @@ import { of, take } from 'rxjs';
 import { ProfileService } from '../../services/profile.service';
 import { MusicSearchService } from '../../services/music-search.service';
 import { Artist, Album, Song } from '../../models/music.models';
+import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-settings-profile',
@@ -19,6 +20,9 @@ import { Artist, Album, Song } from '../../models/music.models';
     RouterLink,
     ReactiveFormsModule,
     NgOptimizedImage,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
   ],
 })
 export class SettingsProfile implements AfterViewInit {
@@ -176,5 +180,23 @@ export class SettingsProfile implements AfterViewInit {
     const updated = this.favoriteAlbums().filter(a => a.id !== album.id);
     this.favoriteAlbums.set(updated);
     this.#profileService.updateFavoriteAlbums(updated).pipe(take(1)).subscribe();
+  }
+
+  // Computed slice for top 10 (unchanged)
+  topTenFavoriteArtists = computed(() => this.favoriteArtists().slice(0, 10));
+
+  // Replace previous drop handler with this:
+  dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
+    // Work on a copy
+    const current = this.favoriteArtists();
+    const top = [...current.slice(0, 10)];
+    moveItemInArray(top, event.previousIndex, event.currentIndex);
+    const updated = [...top, ...current.slice(10)];
+
+    // Update signal first for instant UI
+    this.favoriteArtists.set(updated);
+
+    // Persist immediately
+    this.#profileService.updateFavoriteArtists(updated).pipe(take(1)).subscribe();
   }
 }

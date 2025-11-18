@@ -99,92 +99,78 @@
         <button type="button" class="action-button" (click)="saveFavoriteSong()">Save Song</button>
 
         <div class="favorites-section">
-            <!-- CUSTOMIZE FAVORITE ARTISTS-->
-            <h1>Edit favorite artists</h1>
-            <p>Follow artists to add them to your favorites.</p>
-            
-            <form [formGroup]="artistSearchForm" class="search-container">
-                <input
-                    class="form-control"
-                    type="text"
-                    formControlName="query"
-                    placeholder="Search for artists to follow..."
-                />
-                @if (artistSearchQuery() && artistResults().length > 0) {
-                    <ul class="search-results">
-                        @for (artist of artistResults(); track artist.id) {
-                            <li class="result-item" (click)="addArtistToFavorites(artist)">
-                                <img [ngSrc]="artist.artistImage" class="item-image" width="50" height="50" [alt]="artist.artistName" />
-                                <div class="item-meta">
-                                    <span class="item-title">{{ artist.artistName }}</span>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                }
-            </form>
+          <h1>Rank top 10 favorite artists</h1>
+          <p>Drag to reorder. Changes save automatically.</p>
 
-            <div class="selection-list artist-list">
-                @for (artist of favoriteArtists(); track artist.id) {
-                    <div class="selection-item">
-                        <img [ngSrc]="artist.artistImage" class="item-image" width="50" height="50" [alt]="artist.artistName" />
-                        <div class="item-meta">
-                            <span class="item-title">{{ artist.artistName }}</span>
-                        </div>
-                        <button class="unfollow-btn" (click)="removeArtistFromFavorites(artist)">Unfollow</button>
+          <div
+            cdkDropList
+            (cdkDropListDropped)="dropFavoriteArtist($event)"
+            class="artist-rank-list">
+            @for (artist of topTenFavoriteArtists(); track artist.id; let i = $index) {
+              <div class="artist-rank-item" cdkDrag>
+                <span class="rank-number">{{ i + 1 }}</span>
+                <img [ngSrc]="artist.artistImage" width="48" height="48" [alt]="artist.artistName" />
+                <span class="artist-name">{{ artist.artistName }}</span>
+                <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
+              </div>
+            } @empty {
+              <p class="empty-list-text">No favorite artists to rank.</p>
+            }
+          </div>
+        </div>
+
+        <!-- CUSTOMIZE FAVORITE ALBUMS-->
+        <div class="favorites-section album-favorites">
+          <h1>Edit favorite albums</h1>
+          <p>Heart albums to add them. Click again to remove.</p>
+
+          <form [formGroup]="albumSearchForm" class="search-container">
+            <input
+              class="form-control"
+              type="text"
+              formControlName="query"
+              placeholder="Search for albums to add..." />
+            @if (albumSearchQuery() && albumResults().length > 0) {
+              <ul class="search-results">
+                @for (album of albumResults(); track album.id) {
+                  <li class="result-item" (click)="addAlbumToFavorites(album)">
+                    <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
+                    <div class="item-meta">
+                      <span class="item-title">{{ album.name }}</span>
+                      <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
                     </div>
-                } @empty {
-                    <p class="empty-list-text">You are not following any artists yet. Search above to add some!</p>
+                    <button
+                      type="button"
+                      class="heart-btn"
+                      aria-label="Add {{ album.name }} to favorites">
+                      🤍
+                    </button>
+                  </li>
                 }
-            </div>
+              </ul>
+            }
+          </form>
 
-            <!-- CUSTOMIZE FAVORITE ALBUMS-->
-            <h1>Edit favorite albums</h1>
-            <p>Add or remove albums from your favorites.</p>
-            
-            <!-- Search box for adding new albums -->
-            <form [formGroup]="albumSearchForm" class="search-container">
-                <input
-                    class="form-control"
-                    type="text"
-                    formControlName="query"
-                    placeholder="Search for albums to add..."
-                />
-                @if (albumSearchQuery() && albumResults().length > 0) {
-                    <ul class="search-results">
-                        @for (album of albumResults(); track album.id) {
-                            <li class="result-item" (click)="addAlbumToFavorites(album)">
-                                <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
-                                <div class="item-meta">
-                                    <span class="item-title">{{ album.name }}</span>
-                                    <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                }
-            </form>
-
-            <!-- List of favorited albums only -->
-            <div class="selection-list album-list">
-                @for (album of favoriteAlbums(); track album.id) {
-                    <div class="selection-item">
-                        <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
-                        <div class="item-meta">
-                            <span class="item-title">{{ album.name }}</span>
-                            <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
-                        </div>
-                        <button
-                            class="heart-btn hearted"
-                            (click)="removeAlbumFromFavorites(album)"
-                            [attr.aria-label]="'Remove ' + album.name + ' from favorites'">
-                            ❤️
-                        </button>
-                    </div>
-                } @empty {
-                    <p class="empty-list-text">You haven't favorited any albums yet. Search above to add some!</p>
-                }
-            </div>
+          <div class="selection-list album-list">
+            @for (album of favoriteAlbums(); track album.id) {
+              <div class="selection-item">
+                <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
+                <div class="item-meta">
+                  <span class="item-title">{{ album.name }}</span>
+                  <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="heart-btn hearted"
+                  (click)="removeAlbumFromFavorites(album)"
+                  aria-label="Remove {{ album.name }} from favorites">
+                  ❤️
+                </button>
+              </div>
+            } @empty {
+              <p class="empty-list-text">No favorite albums yet. Search above to add some.</p>
+            }
+          </div>
         </div>
     </div>
 </body>
