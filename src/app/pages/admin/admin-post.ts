@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AdminSearch } from '../../ui/admin-search/admin-search';
+import { Admin } from '../../ui/admin/admin';
 
 type User = {
     id: number;
@@ -11,17 +11,10 @@ type User = {
 @Component({
     standalone: true,
     selector: 'app-admin-post',
-    imports: [CommonModule, AdminSearch],
+    imports: [CommonModule, Admin],
     templateUrl: './admin-post.html',
 })
 export class AdminPost {
-    // Pre-populated list to insert into admin search
-    // constructor() {
-    //     for (let i = 1; i <= 100; i++) {
-    //         const name = 'User' + i;
-    //         this.users.push({ username: name, _lower: name.toLowerCase(), selected: false });
-    //     }
-    // }
 
     items = signal<User[]>([
     {
