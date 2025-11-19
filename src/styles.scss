@@ -112,3 +112,29 @@ footer {
   bottom: 0;
   align-content: center;
 }
+
+// ERROR
+.error-message {
+  color: #dc3545;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+input.error {
+  border-color: #dc3545;
+}
+
+.error-text {
+  display: block;
+  color: #dc3545;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,15 +1,16 @@
-<!-- Loading spinner -->
-<div *ngIf="loading()" class="loading">
-  <div class="spinner"></div>
-  <p>Searching...</p>
-</div>
 
-<!-- Error message -->
-<div *ngIf="error()" class="error-message">
-  <p>{{ error() }}</p>
-  <button (click)="searchSubject.next()">Try Again</button>
-</div>
 <div class="page-wrapper">
+  <!-- Loading spinner -->
+  <div *ngIf="loading()" class="loading">
+    <div class="spinner"></div>
+    <p>Searching...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error()" class="error-message">
+    <p>{{ error() }}</p>
+    <button (click)="searchSubject.next()">Try Again</button>
+  </div>
   <!-- Top bar -->
   <header class="toolbar">
     <nav class="tabs" role="tablist">
@@ -43,7 +44,7 @@
 
   <!-- Results: GRID (Instagram-like) -->
   <div *ngIf="view() === 'grid' && !loading()" class="cards">
-  <app-explore-card *ngFor="let it of items(); trackBy: trackById"
+    <app-explore-card *ngFor="let it of items(); trackBy: trackById"
                       [username]="it.username"
                       [title]="it.title"
                       [genres]="it.genres"

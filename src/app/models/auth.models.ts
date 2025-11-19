@@ -3,15 +3,16 @@
  */
 
 export interface RegisterRequest {
-  email: string;
-  password: string;
-  username?: string;
-  name?: string;
+  firstName: string;  // maxLength: 50, minLength: 1
+  lastName: string;   // maxLength: 50, minLength: 1
+  username: string;   // maxLength: 24, minLength: 1
+  email: string;      // maxLength: 254, minLength: 1, pattern: email regex
+  password: string;   // minLength: 1, pattern: password regex
 }
 
 export interface LoginRequest {
-  email: string;
-  password: string;
+  usernameOrEmail: string;  // maxLength: 254, minLength: 1
+  password: string;          // minLength: 1
 }
 
 export interface AuthResponse {
@@ -24,9 +25,21 @@ export interface User {
   id: string;
   email: string;
   username?: string;
-  name?: string;
+  firstName: string;
+  lastName: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface UpdateUserRequest {
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email?: string;
+}
+
+export interface ErrorResponse {
+  message: string;
 }
 
 export interface ApiError {
