@@ -1,7 +1,3 @@
-<div class="settings-sidebar">
-    <!-- Optional sidebar content -->
-</div>
-
 <main class="settings-container album-review-container">
   <section class="album-header">
     <div class="album-artwork" aria-label="Album artwork"></div>
@@ -23,7 +19,11 @@
               <i class="fa-heart" [class.fa-solid]="isFavorited()" [class.fa-regular]="!isFavorited()" aria-hidden="true"></i>
             </button>
           </div>
-          <h3 class="artist-names">{{ artist }}</h3>
+          <h3 class="artist-names">
+            @for (name of splitArtists(); track name; let last = $last) {
+              <a class="artist-link" [routerLink]="['/artists', slugify(name)]">{{ name }}</a>@if (!last) {<span class="sep">, </span>}
+            }
+          </h3>
           <div class="album-meta">
             <!-- Average (read-only) star rating for the album -->
             <div class="star-rating avg" aria-label="Average album rating">

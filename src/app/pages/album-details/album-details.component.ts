@@ -35,7 +35,12 @@ interface Reply {
 
 @Component({
   selector: 'app-album-details',
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, NgOptimizedImage],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ReactiveFormsModule,
+    NgOptimizedImage,
+  ],
   templateUrl: './album-details.component.html',
   styleUrls: ['./album-details.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -454,5 +459,23 @@ export class AlbumDetailsComponent {
 
   private cryptoRandomId(): string {
     return Math.random().toString(36).slice(2, 9);
+  }
+
+  // Split the existing 'artist' string (e.g., "Artist A, Artist B") into names
+  splitArtists(): string[] {
+    const raw = (this as any).artist as string | undefined; // uses your existing field
+    return (raw ?? '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  // Simple slug for routing: /artists/artist-a
+  slugify(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   }
 }

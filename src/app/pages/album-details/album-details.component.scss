@@ -96,9 +96,16 @@ header {
           cursor: pointer;
           transition: color 160ms ease-in-out;
 
-          &:hover {
-            color: var(--txt-primary);
+          .artist-link {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
           }
+          .artist-link:hover {
+            color: var(--txt-primary);
+            border-bottom-color: currentColor;
+          }
+          .sep { margin: 0 .25rem; }
         }
       }
 
