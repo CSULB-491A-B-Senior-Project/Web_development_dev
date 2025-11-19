@@ -1,6 +1,9 @@
 <main class="settings-container album-review-container">
   <section class="album-header">
-    <div class="album-artwork" aria-label="Album artwork"></div>
+    <div
+      class="album-artwork"
+      aria-label="Album artwork"
+      [style.background-image]="coverUrl ? 'url(' + coverUrl + ')' : null"></div>
 
     <div class="album-details">
       <header>
@@ -8,7 +11,7 @@
           <div class="title-container">
             <h1>
               {{ title }}
-              <span class="year">Year</span>
+              <span class="year">{{ year }}</span>
             </h1>
             <button
               class="favorite-button"
@@ -27,7 +30,7 @@
           <div class="album-meta">
             <!-- Average (read-only) star rating for the album -->
             <div class="star-rating avg" aria-label="Average album rating">
-              @for (star of stars; track i; let i = $index) {
+              @for (star of stars; track $index; let i = $index) {
                 <button
                   type="button"
                   class="star-button"
@@ -50,14 +53,25 @@
 
   <section class="tracklist">
     <h3>Tracklist</h3>
-    <ul>
-      <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
-      <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
-      <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
-      <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
-      <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
-      <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
-    </ul>
+    @if (tracks().length) {
+      <ul>
+        @for (t of tracks(); track t.id) {
+          <li>
+            <span class="track-name">{{ t.title }}</span>
+            <span class="duration">{{ t.duration || '0:00' }}</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <ul>
+        <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
+      </ul>
+    }
   </section>
 
   <section class="comment-section">
@@ -69,7 +83,7 @@
     <div class="comments">
       @for (c of comments(); track c.id) {
         <article class="comment">
-          <p class="username">{{ c.author || 'username' }}</p>
+          <a class="username" [routerLink]="userLink(c.author)">{{ c.author || 'username' }}</a>
 
           @if (editTargetId() === c.id) {
             <!-- inline edit form for comment author (kept as optional inline edit) -->
@@ -80,7 +94,7 @@
                 </label>
 
                 <div class="comment-rating" style="margin-top:0.5rem;" aria-label="Edit rating for this comment">
-                  @for (star of stars; track i; let i = $index) {
+                  @for (star of stars; track $index; let i = $index) {
                     <button
                       type="button"
                       class="star-button"
@@ -108,7 +122,7 @@
           <!-- rating badge for posted comment (read-only) -->
           @if (c.rating) {
             <div class="comment-rating">
-              @for (star of stars; track i; let i = $index) {
+              @for (star of stars; track $index; let i = $index) {
                 <button
                   type="button"
                   class="star-button"
@@ -163,11 +177,11 @@
           </div>
 
           <!-- existing replies -->
-          @if (c.replies?.length) {
+          @if (c.replies.length) {
             <div class="replies">
               @for (r of c.replies; track r.id) {
                 <article class="reply">
-                  <p class="username">{{ r.author || 'username' }}</p>
+                  <a class="username" [routerLink]="userLink(r.author)">{{ r.author || 'username' }}</a>
 
                   @if (editTargetId() === r.id) {
                     <form [formGroup]="editForm" (ngSubmit)="submitEditReply(c.id, r.id)">
