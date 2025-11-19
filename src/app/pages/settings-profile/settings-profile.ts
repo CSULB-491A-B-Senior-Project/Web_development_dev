@@ -1,32 +1,14 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CdkDrag, CdkDropList, CdkDropListGroup, moveItemInArray, CdkDragDrop, CdkDragHandle, CdkDragPreview, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
-import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, inject, signal, viewChild, computed } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
+import { of, take } from 'rxjs';
 
-// Mock interfaces, replace with your actual models
-export interface Artist {
-  id: string;
-  artistName: string;
-  artistImage: string;
-}
-
-export interface Album {
-  id: string;
-  name: string;
-  albumCover: string;
-  releaseYear: number;
-  artist: { artistName: string };
-}
-
-export interface Song {
-  id: string;
-  name: string;
-  artistName: string;
-  albumCover: string;
-}
+import { ProfileService } from '../../services/profile.service';
+import { MusicSearchService } from '../../services/music-search.service';
+import { Artist, Album, Song } from '../../models/music.models';
+import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-settings-profile',
@@ -37,143 +19,127 @@ export interface Song {
     CommonModule,
     RouterLink,
     ReactiveFormsModule,
-    CdkDropListGroup,
+    NgOptimizedImage,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
-    CdkDragPreview,
-    CdkDragPlaceholder,
-    NgOptimizedImage, // This import makes the [ngSrc] directive work
   ],
 })
 export class SettingsProfile implements AfterViewInit {
   #fb = inject(FormBuilder);
-  // Mock services - replace with your actual data services
-  // #artistService = inject(ArtistService);
-  // #albumService = inject(AlbumService);
-  // #profileService = inject(ProfileService);
+  #profileService = inject(ProfileService);
+  #musicSearchService = inject(MusicSearchService);
 
-  // Signals for state management
+  // Signals
+  profilePictureUrl = signal('/assets/default-avatar.png');
   selectedFileName = signal('');
   favoriteArtists = signal<Artist[]>([]);
   favoriteAlbums = signal<Album[]>([]);
   favoriteSong = signal<Song | null>(null);
+
   songResults = signal<Song[]>([]);
-  artistResults = signal<Artist[]>([]);
-  albumResults = signal<Album[]>([]);
-  showSongResults = signal(false);
-  showArtistResults = signal(false);
-  showAlbumResults = signal(false);
+
+  // Raw search result signals
+  private _artistResultsRaw = signal<Artist[]>([]);
+  private _albumResultsRaw = signal<Album[]>([]);
+
+  // Filtered (display) results exclude already favorited items
+  artistResults = computed(() => {
+    const favoriteIds = new Set(this.favoriteArtists().map(a => a.id));
+    return this._artistResultsRaw().filter(a => !favoriteIds.has(a.id));
+  });
+  albumResults = computed(() => {
+    const favoriteIds = new Set(this.favoriteAlbums().map(a => a.id));
+    return this._albumResultsRaw().filter(a => !favoriteIds.has(a.id));
+  });
+
+  songSearchQuery = signal('');
+  artistSearchQuery = signal('');
+  albumSearchQuery = signal('');
 
   // Forms
-  bioForm = this.#fb.group({
-    bio: ['', [Validators.maxLength(150)]],
-  });
-  songSearch = new FormControl('');
-  artistSearch = new FormControl('');
-  albumSearch = new FormControl('');
+  bioForm = this.#fb.group({ bio: ['', [Validators.maxLength(150)]] });
+  songSearchForm = this.#fb.group({ query: [''] });
+  artistSearchForm = this.#fb.group({ query: [''] });
+  albumSearchForm = this.#fb.group({ query: [''] });
 
-  // View Children
+  // ViewChild
   bioTextarea = viewChild.required<ElementRef<HTMLTextAreaElement>>('bioTextarea');
 
   constructor() {
-    this.loadInitialData();
+    this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
+      this.bioForm.patchValue({ bio: p.bio });
+      this.profilePictureUrl.set(p.profilePictureUrl);
+      this.favoriteSong.set(p.favoriteSong);
+      this.favoriteArtists.set(p.favoriteArtists);
+      this.favoriteAlbums.set(p.favoriteAlbums);
+    });
 
-    // Song search logic
-    this.songSearch.valueChanges.pipe(
+    // Song search (no filtering requested)
+    this.songSearchForm.controls.query.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      tap(value => this.showSongResults.set(!!value)),
-      switchMap(term => {
-        if (!term) return of([]);
-        // Replace with actual service call
-        const mockSongs: Song[] = [
-          { id: 's1', name: 'The Less I Know The Better', artistName: 'Tame Impala', albumCover: '/assets/currents.jpg' },
-          { id: 's2', name: 'Pyramids', artistName: 'Frank Ocean', albumCover: '/assets/blonde.jpg' },
-          { id: 's3', name: 'Digital Love', artistName: 'Daft Punk', albumCover: '/assets/discovery.jpg' },
-        ];
-        return of(mockSongs.filter(s => s.name.toLowerCase().includes(term.toLowerCase())));
-      })
-    ).subscribe(songs => this.songResults.set(songs));
+      tap(v => this.songSearchQuery.set(v ?? '')),
+      switchMap(term => term?.trim() ? this.#musicSearchService.searchSongs(term) : of([]))
+    ).subscribe(res => this.songResults.set(res));
 
-    // Artist search logic
-    this.artistSearch.valueChanges.pipe(
+    // Artist search (raw -> filtered via computed)
+    this.artistSearchForm.controls.query.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      tap(value => this.showArtistResults.set(!!value)),
-      switchMap(term => {
-        if (!term) return of([]);
-        // Replace with actual service call: this.#artistService.search(term)
-        const mockArtists: Artist[] = [
-          { id: '1', artistName: 'Tame Impala', artistImage: '/assets/tame-impala.jpg' },
-          { id: '2', artistName: 'Radiohead', artistImage: '/assets/radiohead.jpg' },
-        ];
-        return of(mockArtists.filter(a => a.artistName.toLowerCase().includes(term.toLowerCase())));
-      })
-    ).subscribe(artists => this.artistResults.set(artists));
+      tap(v => this.artistSearchQuery.set(v ?? '')),
+      switchMap(term => term?.trim() ? this.#musicSearchService.searchArtists(term) : of([]))
+    ).subscribe(res => this._artistResultsRaw.set(res));
 
-    // Album search logic
-    this.albumSearch.valueChanges.pipe(
+    // Album search (raw -> filtered via computed)
+    this.albumSearchForm.controls.query.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      tap(value => this.showAlbumResults.set(!!value)),
-      switchMap(term => {
-        if (!term) return of([]);
-        // Replace with actual service call: this.#albumService.search(term)
-        const mockAlbums: Album[] = [
-          { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: '/assets/currents.jpg' },
-          { id: 'a2', name: 'In Rainbows', releaseYear: 2007, artist: { artistName: 'Radiohead' }, albumCover: '/assets/in-rainbows.jpg' },
-        ];
-        return of(mockAlbums.filter(a => a.name.toLowerCase().includes(term.toLowerCase())));
-      })
-    ).subscribe(albums => this.albumResults.set(albums));
+      tap(v => this.albumSearchQuery.set(v ?? '')),
+      switchMap(term => term?.trim() ? this.#musicSearchService.searchAlbums(term) : of([]))
+    ).subscribe(res => this._albumResultsRaw.set(res));
   }
 
   ngAfterViewInit(): void {
-    // Use setTimeout to ensure the initial resize happens after the view is fully rendered.
     setTimeout(() => this.autoResizeBio(), 0);
   }
 
   autoResizeBio(): void {
-    const textarea = this.bioTextarea()?.nativeElement;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
+    const el = this.bioTextarea()?.nativeElement;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
   }
 
-  loadInitialData() {
-    // Mock loading data from a profile service
-    const initialBio = 'This is my current bio. I love discovering new music and sharing my favorite tracks.';
-    this.bioForm.patchValue({ bio: initialBio });
-    this.favoriteArtists.set([
-        { id: '3', artistName: 'Daft Punk', artistImage: '/assets/daft-punk.jpg' },
-        { id: '1', artistName: 'Tame Impala', artistImage: '/assets/tame-impala.jpg' },
-    ]);
-    this.favoriteAlbums.set([
-        { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: '/assets/discovery.jpg' },
-        { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: '/assets/currents.jpg' },
-    ]);
-    this.favoriteSong.set({ id: 's1', name: 'The Less I Know The Better', artistName: 'Tame Impala', albumCover: '/assets/currents.jpg' });
+  // Profile picture
+  onProfilePictureSelected(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.#profileService.uploadProfilePicture(file).pipe(take(1)).subscribe(r => {
+      this.profilePictureUrl.set(r.url);
+    });
   }
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedFileName.set(input.files[0].name);
-    }
+  // Background image
+  onFileSelected(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.selectedFileName.set(file.name);
+    this.#profileService.uploadBackgroundImage(file).pipe(take(1)).subscribe();
   }
 
+  // Bio
   onBioSubmit(): void {
-    if (this.bioForm.valid) {
-      console.log('Saving bio:', this.bioForm.value.bio);
-      // Call profile service to save bio
-    }
+    if (this.bioForm.invalid) return;
+    const bio = this.bioForm.value.bio ?? '';
+    this.#profileService.updateBio(bio).pipe(take(1)).subscribe();
   }
 
+  // Song favorites
   selectSong(song: Song): void {
     this.favoriteSong.set(song);
-    this.songSearch.setValue('');
+    this.songSearchForm.reset();
+    this.songResults.set([]);
   }
 
   clearFavoriteSong(): void {
@@ -181,55 +147,56 @@ export class SettingsProfile implements AfterViewInit {
   }
 
   saveFavoriteSong(): void {
-    console.log('Saving song:', this.favoriteSong());
-    // Call profile service to save favorite song
+    this.#profileService.updateFavoriteSong(this.favoriteSong()).pipe(take(1)).subscribe();
   }
 
-  addArtist(artist: Artist): void {
-    if (!this.favoriteArtists().some(a => a.id === artist.id)) {
-      this.favoriteArtists.update(artists => [...artists, artist]);
-    }
-    this.artistSearch.setValue('');
+  // Artists
+  addArtistToFavorites(artist: Artist): void {
+    if (this.favoriteArtists().some(a => a.id === artist.id)) return;
+    const updated = [artist, ...this.favoriteArtists().filter(a => a.id !== artist.id)];
+    this.favoriteArtists.set(updated);
+    this.artistSearchForm.reset();
+    this._artistResultsRaw.set([]); // Clear list after adding
+    this.#profileService.updateFavoriteArtists(updated).pipe(take(1)).subscribe();
   }
 
-  removeArtist(artistToRemove: Artist): void {
-    this.favoriteArtists.update(artists => artists.filter(artist => artist.id !== artistToRemove.id));
+  removeArtistFromFavorites(artist: Artist): void {
+    const updated = this.favoriteArtists().filter(a => a.id !== artist.id);
+    this.favoriteArtists.set(updated);
+    this.#profileService.updateFavoriteArtists(updated).pipe(take(1)).subscribe();
   }
 
-  addAlbum(album: Album): void {
-    if (!this.favoriteAlbums().some(a => a.id === album.id)) {
-      this.favoriteAlbums.update(albums => [...albums, album]);
-    }
-    this.albumSearch.setValue('');
+  // Albums
+  addAlbumToFavorites(album: Album): void {
+    if (this.favoriteAlbums().some(a => a.id === album.id)) return;
+    const updated = [album, ...this.favoriteAlbums().filter(a => a.id !== album.id)];
+    this.favoriteAlbums.set(updated);
+    this.albumSearchForm.reset();
+    this._albumResultsRaw.set([]); // Clear list after adding
+    this.#profileService.updateFavoriteAlbums(updated).pipe(take(1)).subscribe();
   }
 
-  removeAlbum(albumToRemove: Album): void {
-    this.favoriteAlbums.update(albums => albums.filter(album => album.id !== albumToRemove.id));
+  removeAlbumFromFavorites(album: Album): void {
+    const updated = this.favoriteAlbums().filter(a => a.id !== album.id);
+    this.favoriteAlbums.set(updated);
+    this.#profileService.updateFavoriteAlbums(updated).pipe(take(1)).subscribe();
   }
 
-  dropArtist(event: CdkDragDrop<Artist[]>): void {
-    this.favoriteArtists.update(artists => {
-        const newArray = [...artists];
-        moveItemInArray(newArray, event.previousIndex, event.currentIndex);
-        return newArray;
-    });
-  }
+  // Computed slice for top 10 (unchanged)
+  topTenFavoriteArtists = computed(() => this.favoriteArtists().slice(0, 10));
 
-  dropAlbum(event: CdkDragDrop<Album[]>): void {
-     this.favoriteAlbums.update(albums => {
-        const newArray = [...albums];
-        moveItemInArray(newArray, event.previousIndex, event.currentIndex);
-        return newArray;
-    });
-  }
+  // Replace previous drop handler with this:
+  dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
+    // Work on a copy
+    const current = this.favoriteArtists();
+    const top = [...current.slice(0, 10)];
+    moveItemInArray(top, event.previousIndex, event.currentIndex);
+    const updated = [...top, ...current.slice(10)];
 
-  saveFavoriteArtists(): void {
-    console.log('Saving artists:', this.favoriteArtists());
-    // Call profile service to save artists
-  }
+    // Update signal first for instant UI
+    this.favoriteArtists.set(updated);
 
-  saveFavoriteAlbums(): void {
-    console.log('Saving albums:', this.favoriteAlbums());
-    // Call profile service to save albums
+    // Persist immediately
+    this.#profileService.updateFavoriteArtists(updated).pipe(take(1)).subscribe();
   }
 }
