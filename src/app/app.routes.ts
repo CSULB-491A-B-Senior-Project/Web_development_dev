@@ -6,6 +6,7 @@ import { MainLayout } from './layouts/main-layout/main-layout';
 import { Explore } from './pages/explore/explore';
 import { Artist } from './pages/artist/artist';
 import { ProfileComponent } from './pages/profile/profile';
+import { ListCreateComponent } from './pages/list-create/list-create';
 
 import { SettingsProfile } from './pages/settings-profile/settings-profile';
 import { SettingsAccount } from './pages/settings-account/settings-account';
@@ -45,13 +46,18 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./pages/search-results/search-results').then(m => m.SearchResults)
       },
+      {
+        path: 'list-create',
+        loadComponent: () => import('./pages/list-create/list-create')
+          .then(m => m.ListCreateComponent)
+      }
     ]
   },
   { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent) },
-  {
-    path: 'lists/new',
-    loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
-  },
+  // {
+  //   path: 'lists/new',
+  //   loadComponent: () => import('./pages/list-create/list-create').then(m => m.ListCreateComponent)
+  // },
   {
     path: 'search',
     loadComponent: () =>

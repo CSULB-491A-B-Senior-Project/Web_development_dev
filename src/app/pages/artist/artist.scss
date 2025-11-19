@@ -1,5 +1,5 @@
 .page-wrapper {
-    padding-bottom: 300px;
+    padding-bottom: 150px;
 }
 
 .artist-container {
@@ -57,7 +57,7 @@
     width: 25%;
     float:left;
     padding: 20px;
-    margin-top: 50px;
+    margin-top: 38px;
 }
 .sort {
     display: flex;
@@ -83,11 +83,4 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 5px;
-}
-
-.chip {
-    font-size: 11px;
-    &:hover {
-        color: white;
-    }
 }
