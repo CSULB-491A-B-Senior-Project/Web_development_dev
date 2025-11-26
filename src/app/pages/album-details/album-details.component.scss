@@ -1,9 +1,36 @@
+// Reusable placeholders
+%btn-reset {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+%focus-ring-4 { &:focus-visible { outline: none; box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 30%, transparent); } }
+%focus-ring-3 { &:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent); } }
+%star-button-base {
+  @extend %btn-reset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 120ms ease, transform 100ms ease;
+  i { pointer-events: none; }
+  &:hover { color: var(--txt-primary); transform: translateY(-1px); }
+}
+%v-hidden {
+  position: absolute !important;
+  height: 1px; width: 1px; overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap; border: 0; padding: 0; margin: -1px;
+}
+
 header {
   margin: 30px;
-
-  img {
-    width: 80px;
-  }
+  img { width: 80px; }
 }
 
 .album-review-container {
@@ -24,14 +51,14 @@ header {
     border-bottom: 1px solid #333;
   }
 
+  /* --- Header --- */
   .album-header {
     display: flex;
     gap: 2rem;
     align-items: flex-start;
 
     .album-artwork {
-      width: 250px;
-      height: 250px;
+      width: 250px; height: 250px;
       background-color: #222;
       border: 1px solid #444;
       border-radius: 6px;
@@ -40,507 +67,220 @@ header {
     }
 
     .album-details {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
 
-      .title-container {
-        display: flex;
-        align-items: baseline;
-        gap: 1rem;
-      }
+      .title-container { display: flex; align-items: baseline; gap: 1.5rem; }
 
       .favorite-button {
-        background: none;
-        border: none;
-        cursor: pointer;
+        @extend %btn-reset;
         padding: 0.25rem;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: transform 0.1s ease-out, 
-        background-color 0.2s ease-in-out;
-
-        .fa-heart {
-          font-size: 24px;
-          color: var(--txt-primary);
-          transition: color 0.2s ease-in-out;
-        }
-
-        &:active {
-          transform: translateY(-1px) scale(1.1);
-        }
+        transition: transform 0.1s ease-out, background-color 0.2s ease-in-out;
+        .fa-heart { font-size: 24px; color: var(--txt-primary); transition: color 0.2s ease-in-out; }
+        &:active { transform: translateY(-1px) scale(1.1); }
       }
 
       h1 {
-        font-size: 2rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-
-        .year {
-          font-size: 1.5rem;
-          font-weight: 400;
-          margin-left: 1rem;
-          color: #aaa;
-        }
+        font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem;
+        .year { font-size: 1.5rem; font-weight: 400; margin-left: 1rem; color: #aaa; }
       }
 
       h3 {
-        font-size: 1.2rem;
-        font-weight: 600;
-        margin-bottom: 2rem;
+        font-size: 1.2rem; font-weight: 600; margin-bottom: 2rem;
 
         &.artist-names {
-          color: white;
-          cursor: pointer;
-          transition: color 160ms ease-in-out;
-
-          &:hover {
-            color: var(--txt-primary);
-          }
+          color: white; cursor: pointer; transition: color 160ms ease-in-out;
+          .artist-link { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+          .artist-link:hover { color: var(--txt-primary); border-bottom-color: currentColor; }
+          .sep { margin: 0 .25rem; }
         }
       }
 
       .star-rating {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 1.4rem;
-        color: var(--txt-primary);
-        letter-spacing: 0.1rem;
+        display: flex; align-items: center; gap: 0.25rem;
+        font-size: 1.4rem; color: var(--txt-primary); letter-spacing: 0.1rem;
 
-        /* star buttons */
         .star-button {
-          appearance: none;
-          -webkit-appearance: none;
-          background: transparent;
-          border: none;
-          padding: 0.06rem 0.18rem;
-          margin: 0;
-          cursor: pointer;
-          color: rgba(255, 255, 255, 0.35); /* unfilled color */
-          transition: color 120ms ease, transform 100ms ease;
-          border-radius: 6px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.35rem;
-          line-height: 1;
-
-          i {
-            pointer-events: none;
-          }
-
-          &:hover {
-            color: var(--txt-primary);
-            transform: translateY(-1px);
-          }
-
-          &:focus {
-            outline: none;
-          }
-
-          &:focus-visible {
-            box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 28%, transparent);
-            border-radius: 8px;
-          }
-
-          &.filled {
-            color: var(--txt-primary);
-          }
-
-          /* stronger emphasis for the selected (aria-checked) star */
-          &[aria-checked="true"] {
-            color: color-mix(in oklab, var(--txt-primary) 46%, white 6%);
-          }
+          @extend %star-button-base;
+          padding: 0.06rem 0.18rem; font-size: 1.35rem;
+          &.filled { color: var(--txt-primary); }
+          &[aria-checked="true"] { color: color-mix(in oklab, var(--txt-primary) 46%, white 6%); }
+          @extend %focus-ring-4;
         }
 
-        .current-rating {
-          font-size: 0.9rem;
-          color: #aaa;
-          margin-left: 0.26rem;
-        }
-
-        /* small utility for accessible hidden text used in template */
-        .visually-hidden {
-          position: absolute !important;
-          height: 1px;
-          width: 1px;
-          overflow: hidden;
-          clip: rect(1px, 1px, 1px, 1px);
-          white-space: nowrap;
-          border: 0;
-          padding: 0;
-          margin: -1px;
-        }
-      } /* .star-rating */
-    } /* .album-details */
-  } /* .album-header */
-
-  .tracklist {
-    h3 {
-      font-size: 1.4rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-
-      li {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.6rem 0;
-        transition: background 0.2s ease;
-
-        &:hover {
-          background-color: #1a1a1a;
-
-          .duration {
-            color: var(--txt-secondary);
-            font-size: 0.95rem;
-          }
-
-          .track-name {
-            color: var(--txt-primary);
-            font-weight: 500;
-          }
-        }
-
-        .track-name {
-          font-weight: 500;
-        }
-
-        .duration {
-          color: #aaa;
-          font-size: 0.95rem;
-        }
+        .current-rating { font-size: 0.9rem; color: #aaa; margin-left: 0.26rem; }
       }
     }
   }
 
-  .comment-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+  /* --- Tracklist --- */
+  .tracklist {
+    padding-top: 0.25rem;
 
-    /* actions row: Add review button only (rating moved to modal) */
-    .comment-actions {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      gap: 0.5rem;
-      margin-bottom: 0.25rem;
-      /* center the single primary action on narrow view, left-align on wide view */
-      justify-content: flex-start;
+    h3 { font-size: 1.4rem; font-weight: 600; margin: 0 0 1rem; }
 
-      @media (max-width: 480px) {
-        justify-content: stretch;
+    ul {
+      list-style: none; padding: 0; margin: 0; counter-reset: track;
+
+      li {
+        counter-increment: track;
+        display: grid; grid-template-columns: auto 1fr auto; /* index | name | duration */
+        align-items: center; gap: 0.5rem;
+        padding: 0.6rem 0.75rem 0.6rem 0.25rem;
+        border-radius: 6px;
+        transition: background-color 150ms ease, color 120ms ease;
+
+        &:nth-child(even) { background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent); }
+        &:hover { background-color: #1a1a1a; .track-name { color: var(--txt-primary); font-weight: 500; } .duration { color: var(--txt-secondary); } }
+        &:focus-within { outline: 2px solid color-mix(in oklab, var(--focus) 30%, transparent); outline-offset: 2px; }
+
+        .index {
+          width: 1.6rem; text-align: right; color: #888;
+          font-variant-numeric: tabular-nums; user-select: none;
+        }
+
+        &:not(:has(.index))::before {
+          content: counter(track); grid-column: 1; width: 1.6rem; text-align: right;
+          color: #888; font-variant-numeric: tabular-nums; user-select: none;
+        }
+
+        .track-name {
+          grid-column: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          color: #ddd; font-weight: 500;
+        }
+
+        .duration {
+          grid-column: 3; min-width: 3.4ch; text-align: right; color: #aaa;
+          font-size: 0.95rem; font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+          justify-self: end;
+        }
       }
+    }
+
+    @media (max-width: 768px) {
+      ul li { grid-template-columns: 1fr auto; gap: 0.5rem; padding: 0.5rem 0.75rem 0.5rem 0.5rem; }
+      ul li .index, ul li:not(:has(.index))::before { display: none; }
+    }
+  }
+
+  /* --- Comments --- */
+  .comment-section {
+    display: flex; flex-direction: column; gap: 1.25rem;
+
+    .comment-actions {
+      display: flex; align-items: center; width: 100%;
+      gap: 0.5rem; margin-bottom: 0.25rem; justify-content: flex-start;
+      @media (max-width: 480px) { justify-content: stretch; }
     }
 
     .add-comment-button {
-      background-color: var(--btn-primary);
-      color: black;
-      width: 150px;
-      height: 40px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1.02rem;
-      font-weight: 600;
-      align-self: flex-start;
+      background-color: var(--btn-primary); color: black;
+      width: 150px; height: 40px; border: none; border-radius: 5px;
+      font-size: 1.02rem; font-weight: 600; align-self: flex-start;
       transition: background 120ms ease, transform 100ms ease;
-
-      &:hover {
-        background-color: var(--btn-hover);
-        transform: translateY(-1px);
-      }
-
-      &:active {
-        transform: translateY(0);
-      }
+      &:hover { background-color: var(--btn-hover); transform: translateY(-1px); }
+      &:active { transform: translateY(0); }
     }
 
     .comments {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      display: flex; flex-direction: column; gap: 1rem;
 
       .comment {
-        position: relative;
-        background-color: #1f1f1f;
-        padding: 1rem;
-        border-radius: 6px;
-        border: 1px solid #2a2a2a;
+        position: relative; background-color: #1f1f1f;
+        padding: 1rem; border-radius: 6px; border: 1px solid #2a2a2a;
 
         .username {
-          font-weight: 600;
-          margin-bottom: 0.3rem;
-
-          &:hover {
+          display: inline-block; margin: 0.3rem 0; font-weight: 600;
+          color: inherit; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s ease;
+          &:hover, 
+          &:focus-visible 
+          { 
             color: var(--txt-primary);
+            border-bottom-color: var(--txt-primary); 
           }
         }
 
-        /* direct child form is the inline edit form */
+        /* Inline edit form */
         > form {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          margin: 0;
-          padding: 0;
+          display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0;
 
-          .comment-rating {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-            gap: 0.08rem;
-          }
+          .comment-rating { margin-left: auto; display: flex; align-items: center; gap: 0.08rem; }
 
           .comment-rating .star-button {
-            font-size: 0.95rem;
-            padding: 0.04rem 0.06rem;
-            color: rgba(255,255,255,0.28);
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: color 100ms ease, transform 80ms ease;
+            @extend %star-button-base;
+            font-size: 0.95rem; padding: 0.04rem 0.06rem; color: rgba(255,255,255,0.28);
           }
-
           .comment-rating .star-button:hover,
-          .comment-rating .star-button.filled {
-            color: var(--txt-primary);
-            transform: translateY(-1px);
-          }
+          .comment-rating .star-button.filled { color: var(--txt-primary); transform: translateY(-1px); }
 
-          .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 0;
-          }
-        } /* > form */
-
-        /* read-only comment text */
-        .comment-text {
-          margin-bottom: 0.5rem;
-          line-height: 1.5;
-          white-space: pre-wrap;
+          .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0; }
         }
 
-        .comment-meta {
-          display: flex;
-          gap: 0.5rem;
-          align-items: center;
-          color: #aaa;
-          font-size: 0.9rem;
-        }
+        .comment-text { margin-bottom: 0.5rem; line-height: 1.5; white-space: pre-wrap; }
+        .comment-meta { display: flex; gap: 0.5rem; align-items: center; color: #aaa; font-size: 0.9rem; }
 
         .reply-button {
-          background: transparent;
-          border: none;
-          color: var(--txt-primary);
-          cursor: pointer;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          font-weight: 600;
-          font-size: 0.95rem;
-        }
+          @extend %btn-reset;
+          background: transparent; color: var(--txt-primary);
+          padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.95rem;
+          i { font-size: 0.95rem; line-height: 1; color: white; }
+          .count { font-weight: 700; font-size: 0.95rem; color: white; margin-left: 0.3rem; }
 
-        .reply-button i {
-          font-size: 0.95rem;
-          line-height: 1;
-          color: white;
-        }
-
-        .reply-button .count {
-          font-weight: 700;
-          font-size: 0.95rem;
-          color: white;
-          margin-left: 0.3rem;
-        }
-
-        /* pressed / active state for accessibility */
-        .reply-button[aria-pressed="true"] {
-          background: rgba(255,255,255,0.03);
-          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-          transform: translateY(-1px);
-
-          .count,
-          i {
-            color: var(--txt-primary);
+          &:is(:hover) { .count, i { color: var(--txt-primary); } }
+          &[aria-pressed="true"] {
+            background: rgba(255,255,255,0.03); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+            transform: translateY(-1px);
+            .count, i { color: var(--txt-primary); }
           }
         }
 
-        .reply-button:hover,
-        .reply-button:focus {
-          .count,
-          i {
-            color: var(--txt-primary);
-          }
-        }
-
-        /* rating badge shown at the top-right corner of each comment (read-only) */
         > .comment-rating {
-          position: absolute;
-          top: 0.6rem;
-          right: 0.6rem;
-          display: flex;
-          align-items: center;
-          gap: 0.12rem;
-          font-size: 0.95rem;
-          z-index: 5;
+          position: absolute; top: 0.6rem; right: 0.6rem;
+          display: flex; align-items: center; gap: 0.12rem; font-size: 0.95rem; z-index: 5;
+          .star-button { @extend %btn-reset; font-size: 0.95rem; padding: 0.04rem 0.08rem; color: rgba(255,255,255,0.25); pointer-events: none; }
+          .star-button.filled { color: var(--txt-primary); }
+          .current-rating { font-size: 0.85rem; color: #bbb; margin-left: 0.25rem; }
         }
+        &:has(> form) > .comment-rating { display: none; }
 
-        /* hide the absolute top-right badge while an inline edit form is present */
-        &:has(> form) > .comment-rating {
-          display: none;
-        }
-
-        .comment-rating .star-button {
-          font-size: 0.95rem;
-          padding: 0.04rem 0.08rem;
-          color: rgba(255,255,255,0.25);
-          background: transparent;
-          border: none;
-          pointer-events: none;
-        }
-
-        .comment-rating .star-button.filled {
-          color: var(--txt-primary);
-        }
-
-        .comment-rating .current-rating {
-          font-size: 0.85rem;
-          color: #bbb;
-          margin-left: 0.25rem;
-        }
-
-        /* Nested replies */
         .replies {
-          margin-top: 0.75rem;
-          margin-left: 0.75rem;
-          padding-left: 0.75rem;
-          border-left: 2px solid #232323;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
+          margin: 0.75rem 0 0 0.75rem; padding-left: 0.75rem; border-left: 2px solid #232323;
+          display: flex; flex-direction: column; gap: 0.5rem;
 
           .reply {
-            background: #151515;
-            padding: 0.6rem;
-            border-radius: 6px;
-            border: 1px solid #212121;
-
-            .username {
-              font-weight: 600;
-              margin-bottom: 0.75rem; /* space below username */
-            }
-
-            .comment-text {
-              margin: 0.2rem 0;
-              font-weight: normal; /* or 400 */
-            }
-
-            .comment-meta {
-              font-size: 0.85rem;
-              color: #aaa;
-            }
-
-            form {
-              display: flex;
-              flex-direction: column;
-              gap: 0.5rem;
-              margin-top: 0.2rem;
-            }
+            background: #151515; padding: 0.6rem; border-radius: 6px; border: 1px solid #212121;
+            .username { font-weight: 600; margin-bottom: 0.75rem; }
+            .comment-text { margin: 0.2rem 0; font-weight: 400; }
+            .comment-meta { font-size: 0.85rem; color: #aaa; }
+            form { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.2rem; }
           }
         }
 
-        /* Reply form shown inline under a comment */
         .reply-form {
-          margin-top: 0.75rem;
-          padding: 0.6rem;
-          background: #121212;
-          border-radius: 6px;
-          border: 1px solid #222;
-
-          form {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-
-            label {
-              font-weight: normal;
-              font-size: 0.95rem;
-            }
-
-            .error {
-              color: #ffb3c1;
-              font-size: 0.85rem;
-            }
-          }
+          margin-top: 0.75rem; padding: 0.6rem; background: #121212; border-radius: 6px; border: 1px solid #222;
+          form { display: flex; flex-direction: column; gap: 0.5rem; }
+          label { font-weight: 400; font-size: 0.95rem; }
+          .error { color: #ffb3c1; font-size: 0.85rem; }
         }
 
-        // Shared styles for all inline textareas
         .expanding-textarea {
-          width: 100%;
-          padding: 0.6rem;
-          border-radius: 6px;
-          border: 1px solid #2b2b2b;
-          background: transparent;
-          color: inherit;
-          resize: none;
-          overflow: hidden;
-          box-sizing: border-box;
-
-          &:focus {
-            border-color: var(--txt-primary);
-            background: #222222;
-            outline: none;
-          }
+          width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #2b2b2b;
+          background: transparent; color: inherit; resize: none; overflow: hidden; box-sizing: border-box;
+          &:focus { border-color: var(--txt-primary); background: #222222; outline: none; }
         }
-
-        > form .expanding-textarea {
-          min-height: 72px;
-          max-height: 220px;
-        }
-
+        > form .expanding-textarea { min-height: 72px; max-height: 220px; }
         .reply-form .expanding-textarea,
-        .replies .reply form .expanding-textarea {
-          min-height: 56px;
-          max-height: 160px;
-        }
+        .replies .reply form .expanding-textarea { min-height: 56px; max-height: 160px; }
 
-        // Shared styles for inline form actions
         .modal-actions {
-          display: flex;
-          gap: 0.5rem;
-          justify-content: flex-end;
-
-          .btn {
-            padding: 0.4rem 0.6rem;
-            border-radius: 6px;
-            background: transparent;
-            border: 1px solid #2b2b2b;
-            color: inherit;
-          }
-
+          display: flex; gap: 0.5rem; justify-content: flex-end;
+          .btn { padding: 0.4rem 0.6rem; border-radius: 6px; background: transparent; border: 1px solid #2b2b2b; color: inherit; }
           .primary {
-            background: var(--btn-primary);
-            color: #000;
-            border-color: var(--btn-primary);
-
-            &:disabled {
-              opacity: 0.6;
-              cursor: not-allowed;
-            }
+            background: var(--btn-primary); color: #000; border-color: var(--btn-primary);
+            &:disabled { opacity: 0.6; cursor: not-allowed; }
           }
         }
       }
@@ -548,322 +288,101 @@ header {
   }
 
   @media (max-width: 768px) {
-    .album-header {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-
-      .album-artwork {
-        margin-bottom: 1rem;
-      }
-    }
-
-    .tracklist ul li {
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-    }
+    .album-header { flex-direction: column; align-items: center; text-align: center; .album-artwork { margin-bottom: 1rem; } }
+    .tracklist ul li { flex-direction: column; align-items: center; gap: 0.3rem; }
   }
 
-  /* Modal styles */
+  /* --- Modal --- */
   .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 60;
-    padding: 1rem;
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.6); z-index: 60; padding: 1rem;
   }
 
   .modal {
-    background: #0f0f0f;
-    color: #fff;
-    padding: 1.25rem;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 640px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    outline: none;
+    background: #0f0f0f; color: #fff; padding: 1.25rem; border-radius: 8px;
+    width: 100%; max-width: 640px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); outline: none;
 
-    /* --- General label styling within the modal --- */
-    label {
-      display: block;
-      // font-weight: 600;
-      margin-bottom: 0.35rem;
-    }
+    label { display: block; margin-bottom: 0.35rem; }
 
-    /* --- Improved Star Rating Styling --- */
-    .modal-rating .comment-rating {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.2rem;
-      border-radius: 8px;
-      // background: rgba(255, 255, 255, 0.02);
-      // border: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
+    .modal-rating .comment-rating { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem; border-radius: 8px; }
     .modal-rating .star-button {
-      width: 38px;
-      height: 38px;
-      font-size: 1.2rem;
-      padding: 0;
-      display: inline-grid;
-      place-items: center;
-      border-radius: 6px;
+      @extend %star-button-base;
+      width: 38px; height: 38px; font-size: 1.2rem; padding: 0;
       color: rgba(255, 255, 255, 0.3);
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      transition: color 150ms ease, transform 150ms ease;
-
-      &.filled {
-        color: var(--txt-primary);
-      }
-
-      &:hover {
-        transform: scale(1.15);
-      }
-
-      &:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 30%, transparent);
-      }
+      &.filled { color: var(--txt-primary); }
+      &:hover { transform: scale(1.15); }
+      @extend %focus-ring-4;
     }
 
-    /* --- Improved Checkbox & Warning Box Styling --- */
     .overwrite-warning {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      border-radius: 8px;
+      margin-top: 1rem; padding: 0.75rem; border-radius: 8px;
       background: color-mix(in oklab, #f2f2a1 10%, transparent);
       border: 1px solid color-mix(in oklab, #f2f2a1 20%, transparent);
       color: #f2f2a1;
-
-      p {
-        margin: 0 0 0.6rem 0;
-        font-size: 0.9rem;
-        line-height: 1.4;
-        max-width: 90%;
-      }
+      p { margin: 0 0 0.6rem 0; font-size: 0.9rem; line-height: 1.4; max-width: 90%; }
     }
 
     .checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 400; /* Use normal font weight for this label */
-      color: #eee;
-      margin-bottom: 0; /* Override general label margin */
-
+      display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.95rem; font-weight: 400; color: #eee; margin-bottom: 0;
       input[type="checkbox"] {
-        // Hide default checkbox, but keep it accessible
-        appearance: none;
-        -webkit-appearance: none;
-        margin: 0;
-        width: 20px;
-        height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.4);
-        border-radius: 4px;
-        display: grid;
-        place-content: center;
+        appearance: none; -webkit-appearance: none; margin: 0; width: 20px; height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 4px; display: grid; place-content: center;
         transition: background-color 120ms ease-in-out, border-color 120ms ease-in-out;
-
         &::before {
-          content: "";
-          width: 10px;
-          height: 10px;
-          transform: scale(0);
-          transition: 120ms transform ease-in-out;
+          content: ""; width: 10px; height: 10px; transform: scale(0); transition: 120ms transform ease-in-out;
           box-shadow: inset 1em 1em var(--btn-primary);
-          // checkmark icon using clip-path
           clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
-
-        &:checked {
-          background-color: color-mix(in oklab, var(--btn-primary) 25%, transparent);
-          border-color: var(--btn-primary);
-          &::before {
-            transform: scale(1);
-          }
-        }
-
-        &:focus-visible {
-          outline: none;
-          box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
-        }
+        &:checked { background-color: color-mix(in oklab, var(--btn-primary) 25%, transparent); border-color: var(--btn-primary); &::before { transform: scale(1); } }
+        @extend %focus-ring-3;
       }
     }
 
-    /* --- Textarea specific styling --- */
     textarea.expanding-textarea {
-      width: 100%;
-      min-height: 80px;
-      padding: 0.8em;
-      font-size: 1em;
-      color: white;
-      background-color: #1f1f1f;
-      border: 1px solid #333;
-      border-radius: 6px;
-      resize: none;
-      overflow: hidden;
-      box-sizing: border-box;
+      width: 100%; min-height: 80px; padding: 0.8em; font-size: 1em; color: white;
+      background-color: #1f1f1f; border: 1px solid #333; border-radius: 6px; resize: none; overflow: hidden; box-sizing: border-box;
       transition: height 0.2s ease, border-color 150ms ease, background-color 150ms ease;
-
-      &:focus {
-        border-color: var(--txt-primary);
-        background: #222;
-        outline: none;
-      }
+      &:focus { border-color: var(--txt-primary); background: #222; outline: none; }
     }
   }
 
-  /* --- Action Buttons (Submit/Cancel) for all forms --- */
   .modal-actions {
-    display: flex;
-    justify-content: flex-end; /* Aligns buttons to the right */
-    align-items: center;
-    gap: 1rem; /* Increased gap for more space between buttons */
-    margin-top: 1.25rem; /* Adds space above the buttons */
+    display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1.25rem;
   }
 
-  /* --- General Button Styling --- */
   .btn {
-    background: #b78cff;
-    color: #000;
-    border: none;
-    padding: 0.5rem 0.75rem;
-    // gap: 0.25rem;
-    border-radius: 6px;
+    background: #b78cff; color: #000; border: none;
+    padding: 0.5rem 0.75rem; border-radius: 6px;
+    &.primary { background: #9a5fff; color: #fff; &[disabled] { opacity: 0.5; cursor: not-allowed; background: #555; border-color: #555; } }
   }
 
-  .btn.primary {
-    background: #9a5fff;
-    color: #fff;
+  .error { color: #ffb3c1; font-size: 0.85rem; margin-top: 0.25rem; }
 
-    &[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: #555;
-      border-color: #555;
-    }
-  }
-
-  .error {
-    color: #ffb3c1;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-  }
-
-  textarea,
-  input,
-  button,
-  select {
-    font: inherit;
-    color: inherit;
-  }
+  textarea, input, button, select { font: inherit; color: inherit; }
 }
 
-/* mobile adjustments to avoid overflow */
+/* Narrow mobile tweaks */
 @media (max-width: 480px) {
   .comment-section {
-    .comment-actions {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    /* remove references to an inline rating control (rating only in modal) */
-    .comment-actions .comment-rating {
-      display: none !important;
-    }
-
-    .comments .comment > form .comment-rating {
-      margin-left: 0;
-      justify-content: flex-end;
-    }
-
-    .comments .comment > .comment-rating {
-      position: static;
-      margin-top: 0.5rem;
-      align-self: flex-end;
-    }
+    .comment-actions { flex-direction: column; align-items: stretch; }
+    .comment-actions .comment-rating { display: none !important; }
+    .comments .comment > form .comment-rating { margin-left: 0; justify-content: flex-end; }
+    .comments .comment > .comment-rating { position: static; margin-top: 0.5rem; align-self: flex-end; }
   }
 }
 
-/* Read-only average rating variant for header stars */
+/* Read-only average rating variant */
 .star-rating.avg {
-  gap: 0.12rem;
-  font-size: 1.05rem;
-
-  .star-button {
-    pointer-events: none;
-    padding: 0 0.08rem;
-    color: rgba(255,255,255,0.28);
-
-    &.filled {
-      color: var(--txt-primary);
-    }
-  }
-
-  .current-rating {
-    font-size: 0.85rem;
-    color: #bbb;
-  }
+  gap: 0.12rem; font-size: 1.05rem;
+  .star-button { @extend %btn-reset; padding: 0 0.08rem; color: rgba(255,255,255,0.28); pointer-events: none; &.filled { color: var(--txt-primary); } }
+  .current-rating { font-size: 0.85rem; color: #bbb; }
 }
 
-/* utility */
-.visually-hidden {
-  position: absolute !important;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
-  border: 0;
-  padding: 0;
-  margin: -1px;
-}
-
-.comment-body {
-  margin: 0.5rem 0;
-  white-space: pre-wrap; // preserve line breaks
-}
-
+/* Utilities */
+.visually-hidden { @extend %v-hidden; }
+.comment-body { margin: 0.5rem 0; white-space: pre-wrap; }
 .inline-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
-
-  textarea {
-    width: 100%;
-    padding: 0.5rem;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    resize: vertical;
-  }
-
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.5rem;
-  }
-}
-
-.comment-actions {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-  /* center the single primary action on narrow view, left-align on wide view */
-  justify-content: flex-start;
-
-  @media (max-width: 480px) {
-    justify-content: stretch;
-  }
+  display: flex; flex-direction: column; gap: 0.5rem; margin: 0.5rem 0;
+  textarea { width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
+  .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 }
