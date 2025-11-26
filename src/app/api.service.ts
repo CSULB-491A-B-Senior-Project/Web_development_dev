@@ -8,9 +8,7 @@ import { AuthResponse, LoginRequest, RegisterRequest } from './models/auth.model
   providedIn: 'root'
 })
 export class ApiService {
-  // probably change later
-  //private readonly baseUrl = 'https://crescendo.chat/api/v1';
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = 'https://crescendo.chat/api/v1';
   private tokenSubject = new BehaviorSubject<string | null>(this.getStoredToken());
   public token$ = this.tokenSubject.asObservable();
 
