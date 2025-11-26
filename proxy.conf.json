@@ -1,9 +1,0 @@
-{
-  "/api": {
-    "target": "https://crescendo.chat",
-    "secure": true,
-    "changeOrigin": true,
-    "logLevel": "debug",
-    "pathRewrite": { "^/api": "/api/v1" }
-  }
-}
