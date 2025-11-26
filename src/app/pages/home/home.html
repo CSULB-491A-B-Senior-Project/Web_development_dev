@@ -6,19 +6,25 @@
       </div>
       <h1>welcome to crescendo</h1>
     </div>
-    <form class="form">
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="form">
       <input type="text"
-              formControlName="username"
-              placeholder="Phone number, username, or email"
-              autocomplete="username" />
+             formControlName="usernameOrEmail"
+             placeholder="Username or email"
+             autocomplete="username" />
       <input type="password"
-              formControlName="password"
-              placeholder="Password"
-              autocomplete="current-password" />
+             formControlName="password"
+             placeholder="Password"
+             autocomplete="current-password" />
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
 
-      <button class="btn " type="button" routerLink="/explore">
-        Log in
+      <button class="btn"
+              type="submit"
+              [disabled]="isLoading">
+        {{ isLoading ? 'Logging in...' : 'Log in' }}
       </button>
+
       <div class="divider" role="separator" aria-label="or">OR</div>
       <div class="signup-inline">
         Don't have an account?

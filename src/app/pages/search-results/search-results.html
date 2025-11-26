@@ -1,4 +1,16 @@
+
 <div class="page-wrapper">
+  <!-- Loading spinner -->
+  <div *ngIf="loading()" class="loading">
+    <div class="spinner"></div>
+    <p>Searching...</p>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error()" class="error-message">
+    <p>{{ error() }}</p>
+    <button (click)="searchSubject.next()">Try Again</button>
+  </div>
   <!-- Top bar -->
   <header class="toolbar">
     <nav class="tabs" role="tablist">
@@ -24,15 +36,15 @@
   </header>
 
   <!-- Tabs -->
-  
+
 
   <div class="meta-row">
     <span class="count">{{ resultCount() }} results</span>
   </div>
 
   <!-- Results: GRID (Instagram-like) -->
-  <div *ngIf="view() === 'grid'" class="cards">
-    <app-explore-card *ngFor="let it of filtered(); trackBy: trackById"
+  <div *ngIf="view() === 'grid' && !loading()" class="cards">
+    <app-explore-card *ngFor="let it of items(); trackBy: trackById"
                       [username]="it.username"
                       [title]="it.title"
                       [genres]="it.genres"
@@ -46,8 +58,8 @@
   </div>
 
   <!-- Results: LIST (Letterboxd-like rows) -->
-  <ul *ngIf="view() === 'list'" class="list">
-    <li *ngFor="let it of filtered(); trackBy: trackById" class="row">
+  <ul *ngIf="view() === 'list' && !loading()" class="list">
+    <li *ngFor="let it of items(); trackBy: trackById" class="row">
       <a [routerLink]="['/details', it.id]" class="thumb">
         <img [src]="it.imageUrl" [alt]="it.title" />
       </a>
@@ -71,12 +83,12 @@
             </svg>
           </span>
           {{ it.favorites | number }}
-        <span class="metric">
-          <!-- star -->
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 2l3 6 6.7 1-4.8 4.7 1.2 6.6L12 17l-6.1 3.3 1.2-6.6L2.3 9 9 8z" />
-          </svg>
-        </span>
+          <span class="metric">
+            <!-- star -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2l3 6 6.7 1-4.8 4.7 1.2 6.6L12 17l-6.1 3.3 1.2-6.6L2.3 9 9 8z" />
+            </svg>
+          </span>
           {{ it.rating }}
           <span class="type" [attr.data-type]="it.type">{{ it.type }}</span>
         </div>

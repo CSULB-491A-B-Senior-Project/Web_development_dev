@@ -9,36 +9,60 @@
 
     <div class="divider" role="separator" aria-label="or">OR</div>
 
-    <form novalidate>
+    <form [formGroup]="signupForm" (ngSubmit)="onSignup()" novalidate>
+      <input type="email"
+             id="email"
+             formControlName="email"
+             placeholder="Email"
+             [class.error]="hasError('email')" />
+      <small *ngIf="hasError('email')" class="error-text">{{ getErrorMessage('email') }}</small>
+
       <input type="text"
-              id="email"
-              formControlName="email"
-              placeholder="Email" />
+             id="firstName"
+             formControlName="firstName"
+             placeholder="First Name"
+             [class.error]="hasError('firstName')" />
+      <small *ngIf="hasError('firstName')" class="error-text">{{ getErrorMessage('firstName') }}</small>
+
+      <input type="text"
+             id="lastName"
+             formControlName="lastName"
+             placeholder="Last Name"
+             [class.error]="hasError('lastName')" />
+      <small *ngIf="hasError('lastName')" class="error-text">{{ getErrorMessage('lastName') }}</small>
+
+      <input type="text"
+             id="username"
+             formControlName="username"
+             placeholder="Username"
+             [class.error]="hasError('username')" />
+      <small *ngIf="hasError('username')" class="error-text">{{ getErrorMessage('username') }}</small>
 
       <input type="password"
-              id="password"
-              formControlName="password"
-              placeholder="Password" />
+             id="password"
+             formControlName="password"
+             placeholder="Password"
+             [class.error]="hasError('password')" />
+      <small *ngIf="hasError('password')" class="error-text">{{ getErrorMessage('password') }}</small>
+      <small class="hint-text">Must be 8-25 characters with at least 1 digit and 1 special character</small>
 
-      <input type="text"
-              id="fullname"
-              formControlName="fullname"
-              placeholder="Full Name" />
-
-      <input type="text"
-              id="username"
-              formControlName="username"
-              placeholder="Username" />
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
 
       <p class="legal">
         By signing up, you agree to our <a routerLink="">Terms</a>.
       </p>
 
-      <button class="btn" type="button">Sign up</button>
+      <button class="btn"
+              type="submit"
+              [disabled]="isLoading">
+        {{ isLoading ? 'Signing up...' : 'Sign up' }}
+      </button>
     </form>
   </section>
 
   <div class="footer-card" role="region" aria-label="Sign in">
-    Have an account? <a routerLink="">Log in</a>
+    Have an account? <a routerLink="/">Log in</a>
   </div>
 </div>
