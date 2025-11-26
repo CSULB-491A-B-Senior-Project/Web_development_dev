@@ -55,12 +55,22 @@ body {
 }
 
 .settings-container {
-  background-color: black;
-  color: #fff;
-  justify-content: center;
-  align-items: center;
-  margin-left: 350px;
+  margin-left: 350px; // Push content to the right of the fixed sidebar
   padding: 10px 50px 50px 100px;
+  // By removing 'width: 100%', the container will correctly fill the remaining space
+}
+
+.profile-picture-container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+
+  .profile-picture {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #333;
+  }
 }
 
 .bio-form {
@@ -87,9 +97,9 @@ body {
       opacity: 0.7;
     }
 
-    &:not(.disabled):focus {
-      background-color: #ff495d;
-    }
+    // &:not(.disabled):focus {
+    //   background-color: #ff495d;
+    // }
 
     &.disabled {
       background: #aaa;
@@ -324,184 +334,344 @@ body {
 
 // Styles for Favorites Section
 .favorites-section {
+  .artist-list,
+  .album-list {
+    margin-bottom: 2.5rem;
+  }
+
   .selection-list {
-    max-height: 220px;
+    max-height: 300px;
     overflow-y: auto;
     background: #1f1f1f;
-    border: 1px solid #333;
+    border: 1px solid #444;
     border-radius: 4px;
     padding: 0.5rem;
-    margin-top: 1rem;
-  }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-    max-width: 100%;
-  }
-
-  .item-card {
-    background: #1a1a1a;
-    border-radius: 8px;
-    border: 1px solid #333;
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    position: relative;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease, border-color 0.2s ease;
-
-    &:not(.cdk-drag-dragging) {
-      .drag-handle {
-        cursor: grab;
-      }
-    }
-
-    .drag-handle {
-      color: #666;
-      padding: 5px;
+    .selection-item {
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin-right: 0.5rem;
-      border-radius: 50%;
-      transition: opacity 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-    }
-
-    &:hover .drag-handle {
-      color: #b78cff;
-      background-color: #2a2a2a;
-    }
-
-    &.cdk-drag-dragging {
-      // Make the original item being dragged transparent, but keep its space
-      opacity: 0.4;
-    }
-
-    &:active {
-      .drag-handle {
-        cursor: grabbing;
-      }
-    }
-
-    .item-cover {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
+      padding: 0.75rem;
       border-radius: 4px;
-      margin-right: 1rem;
-    }
-
-    .item-meta {
-      flex-grow: 1;
-      overflow: hidden;
-    }
-
-    .item-title {
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-sub {
-      font-size: 0.9em;
-      color: #aaa;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .remove-btn {
-      position: absolute;
-      top: 50%;
-      right: 8px;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      font-size: 1.5em;
-      line-height: 1;
-      cursor: pointer;
-      color: #888;
-      padding: 2px;
-      transition: color 0.2s ease;
+      transition: background-color 0.2s ease;
 
       &:hover {
-        color: #ff495d;
+        background-color: #2a2a2a;
+      }
+
+      .item-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 1rem;
+      }
+
+      .item-meta {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        overflow: hidden;
+      }
+
+      .item-title {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-sub {
+        font-size: 0.85em;
+        color: #aaa;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .empty-list-text {
+      padding: 1rem;
+      text-align: center;
+      color: #888;
+    }
+  }
+
+  .unfollow-btn {
+    background: none;
+    color: #ccc;
+    border: 1px solid #555;
+    border-radius: 20px;
+    padding: 0.5em 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #ff495d;
+      border-color: #ff495d;
+      color: white;
+    }
+  }
+
+  .heart-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    padding: 0.25rem;
+    line-height: 1;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+
+    &.hearted {
+      animation: heartBeat 0.3s ease;
+    }
+  }
+
+  @keyframes heartBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+
+  // Remove old drag-drop specific styles if they exist
+}
+
+.artist-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: .5rem;
+  background: #1f1f1f;
+  border: 1px solid #444;
+  border-radius: 6px;
+  max-width: 480px;
+}
+
+// While dragging (CDK adds this class)
+.artist-rank-list.cdk-drop-list-dragging {
+  overflow: hidden;
+}
+
+.artist-rank-item {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem .8rem;
+  background: #242424;
+  border-radius: 6px;
+  cursor: grab;
+  transition: background-color .15s ease;
+
+  &:hover {
+    background: #2d2d2d;
+  }
+
+  &.cdk-drag-preview {
+    box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    border: 1px solid #555;
+  }
+
+  &.cdk-drag-placeholder {
+    opacity: .25;
+  }
+
+  .rank-number {
+    width: 1.5rem;
+    text-align: center;
+    font-weight: 600;
+    color: #b78cff;
+  }
+
+  img {
+    border-radius: 4px;
+    object-fit: cover;
+  }
+
+  .artist-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .drag-handle {
+    font-size: 1.1rem;
+    cursor: grab;
+    user-select: none;
+    padding: .25rem .4rem;
+    border-radius: 4px;
+    transition: background-color .15s ease;
+    line-height: 1;
+
+    &:hover {
+      background: #333;
+    }
+  }
+}
+
+.album-favorites {
+  margin-top: 2.5rem;
+
+  .search-container {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .search-results {
+    list-style: none;
+    margin: .5rem 0 0;
+    padding: 0;
+    background: #1f1f1f;
+    border: 1px solid #444;
+    border-radius: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      padding: .6rem .75rem;
+      cursor: pointer;
+      transition: background .15s ease;
+
+      &:hover {
+        background: #2a2a2a;
+      }
+
+      .item-image {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: .85rem;
+      }
+
+      .item-meta {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .item-title {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-sub {
+        font-size: .75rem;
+        color: #9a9a9a;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .heart-btn {
+        font-size: 1.2rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: .25rem;
+        line-height: 1;
+        transition: transform .2s ease;
+
+        &:hover {
+          transform: scale(1.2);
+        }
       }
     }
   }
 
-  .item-card-preview {
-    // Style the preview to look like the original item card
-    background: #1a1a1a;
-    border-radius: 8px;
+  .selection-list.album-list {
+    background: #1f1f1f;
     border: 1px solid #444;
-    display: flex;
-    align-items: center;
-    padding: 0.75rem;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    // Ensure it has the same structure as the item-card
-    .item-cover {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
+    border-radius: 6px;
+    padding: .4rem;
+    max-height: 340px;
+    overflow-y: auto;
+    margin-top: .75rem;
+
+    .selection-item {
+      display: flex;
+      align-items: center;
+      padding: .65rem .7rem;
       border-radius: 4px;
-      margin-right: 1rem;
+      transition: background .15s ease;
+
+      &:hover {
+        background: #262626;
+      }
+
+      .item-image {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        object-fit: cover;
+        margin-right: .85rem;
+        flex-shrink: 0;
+      }
+
+      .item-meta {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+
+      .item-title {
+        font-size: .95rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-sub {
+        font-size: .7rem;
+        color: #8b8b8b;
+        letter-spacing: .3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .heart-btn {
+        font-size: 1.35rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: .3rem;
+        line-height: 1;
+        color: #ff4d6d;
+        transition: transform .2s ease;
+
+        &:hover {
+          transform: scale(1.2);
+        }
+
+        &.hearted {
+          animation: heartBeat .3s ease;
+        }
+      }
     }
-    .item-meta {
-      flex-grow: 1;
-      overflow: hidden;
-    }
-    .item-title {
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .item-sub {
-      font-size: 0.9em;
-      color: #aaa;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+
+    .empty-list-text {
+      padding: 1rem;
+      text-align: center;
+      font-size: .85rem;
+      color: #8d8d8d;
     }
   }
+}
 
-  .item-card-placeholder {
-    // The placeholder is now a simple block with a background
-    background: #b78cff;
-    width: 3px; // A thin vertical bar
-    height: 50px; // Match the approximate height of the items
-    border-radius: 2px;
-  }
-
-  .cdk-drag-preview {
-    box-sizing: border-box;
-    border-radius: 8px; // Match the new preview style
-  }
-
-  .cdk-drag-placeholder {
-    // Make the placeholder take up no space to prevent the grid from reflowing.
-    // This is the key to stopping the "jump".
-    opacity: 0;
-  }
-
-  .cdk-drop-list-dragging .item-card:not(.cdk-drag-placeholder) {
-    // Re-introduce the smooth transition for sibling items.
-    // This makes them slide out of the way gracefully.
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-  }
-
-  .cdk-drag-animating {
-    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-  }
-
-  .save-favorites-btn {
-    @extend .action-button; // Inherit the global button style
-    margin-top: 2.5rem;
-  }
+@keyframes heartBeat {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
 }
 
 
