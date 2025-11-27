@@ -8,7 +8,7 @@ import { AuthResponse, LoginRequest, RegisterRequest } from './models/auth.model
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = 'https://crescendo.chat/api/v1';
+  private readonly baseUrl = 'https://api.crescendo.chat/v1';
   private tokenSubject = new BehaviorSubject<string | null>(this.getStoredToken());
   public token$ = this.tokenSubject.asObservable();
 
@@ -72,7 +72,7 @@ export class ApiService {
    */
   public register(data: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(
-      `${this.baseUrl}/auth/register`,
+      `${this.baseUrl}/Auth/register`,
       data,
       { headers: this.getAuthHeaders() }
     ).pipe(
@@ -89,7 +89,7 @@ export class ApiService {
    */
   public login(data: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(
-      `${this.baseUrl}/auth/login`,
+      `${this.baseUrl}/Auth/login`,
       data,
       { headers: this.getAuthHeaders() }
     ).pipe(
