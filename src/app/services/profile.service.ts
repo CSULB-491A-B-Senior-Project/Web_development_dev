@@ -23,15 +23,15 @@ export class ProfileService {
     // For now, we return mock data.
     const mockProfile: UserProfile = {
       bio: 'This is my current bio. I love discovering new music and sharing my favorite tracks.',
-      profilePictureUrl: '/assets/default-avatar.png', // Add mock URL
-      favoriteSong: { id: 's1', name: 'The Less I Know The Better', artistName: 'Tame Impala', albumCover: '/assets/currents.jpg' },
+      profilePictureUrl: 'https://picsum.photos/seed/card-1/600/600', // Add mock URL
+      favoriteSong: { id: 's1', name: 'The Less I Know The Better', artistName: 'Tame Impala', albumCover: 'https://picsum.photos/seed/card-4/600/600' },
       favoriteArtists: [
-        { id: '3', artistName: 'Daft Punk', artistImage: '/assets/daft-punk.jpg' },
-        { id: '1', artistName: 'Tame Impala', artistImage: '/assets/tame-impala.jpg' },
+        { id: '3', artistName: 'Daft Punk', artistImage: 'https://picsum.photos/seed/card-2/600/600' },
+        { id: '1', artistName: 'Tame Impala', artistImage: 'https://picsum.photos/seed/card-3/600/600' },
       ],
       favoriteAlbums: [
-        { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: '/assets/discovery.jpg' },
-        { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: '/assets/currents.jpg' },
+        { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: 'https://picsum.photos/seed/card-2/600/600' },
+        { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: 'https://picsum.photos/seed/card-3/600/600' },
       ]
     };
     return of(mockProfile);

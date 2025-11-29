@@ -361,16 +361,6 @@ header {
   textarea, input, button, select { font: inherit; color: inherit; }
 }
 
-/* Narrow mobile tweaks */
-@media (max-width: 480px) {
-  .comment-section {
-    .comment-actions { flex-direction: column; align-items: stretch; }
-    .comment-actions .comment-rating { display: none !important; }
-    .comments .comment > form .comment-rating { margin-left: 0; justify-content: flex-end; }
-    .comments .comment > .comment-rating { position: static; margin-top: 0.5rem; align-self: flex-end; }
-  }
-}
-
 /* Read-only average rating variant */
 .star-rating.avg {
   gap: 0.12rem; font-size: 1.05rem;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, inject, signal, viewChild, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, inject, signal, viewChild, computed, DestroyRef } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -9,6 +9,8 @@ import { ProfileService } from '../../services/profile.service';
 import { MusicSearchService } from '../../services/music-search.service';
 import { Artist, Album, Song } from '../../models/music.models';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { HttpClient } from '@angular/common/http';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-settings-profile',
@@ -29,9 +31,12 @@ export class SettingsProfile implements AfterViewInit {
   #fb = inject(FormBuilder);
   #profileService = inject(ProfileService);
   #musicSearchService = inject(MusicSearchService);
+  #http = inject(HttpClient);
 
   // Signals
-  profilePictureUrl = signal('/assets/default-avatar.png');
+  profilePictureUrl = signal<string>('/assets/default-profile.png');
+  private localBlobUrl = signal<string | null>(null);
+
   selectedFileName = signal('');
   favoriteArtists = signal<Artist[]>([]);
   favoriteAlbums = signal<Album[]>([]);
@@ -69,6 +74,7 @@ export class SettingsProfile implements AfterViewInit {
   constructor() {
     this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
       this.bioForm.patchValue({ bio: p.bio });
+      // Initialize to the server URL (static -> OK for NgOptimizedImage elsewhere)
       this.profilePictureUrl.set(p.profilePictureUrl);
       this.favoriteSong.set(p.favoriteSong);
       this.favoriteArtists.set(p.favoriteArtists);
@@ -113,11 +119,48 @@ export class SettingsProfile implements AfterViewInit {
 
   // Profile picture
   onProfilePictureSelected(e: Event): void {
-    const file = (e.target as HTMLInputElement).files?.[0];
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (!file) return;
-    this.#profileService.uploadProfilePicture(file).pipe(take(1)).subscribe(r => {
-      this.profilePictureUrl.set(r.url);
+
+    // validate type/size
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type) || file.size > 5 * 1024 * 1024) {
+      return;
+    }
+
+    // revoke previous blob
+    const prev = this.localBlobUrl();
+    if (prev) URL.revokeObjectURL(prev);
+
+    // create preview blob URL
+    const blobUrl = URL.createObjectURL(file);
+    this.localBlobUrl.set(blobUrl);
+    this.profilePictureUrl.set(blobUrl); // immediate preview
+
+    // upload and replace with remote URL
+    const form = new FormData();
+    form.append('image', file);
+
+    this.#http.post<{ url: string }>('/api/profile/image', form).pipe(
+      map(res => res.url)
+    ).subscribe({
+      next: (remoteUrl) => {
+        // cache-bust to ensure fresh fetch
+        this.profilePictureUrl.set(remoteUrl + '?v=' + Date.now());
+        // optional: revoke local preview now
+        const local = this.localBlobUrl();
+        if (local) {
+          URL.revokeObjectURL(local);
+          this.localBlobUrl.set(null);
+        }
+      },
+      error: () => {
+        // keep local preview or notify error
+      }
     });
+
+    // clear input to allow re-selecting the same file
+    input.value = '';
   }
 
   // Background image
@@ -198,5 +241,12 @@ export class SettingsProfile implements AfterViewInit {
 
     // Persist immediately
     this.#profileService.updateFavoriteArtists(updated).pipe(take(1)).subscribe();
+  }
+
+  // cleanup blob URL on destroy
+  private destroyRef = inject(DestroyRef);
+  ngOnDestroy() {
+    const prev = this.localBlobUrl();
+    if (prev) URL.revokeObjectURL(prev);
   }
 }
