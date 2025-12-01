@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { CookieService } from 'ngx-cookie-service';
 import { AuthResponse, LoginRequest, RegisterRequest } from './models/auth.models';
 
 @Injectable({
@@ -9,31 +10,49 @@ import { AuthResponse, LoginRequest, RegisterRequest } from './models/auth.model
 })
 export class ApiService {
   private readonly baseUrl = 'https://api.crescendo.chat/v1';
-  private tokenSubject = new BehaviorSubject<string | null>(this.getStoredToken());
-  public token$ = this.tokenSubject.asObservable();
+  private readonly TOKEN_COOKIE_NAME = 'jwt_token';
+  private tokenSubject!: BehaviorSubject<string | null>;
+  public token$!: Observable<string | null>;
 
-  constructor(private http: HttpClient) {}
-
-  /**
-   * Get the stored JWT token from localStorage
-   */
-  private getStoredToken(): string | null {
-    return localStorage.getItem('jwt_token');
+  constructor(
+    private http: HttpClient,
+    private cookieService: CookieService
+  ) {
+    // Initialize token subject AFTER cookieService is injected
+    this.tokenSubject = new BehaviorSubject<string | null>(this.getStoredToken());
+    this.token$ = this.tokenSubject.asObservable();
   }
 
   /**
-   * Store JWT token in localStorage
+   * Get the stored JWT token from cookies
+   */
+  private getStoredToken(): string | null {
+    return this.cookieService.get(this.TOKEN_COOKIE_NAME) || null;
+  }
+
+  /**
+   * Store JWT token in cookies
+   * Cookie expires in 7 days by default
    */
   private storeToken(token: string): void {
-    localStorage.setItem('jwt_token', token);
+    const expiryDays = 7;
+    this.cookieService.set(
+      this.TOKEN_COOKIE_NAME,
+      token,
+      expiryDays,
+      '/',
+      undefined,
+      false, // secure - set to true in production (HTTPS only)
+      'Lax' // SameSite policy - Lax is good for development
+    );
     this.tokenSubject.next(token);
   }
 
   /**
-   * Remove JWT token from localStorage
+   * Remove JWT token from cookies
    */
   private removeToken(): void {
-    localStorage.removeItem('jwt_token');
+    this.cookieService.delete(this.TOKEN_COOKIE_NAME, '/');
     this.tokenSubject.next(null);
   }
 
@@ -59,11 +78,11 @@ export class ApiService {
     let headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
-    
+
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
-    
+
     return headers;
   }
 
@@ -101,12 +120,12 @@ export class ApiService {
     );
   }
 
-  // /**
-  //  * Logout user
-  //  */
-  // public logout(): void {
-  //   this.removeToken();
-  // }
+  /**
+   * Logout user
+   */
+  public logout(): void {
+    this.removeToken();
+  }
 
   /**
    * Generic GET request with authentication

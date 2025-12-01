@@ -14,18 +14,29 @@ import { SettingsAccount } from './pages/settings-account/settings-account';
 import { AdminUser } from './pages/admin/admin-user';
 import { AdminPost } from './pages/admin/admin-post';
 import { AlbumDetailsComponent } from './pages/album-details/album-details.component';
+import { authGuard, guestGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: Home }, //default route
-  { path: 'signup', component: Signup }, //signup page
-  { path: 'explore-page', component: Explore }, //explore page
+  // Guest-only routes (redirect to explore if authenticated)
+  {
+    path: '',
+    component: Home,
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'signup',
+    component: Signup,
+    canActivate: [guestGuard]
+  },
   { path: 'settings-account', component: SettingsAccount }, //settings-accounts page
   { path: 'settings-profile', component: SettingsProfile }, //settings-profile page
   { path: 'admin-user', component: AdminUser }, //admin user page
   { path: 'admin-post', component: AdminPost }, //admin post page
+  // Protected routes (require authentication)
   {
     path: '',
     component: MainLayout,
+    canActivate: [authGuard],
     children: [
       {
         path: 'explore',
@@ -68,5 +79,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/search-results/search-results').then(m => m.SearchResults)
   },
+  // Wildcard route - redirect to home
+  { path: '**', redirectTo: '' }
 ];
 export class AppRoutingModule { }
