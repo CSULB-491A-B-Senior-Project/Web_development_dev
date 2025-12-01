@@ -1,29 +1,39 @@
-import { Injectable } from '@angular/core';
-import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
+import { inject } from '@angular/core';
+import { Router, CanActivateFn } from '@angular/router';
 import { ApiService } from '../api.service';
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthGuard implements CanActivate {
-  constructor(
-    private apiService: ApiService,
-    private router: Router
-  ) {}
+/**
+ * Auth Guard - Protects routes that require authentication
+ * Redirects to home if not authenticated
+ */
+export const authGuard: CanActivateFn = (route, state) => {
+  const apiService = inject(ApiService);
+  const router = inject(Router);
 
-  canActivate(
-    route: ActivatedRouteSnapshot,
-    state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-    
-    if (this.apiService.isAuthenticated()) {
-      return true;
-    }
-
-    // Not authenticated, redirect to signup page
-    return this.router.createUrlTree(['/signup'], {
-      queryParams: { returnUrl: state.url }
-    });
+  if (apiService.isAuthenticated()) {
+    return true;
   }
-}
+
+  // Redirect to home page if not authenticated
+  console.log('Not authenticated, redirecting to home');
+  router.navigate(['/']);
+  return false;
+};
+
+/**
+ * Guest Guard - Prevents authenticated users from accessing guest-only pages
+ * Redirects to explore if already authenticated
+ */
+export const guestGuard: CanActivateFn = (route, state) => {
+  const apiService = inject(ApiService);
+  const router = inject(Router);
+
+  if (!apiService.isAuthenticated()) {
+    return true;
+  }
+
+  // Redirect to explore page if already authenticated
+  console.log('Already authenticated, redirecting to explore');
+  router.navigate(['/explore']);
+  return false;
+};
