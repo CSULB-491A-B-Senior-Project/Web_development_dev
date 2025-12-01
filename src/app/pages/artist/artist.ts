@@ -4,7 +4,7 @@ import { AlbumCard } from '../../ui/album-card/album-card';
 
 // ARTIST TYPE
 type artist = {
-    artistId: number;
+    artistId: string;
     name: string;
     followers: number;
     albums: string[];
@@ -14,7 +14,7 @@ type artist = {
 
 // ALBUM TYPE
 type Album = {
-    albumId: number;
+    albumId: string;
     title: string;
     artist: string;
     dateLabel: string;
@@ -29,7 +29,7 @@ type Album = {
 export class Artist {
     // ARTIST DATA
     artist_1 = {
-        artistId: 999,
+        artistId: '999',
         name: 'Artist Name',
         followers: 9999,
         albums: ['Album 1', 'Album 2', 'Album 3'],
@@ -39,35 +39,35 @@ export class Artist {
     // ALBUM DATA
     private readonly originalAlbums: Album[] = [
     {
-        albumId: 1,
+        albumId: '1',
         title: 'Album D',
         artist: 'Artist A',
         dateLabel: 'Oct. 15, 2025',
         imageUrl: 'https://picsum.photos/seed/card-1/600/600'
     },
     {
-        albumId: 2,
+        albumId: '2',
         title: 'Album C',
         artist: 'Artist A',
         dateLabel: 'Oct. 11, 2025',
         imageUrl: 'https://picsum.photos/seed/card-2/600/600'
     },
     {
-        albumId: 3,
+        albumId: '3',
         title: 'Album A',
         artist: 'Artist A',
         dateLabel: 'Oct. 13, 2025',
         imageUrl: 'https://picsum.photos/seed/card-3/600/600'
     },
     {
-        albumId: 4,
+        albumId: '4',
         title: 'Album E',
         artist: 'Artist A',
         dateLabel: 'Oct. 12, 2025',
         imageUrl: 'https://picsum.photos/seed/card-4/600/600'
     },
     {
-        albumId: 5,
+        albumId: '5',
         title: 'Album B',
         artist: 'Artist A',
         dateLabel: 'Oct. 14, 2025',
