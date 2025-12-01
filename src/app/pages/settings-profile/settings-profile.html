@@ -11,21 +11,22 @@
         <h1>Profile Picture</h1>
         <p>Upload a new photo for your profile.</p>
         <div class="profile-picture-container">
-            <img
-              class="profile-picture"
-              [src]="profilePictureUrl()"
-              width="100"
-              height="100"
-              alt="Current profile picture" />
-            <button type="button" class="action-button" (click)="profilePicInput.click()">
-                <span>Change Picture</span>
-                <input
-                  #profilePicInput
-                  type="file"
-                  accept=".jpg,.png,.jpeg,.webp"
-                  (change)="onProfilePictureSelected($event)"
-                  style="display: none;" />
-            </button>
+          <img
+            class="profile-picture"
+            [src]="profilePictureUrl()"
+            width="100"
+            height="100"
+            alt="Current profile picture" />
+          <button type="button" class="action-button" (click)="profilePicInput.click()">
+            Change Picture
+            <input
+              #profilePicInput
+              type="file"
+              accept=".jpg,.png,.jpeg,.webp"
+              (change)="onProfilePictureSelected($event)"
+              style="display: none;" />
+          </button>
+          <span class="file-name">{{ profilePicFileName() || 'No file selected. Must not exceed 3MB. File types .jpg, .png, .jpeg accepted.' }}</span>
         </div>
 
         <!-- CUSTOMIZE BACKGROUND -->
@@ -49,20 +50,19 @@
         <h1>About Me</h1>
         <p>Share a short bio to let others know who you are.</p>
         <form [formGroup]="bioForm" (ngSubmit)="onBioSubmit()" class="bio-form">
-            <div class="textarea-wrapper">
-                <textarea
-                #bioTextarea
-                (input)="autoResizeBio()"
-                formControlName="bio"
-                maxlength="150"
-                rows="1"
-                class="expanding-textarea"
-                ></textarea>
-                @if (bioForm.get('bio'); as bio) {
-                    <small class="char-count">{{ bio.value?.length || 0 }}/150 characters</small>
-                }
-            </div>
-            <button type="submit" [disabled]="bioForm.invalid">Save Bio</button>
+          <div class="textarea-wrapper">
+            <textarea
+              #bioTextarea
+              (input)="autoResizeBio()"
+              formControlName="bio"
+              maxlength="150"
+              rows="1"
+              class="expanding-textarea"></textarea>
+            @if (bioForm.get('bio'); as bio) {
+              <small class="char-count">{{ bio.value?.length || 0 }}/150 characters</small>
+            }
+          </div>
+          <button type="submit" [disabled]="bioForm.pristine || bioForm.invalid">Save Bio</button>
         </form>
 
         <!-- SELECT MUSIC -->
@@ -83,8 +83,7 @@
                     class="form-control"
                     type="text"
                     formControlName="query"
-                    placeholder="Search for a song..."
-                />
+                    placeholder="Search for a song..." />
                 @if (songSearchQuery() && songResults().length > 0) {
                     <ul class="search-results">
                         @for (song of songResults(); track song.id) {
@@ -100,7 +99,6 @@
                 }
             </form>
         }
-        <button type="button" class="action-button" (click)="saveFavoriteSong()">Save Song</button>
 
         <div class="favorites-section">
           <h1>Rank top 10 favorite artists</h1>
@@ -137,23 +135,20 @@
             @if (albumSearchQuery() && albumResults().length > 0) {
               <ul class="search-results">
                 @for (album of albumResults(); track album.id) {
-                  <li class="result-item" (click)="addAlbumToFavorites(album)">
+                  <li class="result-item">
                     <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
                     <div class="item-meta">
                       <span class="item-title">{{ album.name }}</span>
                       <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
                     </div>
-                    <!-- <button
-                      type="button"
-                      class="heart-btn"
-                      aria-label="Add {{ album.name }} to favorites">
-                      <i class="fa-heart" aria-hidden="true"></i>
-                    </button> -->
                     <button
                       type="button"
                       class="heart-btn"
-                      aria-label="Add {{ album.name }} to favorites">
-                      🤍
+                      (click)="$event.stopPropagation(); addAlbumToFavorites(album)"
+                      [attr.aria-pressed]="false"
+                      [title]="'Add to favorites'">
+                      <i class="fa-heart fa-regular" aria-hidden="true"></i>
+                      <span class="visually-hidden">Add favorite</span>
                     </button>
                   </li>
                 }
@@ -163,7 +158,7 @@
 
           <div class="selection-list album-list">
             @for (album of favoriteAlbums(); track album.id) {
-              <div class="selection-item">
+              <div class="selection-item" [class.unhearted]="isAlbumUnhearted(album)">
                 <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
                 <div class="item-meta">
                   <span class="item-title">{{ album.name }}</span>
@@ -171,11 +166,23 @@
                 </div>
                 <button
                   type="button"
-                  class="heart-btn hearted"
-                  (click)="removeAlbumFromFavorites(album)"
-                  aria-label="Remove {{ album.name }} from favorites">
-                  ❤️
+                  class="heart-btn"
+                  (click)="isAlbumUnhearted(album) ? addAlbumToFavorites(album) : removeAlbumFromFavorites(album)"
+                  [attr.aria-pressed]="!isAlbumUnhearted(album)"
+                  [title]="isAlbumUnhearted(album) ? 'Add to favorites' : 'Remove from favorites'"
+                  [class.hearted]="!isAlbumUnhearted(album)"
+                  [class.unhearted]="isAlbumUnhearted(album)">
+                  @if (!isAlbumUnhearted(album)) {
+                    <i class="fa-heart fa-solid" aria-hidden="true"></i>
+                    <span class="visually-hidden">Remove favorite</span>
+                  } @else {
+                    <i class="fa-heart fa-regular" aria-hidden="true"></i>
+                    <span class="visually-hidden">Add favorite</span>
+                  }
                 </button>
+                <!-- @if (isAlbumUnhearted(album)) {
+                  <small class="unhearted-note">Removed — will disappear on refresh</small>
+                } -->
               </div>
             } @empty {
               <p class="empty-list-text">No favorite albums yet. Search above to add some.</p>
