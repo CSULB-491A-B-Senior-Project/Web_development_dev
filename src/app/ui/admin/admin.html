@@ -1,0 +1,39 @@
+<a routerLink="/explore"><img src="././assets/crescendo-logo-no-text.png" width="100px"/></a>
+
+<h1>Admin Moderation</h1>
+<button routerLink="/admin-user">All Users</button>
+<button routerLink="/admin-post">All Reviews</button>
+<br><br>
+
+<mat-form-field appearance="outline" style="width: 100%;">
+    <mat-label>Search</mat-label>
+    <input matInput (input)="applyFilter($event)" placeholder="Type to search...">
+</mat-form-field>
+
+<div class="list-container">
+    <cdk-virtual-scroll-viewport itemSize="48" class="viewport">
+        <mat-list>
+            <mat-list-item *cdkVirtualFor="let item of filtered(); trackBy: trackById">
+                <ng-container *ngIf="rowTpl; else defaultRow"
+                    [ngTemplateOutlet]="rowTpl"
+                    [ngTemplateOutletContext]="{ $implicit: item, selected: isSelected(getId()(item)) }">
+                </ng-container>
+
+                <ng-template #defaultRow>
+                    <mat-checkbox
+                        class="user-checkbox"
+                        [checked]="isSelected(getId()(item))"
+                        (change)="toggle(getId()(item), $event.checked!)">
+                    </mat-checkbox>
+                    {{ getLabel()(item) }}
+                </ng-template>
+            </mat-list-item>
+        </mat-list>
+    </cdk-virtual-scroll-viewport>
+</div>
+
+<div class="action-buttons">
+    <button mat-raised-button color="warn" (click)="doPrimary()">{{ primaryLabel() }}</button>
+    <button mat-raised-button color="accent" (click)="doSecondary()">{{ secondaryLabel() }}</button>
+    <button mat-raised-button (click)="uncheckAll()">Uncheck All</button>
+</div>

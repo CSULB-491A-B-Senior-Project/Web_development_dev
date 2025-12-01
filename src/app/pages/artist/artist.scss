@@ -1,7 +1,5 @@
 .page-wrapper {
-  padding-bottom: 300px;
-  display: flex;
-  justify-content: center;
+    padding-bottom: 150px;
 }
 
 .artist-container {
@@ -87,28 +85,4 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 5px;
-}
-
-.album {
-    background-color: #222222;
-    width: 200px;
-    height: 200px;
-    border-color: white;
-    border-width: 10px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    img {
-        padding-bottom: 10px;
-    }
-}
-
-.chip {
-    font-size: 11px;
-    &:hover {
-        color: white;
-    }
-    &:active {
-        transform: scale(0.97);
-    }
 }

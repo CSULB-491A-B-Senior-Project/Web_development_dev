@@ -1,0 +1,9 @@
+<app-admin
+    [items]="items()"
+    [getId]="getId"
+    [getLabel]="getLabel"
+    [primaryLabel]="'Warn User(s)'"
+    [secondaryLabel]="'Delete Post(s)'"
+    (primary)="onWarn($event)"
+    (secondary)="onDelete($event)">
+</app-admin>

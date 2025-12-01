@@ -2,12 +2,10 @@
 :root {
   // MAIN COLOR PALLETE
   --primary: #D0B0FF;
-  --primary-light: #d0b0ffb7;
-  --primary-lighter: #d0b0ff64;
-
   --secondary: #c06effff;
   --other1: #501DAF;
   --other2: #000240;
+  --other3: #12101a;
 
   --input-border: #2a2a2f;
   --border-color: #1d1d22;
@@ -38,7 +36,6 @@ html, body {
 *, *::before, *::after {
     box-sizing: inherit;
 }
-
 
 // PRIMARY INPUT STYLE
 input {
@@ -98,19 +95,6 @@ button {
 .chip.more {
   background: transparent;
   border: 1px dashed rgba(167,139,250,.45);
-}
-
-// FOOTER
-footer {
-  width: 100%;
-  height: 60px;
-  background: var(--border-color);
-  color: white;
-  text-align: center;
-  justify-content: center;
-  width: 100%;
-  bottom: 0;
-  align-content: center;
 }
 
 // ERROR

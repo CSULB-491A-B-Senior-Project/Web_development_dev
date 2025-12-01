@@ -98,7 +98,4 @@ export class Artist {
         (a, b) => new Date(b.dateLabel).getTime() - new Date(a.dateLabel).getTime());
         this.albums.set(sorted);
     }
-    // CLEAR FILTERS
-    clearFilters() {
-        this.albums.set([...this.originalAlbums]);    }
 }
