@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiBaseUrl: '', // keep empty during local dev to use mocks
+  apiBaseUrl: 'https://api.crescendo.chat/api', // keep empty during local dev to use mocks
   useMocks: true,
 } as const;
