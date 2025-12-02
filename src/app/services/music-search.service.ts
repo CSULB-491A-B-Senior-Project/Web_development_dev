@@ -137,7 +137,7 @@ export class MusicSearchService {
 
   searchArtists(term: string): Observable<Artist[]> {
     const q = term.trim().toLowerCase();
-    if (this.#mock) return of(this.#mockArtists.filter(a => a.artistName.toLowerCase().includes(q)));
+    if (this.#mock) return of(this.#mockArtists.filter(a => a.artistName?.toLowerCase().includes(q)));
     return this.listArtists().pipe();
   }
 
