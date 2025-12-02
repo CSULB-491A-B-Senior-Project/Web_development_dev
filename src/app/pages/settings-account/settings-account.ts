@@ -3,22 +3,22 @@ import { Component, OnInit } from '@angular/core';
 import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AccountService } from '../../services/account.service'; 
+import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
+
 @Component({
   selector: 'app-settings-account',
   templateUrl: './settings-account.html',
   styleUrls: ['./settings-account.scss'],
   imports: [RouterLink, ReactiveFormsModule, CommonModule],
+  standalone: true,
 })
 export class SettingsAccount implements OnInit {
-  account?: UserAccount;
-
-  // USER PROFILE DATA
-  firstName: string = 'First';
-  lastName: string = 'Last';
-  email: string = 'email@email.com';
-  username: string = 'username';
+// USER PROFILE DATA (Initialize as empty, they will fill from API)
+  firstName: string = '';
+  lastName: string = '';
+  email: string = '';
+  username: string = '';
 
   // USER PASSWORD DATA
   oldPassword: string = '';
@@ -68,19 +68,10 @@ export class SettingsAccount implements OnInit {
 
   ngOnInit(): void {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
-      this.account = account;
-
       this.firstName = account.firstName;
       this.lastName = account.lastName;
       this.email = account.email;
       this.username = account.username;
-
-      this.accountForm.patchValue({
-        firstName: account.firstName,
-        lastName: account.lastName,
-        email: account.email,
-        username: account.username,
-      });
     });
 
     this.passwordForm.get('newPassword')?.valueChanges.subscribe(value => {
@@ -137,7 +128,4 @@ export class SettingsAccount implements OnInit {
   togglePasswordVisibility() {
     this.show = !this.show;
   }
-
-  
-
 }
