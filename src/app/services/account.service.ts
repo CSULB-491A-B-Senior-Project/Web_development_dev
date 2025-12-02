@@ -11,8 +11,6 @@ export class AccountService {
     #apiUrl = 'https://api.crescendo.chat/v1/Users/me'; // Replace with your actual API endpoint
 
     getAccount(): Observable<UserAccount> {
-    // In a real app, this would be: return this.#http.get<UserProfile>(this.#apiUrl);
-    // For now, we return mock data.
         return this.#http.get<UserAccount>(this.#apiUrl);
     }
 }
