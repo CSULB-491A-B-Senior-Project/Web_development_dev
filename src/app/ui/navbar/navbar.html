@@ -3,13 +3,17 @@
     <img src="assets/crescendo-logo-no-text.png" alt="crescendo" />
     <span class="logo-text">crescendo</span>
   </a>
-  <input type="text"
-          formControlName="search"
-          placeholder="Search"/>
+    <input type="text"
+           [formControl]="search"
+           (keypress)="onSearchKeypress($event)"
+           placeholder="Search albums, users, and posts"/>
   <div class="profile" aria-label="Profile">
+    <a class="create" routerLink="/list-create">
+      <img src="assets/create.png" alt="Create New Playlist" />
+    </a>
     <a class="profile-picture" routerLink="/profile">
       <img src="assets/default-profile.png" alt="Your Profile" />
-      username
+      {{ username }}
     </a>
     <a class="profile-settings" routerLink="/settings-profile" aria-label="Profile Settings">
       <img src="assets/settings.png" alt="Profile Settings" />

@@ -34,10 +34,6 @@ main {
     flex-direction: column;
     justify-content: center;
 
-    .logo {
-      margin-bottom: 2rem;
-    }
-
     .crescendo-logo {
       width: 400px;
       height: auto;
@@ -63,24 +59,7 @@ main {
     width: 420px;
 
     .btn {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      width: 100%;
       padding: 12px 14px;
-      border-radius: 10px;
-      font-weight: 600;
-      color: black;
-      background: var(--btn-primary);
-      transition: transform .2s ease, background .2s;
-
-      &:hover {
-        background: var(--btn-hover);
-      }
-
-      &:active {
-        transform: scale(0.97);
-      }
     }
 
     .divider {
@@ -108,11 +87,9 @@ main {
     }
 
     .signup-inline {
-
       .signup {
         color: var(--txt-primary);
         text-decoration: none;
-        cursor: pointer;
 
         &:hover {
           text-decoration: underline;
@@ -121,4 +98,3 @@ main {
     }
   }
 }
-

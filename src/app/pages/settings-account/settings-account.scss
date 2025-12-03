@@ -22,7 +22,7 @@ body {
   top: 0;
   left: 0;
   padding: 30px 0px 0px 60px;
-  background-color: #12101a;
+  background-color: var(--other3);
   color: white;
 
   a {
@@ -42,21 +42,15 @@ body {
     padding: 0px 10px 0px 10px;
   }
 
-  // .delete {
-  //   background-color: transparent;
-  //   color: rgb(206, 0, 0);
-  //   border: solid 3px rgb(206, 0, 0);
-  //   width: 180px;
-  //   border-radius: 5px;
-  //   font-size: 1.2rem;
-  //   font-weight: 800;
-  //   &:hover {
-  //     opacity: 0.7;
-  //   }
-  //   &:focus {
-  //     background-color: #ff495d;
-  //   }
-  // }
+  .logout {
+    background-color: var(--other1);
+    width: 100px;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    &:hover {
+      opacity: 0.7;
+    }
+  }
 }
 
 .settings-container {

@@ -4,15 +4,15 @@
         <h1>Settings</h1>
         <h2><a routerLink="/settings-profile">Edit Profile</a></h2>
         <h2 class="active">Account</h2>
-        <!-- <button class="delete">Delete Account</button> -->
+        <button class="logout" (click)="onLogout()">Logout</button>
     </div>
 
     <div class="settings-container">
         <!-- DISPLAY USER ACCOUNT INFO -->
         <h1>Account info</h1>
-        <h3>Name: {{ firstName}} {{ lastName }}</h3>
-        <h3>Email: {{ email }}</h3>
-        <h3>Username: {{ username }}</h3>
+        <h3>Name: {{ firstName() }} {{ lastName() }}</h3>
+        <h3>Email: {{ email() }}</h3>
+        <h3>Username: {{ username() }}</h3>
 
         <!-- FORM: CHANGE USER INFO -->
         <h1>Edit personal info</h1>
@@ -73,5 +73,6 @@
                 </button>
             </div>
         </form>
+        <br><br><br>
     </div>
 </body>

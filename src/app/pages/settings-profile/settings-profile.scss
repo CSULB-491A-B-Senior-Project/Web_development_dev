@@ -120,6 +120,18 @@ body {
   }
 }
 
+.logout {
+  background-color: var(--other1);
+  color: white;
+  width: 100px;
+  padding: 10px 10px 10px 10px;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
 .textarea-wrapper {
   width: 100%;
   display: flex;

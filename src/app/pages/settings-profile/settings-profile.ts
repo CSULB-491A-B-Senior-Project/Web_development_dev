@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, inject, signal, viewChild, computed, DestroyRef } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { of, take } from 'rxjs';
@@ -9,7 +9,7 @@ import { ProfileService } from '../../services/profile.service';
 import { MusicSearchService } from '../../services/music-search.service';
 import { Artist, Album, Song } from '../../models/music.models';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { HttpClient } from '@angular/common/http';
+import { ApiService } from '../../api.service';
 
 @Component({
   selector: 'app-settings-profile',
@@ -30,7 +30,6 @@ export class SettingsProfile implements AfterViewInit {
   #nfb = inject(NonNullableFormBuilder); // added for non-nullable controls
   #profileService = inject(ProfileService);
   #musicSearchService = inject(MusicSearchService);
-  #http = inject(HttpClient);
 
   // Signals
   profilePictureUrl = signal<string>('/assets/default-profile.png');
@@ -85,7 +84,10 @@ export class SettingsProfile implements AfterViewInit {
   songSearchError = signal<string | null>(null);
   albumSearchError = signal<string | null>(null);
 
-  constructor() {
+  constructor(
+    private apiService: ApiService,
+    private router: Router
+  ) {
     this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
       const bio = p.bio ?? '';
       this.bioForm.patchValue({ bio }, { emitEvent: false });
@@ -148,6 +150,11 @@ export class SettingsProfile implements AfterViewInit {
 
   ngAfterViewInit(): void {
     setTimeout(() => this.autoResizeBio(), 0);
+  }
+
+  onLogout(): void {
+    this.apiService.logout();
+    this.router.navigate(['/login']);
   }
 
   autoResizeBio(): void {
