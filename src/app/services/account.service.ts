@@ -13,7 +13,3 @@ export class AccountService {
         return this.api.get<UserAccount>('/Users/me');
     }
 }
-
-    // updateFirstName(firstName: string): Observable<void> {
-    //     return this.#http.patch<void>(`${this.#apiUrl}/firstName`, { firstName });
-    // }

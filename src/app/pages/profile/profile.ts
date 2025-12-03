@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AlbumCard } from '../../ui/album-card/album-card';
+import { AccountService } from '../../services/account.service';
+import { UserAccount } from '../../models/account.models';
 
 // ALBUM TYPE
 type Album = {
@@ -19,13 +21,22 @@ type Album = {
   styleUrl: './profile.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileComponent {
+export class ProfileComponent implements OnInit {
   // demo state (swap for real data)
   username = signal('Username');
   albumsCount = signal(0);
   followingCount = signal(0);
 
   avatarUrl = signal<string>('https://picsum.photos/seed/card-111/500/500/'); // leave empty to show circle placeholder
+
+  constructor(private accountService: AccountService) {}
+
+  ngOnInit(): void {
+    this.accountService.getAccount().subscribe((account:UserAccount) => {
+      this.username.set(account.username);
+    });
+  }
+
   // ALBUM DATA
   private readonly originalAlbums: Album[] = [
     {
