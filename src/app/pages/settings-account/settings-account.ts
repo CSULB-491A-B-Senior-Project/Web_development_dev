@@ -2,9 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
+import { ApiService } from '../../api.service';
 
 @Component({
   selector: 'app-settings-account',
@@ -14,7 +15,7 @@ import { UserAccount } from '../../models/account.models';
   standalone: true,
 })
 export class SettingsAccount implements OnInit {
-// USER PROFILE DATA (Initialize as empty, they will fill from API)
+  // USER PROFILE DATA
   firstName = signal('');
   lastName = signal('');
   email = signal('');
@@ -43,7 +44,9 @@ export class SettingsAccount implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private accountService: AccountService
+    private accountService: AccountService,
+    private apiService: ApiService,
+    private router: Router
   ) {
     // ACCOUNT FORM GROUP
     this.accountForm = this.fb.group({
@@ -52,6 +55,7 @@ export class SettingsAccount implements OnInit {
       email: ['', Validators.email],
       username: [''],
     });
+
     // PASSWORD FORM GROUP
     this.passwordForm = this.fb.group({
       oldPassword: ['', Validators.required],
@@ -64,6 +68,10 @@ export class SettingsAccount implements OnInit {
         ],],
       confirmNewPassword: ['', Validators.required],
     });
+  }
+  onLogout(): void {
+    this.apiService.logout();
+    this.router.navigate(['/login']);
   }
 
   ngOnInit(): void {
