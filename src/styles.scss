@@ -1,4 +1,19 @@
-// COLOR PALETTE, use var(--xxxx)
+@font-face {
+  font-family: "Jost";
+  src: url("/assets/fonts/Jost-Regular.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Jost";
+  src: url("/assets/fonts/Jost-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
   // MAIN COLOR PALLETE
   --primary: #D0B0FF;
@@ -21,7 +36,7 @@
 
   --txt-box: #1f1f1f;
   --chip-selected: #312D41;
-  --app-font: Tw Cen MT, Century Gothic, Arial, sans-serif;
+  --app-font: "Jost", Century Gothic, Arial, sans-serif;
 }
 
 html, body {
