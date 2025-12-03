@@ -3,18 +3,22 @@ import { Component, OnInit } from '@angular/core';
 import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AccountService } from '../../services/account.service';
+import { UserAccount } from '../../models/account.models';
+
 @Component({
   selector: 'app-settings-account',
   templateUrl: './settings-account.html',
   styleUrls: ['./settings-account.scss'],
   imports: [RouterLink, ReactiveFormsModule, CommonModule],
+  standalone: true,
 })
-export class SettingsAccount {
-  // USER PROFILE DATA
-  firstName: string = 'First';
-  lastName: string = 'Last';
-  email: string = 'email@email.com';
-  username: string = 'username';
+export class SettingsAccount implements OnInit {
+// USER PROFILE DATA (Initialize as empty, they will fill from API)
+  firstName: string = '';
+  lastName: string = '';
+  email: string = '';
+  username: string = '';
 
   // USER PASSWORD DATA
   oldPassword: string = '';
@@ -31,7 +35,16 @@ export class SettingsAccount {
   accountForm: FormGroup;
   passwordForm: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  // FUNCTIONS: PASSWORD REQUIREMENTS
+  minRequirement = false;
+  maxRequirement = false;
+  numberRequirement = false;
+  specialCharRequirement = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private accountService: AccountService
+  ) {
     // ACCOUNT FORM GROUP
     this.accountForm = this.fb.group({
       firstName: [''],
@@ -50,6 +63,22 @@ export class SettingsAccount {
           Validators.pattern(/^(?=.*[0-9])(?=.*[!@#$%^&*])/),
         ],],
       confirmNewPassword: ['', Validators.required],
+    });
+  }
+
+  ngOnInit(): void {
+    this.accountService.getAccount().subscribe((account:UserAccount) => {
+      this.firstName = account.firstName;
+      this.lastName = account.lastName;
+      this.email = account.email;
+      this.username = account.username;
+    });
+
+    this.passwordForm.get('newPassword')?.valueChanges.subscribe(value => {
+      this.minRequirement = value.length >= 8;
+      this.maxRequirement = value.length <= 25;
+      this.numberRequirement = /[0-9]/.test(value);
+      this.specialCharRequirement = /[!@#$%^&*]/.test(value);
     });
   }
 
@@ -98,20 +127,5 @@ export class SettingsAccount {
   // FUNCTION: TOGGLE PASSWORD VISIBILITY
   togglePasswordVisibility() {
     this.show = !this.show;
-  }
-
-  // FUNCTIONS: PASSWORD REQUIREMENTS
-  minRequirement = false;
-  maxRequirement = false;
-  numberRequirement = false;
-  specialCharRequirement = false;
-
-  ngOnInit() {
-    this.passwordForm.get('newPassword')?.valueChanges.subscribe(value => {
-      this.minRequirement = value.length >= 8;
-      this.maxRequirement = value.length <= 25;
-      this.numberRequirement = /[0-9]/.test(value);
-      this.specialCharRequirement = /[!@#$%^&*]/.test(value);
-    });
   }
 }
