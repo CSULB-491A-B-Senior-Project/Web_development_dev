@@ -4,7 +4,7 @@
 }
 
 .page-wrapper {
-  padding: 16px;
+  padding: 16px 15vh 16px 15vh;
 }
 
 /* Toolbar */
@@ -88,7 +88,21 @@
   color: white;
 }
 
-/* Grid cards – reuse ExploreCard grid */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  margin: 18px 0 32px;
+  color: var(--muted);
+
+  &::before, &::after {
+    content: "";
+    height: 1px;
+    background: #24242a;
+    flex: 1;
+  }
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -229,7 +243,6 @@
   }
 }
 
-/* Empty */
 .empty {
   text-align: center;
   color: var(--muted);

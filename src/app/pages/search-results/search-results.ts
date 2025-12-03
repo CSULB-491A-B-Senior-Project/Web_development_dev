@@ -1,24 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { ExploreCard } from '../../ui/explore-card/explore-card';
 import { SearchService, SearchItem } from '../../services/search.service';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
-
-type Item = {
-  id: number;
-  username: string;
-  title: string;
-  genres: string[];
-  dateLabel: string;
-  imageUrl: string;
-  isArtist: boolean;
-  favorites: number;
-  rating: number;
-  type: 'user' | 'album' | 'review';
-};
+import { debounceTime, switchMap, catchError } from 'rxjs/operators';
+import { Subject, of, Subscription } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -28,129 +15,152 @@ type Item = {
   styleUrl: './search-results.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SearchResults {
-  // UI state
+export class SearchResults implements OnDestroy {
+  // UI state signals
   query = signal('');
   view = signal<'grid' | 'list'>('grid');
-  tab = signal<'all' | 'users' | 'albums' | 'reviews'>('all');
+  tab = signal<'all' | 'users' | 'albums' | 'reviews' | 'artists'>('all');
   sort = signal<'relevance' | 'recent' | 'popular' | 'rating'>('relevance');
 
-
-  // Data state
+  // Data state signals
   items = signal<SearchItem[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
   resultCount = signal(0);
 
-  searchSubject = new Subject<void>();
+  // Search trigger subject
+  private searchSubject = new Subject<void>();
+  private subscription?: Subscription;
 
   constructor(
     private searchService: SearchService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {
-    // Read query from URL on init
+    this.initializeFromUrl();
+    this.setupSearch();
+    this.setupAutoSearch();
+  }
+
+  private initializeFromUrl(): void {
     this.route.queryParams.subscribe(params => {
       if (params['q']) {
         this.query.set(params['q']);
       }
+      if (params['tab'] && ['all', 'users', 'albums', 'reviews', 'artists'].includes(params['tab'])) {
+        this.tab.set(params['tab']);
+      }
+      if (params['view'] && ['grid', 'list'].includes(params['view'])) {
+        this.view.set(params['view']);
+      }
+      if (params['sort'] && ['relevance', 'recent', 'popular', 'rating'].includes(params['sort'])) {
+        this.sort.set(params['sort']);
+      }
     });
+  }
 
-    // Set up debounced search
-    this.searchSubject.pipe(
+  private setupSearch(): void {
+    this.subscription = this.searchSubject.pipe(
       debounceTime(300),
-      distinctUntilChanged(),
       switchMap(() => {
+        const q = this.query().trim();
+
+        // If no query, clear results
+        if (!q) {
+          return of({ items: [], total: 0 });
+        }
+
+        // Set loading state
         this.loading.set(true);
         this.error.set(null);
 
+        // Execute search
         return this.searchService.search({
-          query: this.query(),
+          query: q,
           tab: this.tab(),
           sort: this.sort()
-        });
+        }).pipe(
+          catchError((err) => {
+            console.error('Search error:', err);
+            this.error.set('Failed to load search results. Please try again.');
+            this.loading.set(false);
+            return of({ items: [], total: 0 });
+          })
+        );
       })
     ).subscribe({
       next: (response) => {
         this.items.set(response.items);
         this.resultCount.set(response.total);
         this.loading.set(false);
-      },
-      error: (err) => {
-        this.error.set('Failed to load search results');
-        this.loading.set(false);
-        console.error('Search error:', err);
       }
     });
+  }
 
+  private setupAutoSearch(): void {
     // Trigger search when query, tab, or sort changes
     effect(() => {
       const q = this.query();
       const t = this.tab();
       const s = this.sort();
+      const v = this.view();
 
+      // Update URL with current search state
+      this.updateUrl(q, t, s, v);
+
+      // Trigger search if we have a query
       if (q.trim()) {
         this.searchSubject.next();
       } else {
+        // Clear results if no query
         this.items.set([]);
         this.resultCount.set(0);
+        this.loading.set(false);
       }
     });
   }
 
-  setTab(t: 'all' | 'users' | 'albums' | 'reviews') {
+  private updateUrl(query: string, tab: string, sort: string, view: string): void {
+    const queryParams: any = {};
+
+    if (query) queryParams['q'] = query;
+    if (tab !== 'all') queryParams['tab'] = tab;
+    if (sort !== 'relevance') queryParams['sort'] = sort;
+    if (view !== 'grid') queryParams['view'] = view;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      replaceUrl: true
+    });
+  }
+
+  // Public methods for template
+  setTab(t: 'all' | 'users' | 'albums' | 'reviews' | 'artists'): void {
     this.tab.set(t);
   }
 
-  setView(v: 'grid' | 'list') {
+  setView(v: 'grid' | 'list'): void {
     this.view.set(v);
   }
 
-  trackById = (_: number, it: SearchItem) => it.id;
+  retrySearch(): void {
+    this.searchSubject.next();
+  }
+
+  // Getter/setter for ngModel two-way binding with signals
+  get sortValue(): 'relevance' | 'recent' | 'popular' | 'rating' {
+    return this.sort();
+  }
+
+  set sortValue(value: 'relevance' | 'recent' | 'popular' | 'rating') {
+    this.sort.set(value);
+  }
+
+  // TrackBy function for ngFor optimization (IDs are now strings)
+  trackById = (_index: number, item: SearchItem): string => item.id;
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
+  }
 }
-
- /* // Filtering & sorting
-  filtered = computed(() => {
-    const q = this.query().toLowerCase().trim();
-    const tab = this.tab();
-    const sort = this.sort();
-
-    let list = this.allItems();
-
-    if (tab !== 'all') {
-      list = list.filter(i =>
-        (tab === 'reviews' && i.type === 'review') ||
-        (tab === 'users' && i.type === 'user') ||
-        (tab === 'albums' && i.type === 'album')
-      );
-    }
-
-    if (q) {
-      list = list.filter(i =>
-        i.username.toLowerCase().includes(q) ||
-        i.title.toLowerCase().includes(q) ||
-        i.genres.some(g => g.toLowerCase().includes(q))
-      );
-    }
-
-    switch (sort) {
-      case 'recent':
-        // naive mock ordering
-        return list.slice().sort((a, b) => a.dateLabel.localeCompare(b.dateLabel));
-      case 'popular':
-        return list.slice().sort((a, b) => b.favorites - a.favorites);
-      case 'rating':
-        return list.slice().sort((a, b) => b.rating - a.rating);
-      default:
-        return list; // relevance from backend later
-    }
-  });
-
-  resultCount = computed(() => this.filtered().length);
-
-  setTab(t: 'all' | 'users' | 'albums' | 'reviews') { this.tab.set(t); }
-  setView(v: 'grid' | 'list') { this.view.set(v); }
-
-  // trackBy to satisfy Angular typing
-  trackById = (_: number, it: Item) => it.id;
-}
-*/
