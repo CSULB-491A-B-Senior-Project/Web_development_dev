@@ -1,14 +1,3 @@
-<!-- Loading spinner -->
-<div *ngIf="loading()" class="loading">
-  <div class="spinner"></div>
-  <p>Searching...</p>
-</div>
-
-<!-- Error message -->
-<div *ngIf="error()" class="error-message">
-  <p>{{ error() }}</p>
-  <button (click)="searchSubject.next()">Try Again</button>
-</div>
 <div class="page-wrapper">
   <!-- Loading spinner -->
   <div *ngIf="loading()" class="loading">
@@ -19,7 +8,7 @@
   <!-- Error message -->
   <div *ngIf="error()" class="error-message">
     <p>{{ error() }}</p>
-    <button (click)="searchSubject.next()">Try Again</button>
+    <button (click)="retrySearch()">Try Again</button>
   </div>
   <!-- Top bar -->
   <header class="toolbar">
@@ -31,7 +20,7 @@
     </nav>
 
     <div class="right-controls">
-      <select [(ngModel)]="sort">
+      <select [(ngModel)]="sortValue">
         <option value="relevance">Relevance</option>
         <option value="recent">Recent</option>
         <option value="popular">Most liked</option>
@@ -46,15 +35,14 @@
   </header>
 
   <!-- Tabs -->
-
-
   <div class="meta-row">
     <span class="count">{{ resultCount() }} results</span>
   </div>
 
-  <!-- Results: GRID (Instagram-like) -->
+  <div class="divider" role="separator"></div>
+
   <div *ngIf="view() === 'grid' && !loading()" class="cards">
-  <app-explore-card *ngFor="let it of items(); trackBy: trackById"
+    <app-explore-card *ngFor="let it of items(); trackBy: trackById"
                       [username]="it.username"
                       [title]="it.title"
                       [genres]="it.genres"
@@ -67,7 +55,6 @@
     </app-explore-card>
   </div>
 
-  <!-- Results: LIST (Letterboxd-like rows) -->
   <ul *ngIf="view() === 'list' && !loading()" class="list">
     <li *ngFor="let it of items(); trackBy: trackById" class="row">
       <a [routerLink]="['/details', it.id]" class="thumb">
@@ -108,7 +95,7 @@
 
   <!-- Empty state -->
   <div class="empty" *ngIf="resultCount() === 0">
-    <img src="/assets/placeholder.png" alt="No results" />
+    <img src="/assets/placeholder.jpg" alt="No results" />
     <p>No results for “{{ query() }}”. Try different keywords.</p>
   </div>
 </div>

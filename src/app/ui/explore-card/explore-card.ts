@@ -54,7 +54,7 @@ export class ExploreCard {
       case 'rating_post':
         return 'rated';
       case 'album_post':
-        return 'new album';
+        return 'album';
       default:
         return '';
     }
