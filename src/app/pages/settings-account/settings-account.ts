@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -15,10 +15,10 @@ import { UserAccount } from '../../models/account.models';
 })
 export class SettingsAccount implements OnInit {
 // USER PROFILE DATA (Initialize as empty, they will fill from API)
-  firstName: string = '';
-  lastName: string = '';
-  email: string = '';
-  username: string = '';
+  firstName = signal('');
+  lastName = signal('');
+  email = signal('');
+  username = signal('');
 
   // USER PASSWORD DATA
   oldPassword: string = '';
@@ -68,10 +68,10 @@ export class SettingsAccount implements OnInit {
 
   ngOnInit(): void {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
-      this.firstName = account.firstName;
-      this.lastName = account.lastName;
-      this.email = account.email;
-      this.username = account.username;
+      this.firstName.set(account.firstName);
+      this.lastName.set(account.lastName);
+      this.email.set(account.email);
+      this.username.set(account.username);
     });
 
     this.passwordForm.get('newPassword')?.valueChanges.subscribe(value => {
