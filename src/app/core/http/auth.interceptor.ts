@@ -1,7 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { CookieService } from 'ngx-cookie-service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('auth_token');
+  const cookieService = inject(CookieService);
+  const token = cookieService.get('jwt_token');
 
   // 1. Define the endpoints that must NEVER have an Auth header
   // Check against your API paths (e.g., /Auth/login, /Auth/register)

@@ -1,15 +1,47 @@
 <div class="page-wrapper">
-  <div class="cards">
-    <app-explore-card *ngFor="let it of items(); trackBy: trackById"
-                      [username]="it.username"
-                      [title]="it.title"
-                      [genres]="it.genres"
-                      [dateLabel]="it.dateLabel"
-                      [imageUrl]="it.imageUrl"
-                      [isArtist]="it.isArtist"
-                      [favorites]="it.favorites"
-                      [rating]="it.rating"
-                      [viewLink]="['/details', it.id]">
-    </app-explore-card>
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <p>Loading feed...</p>
   </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button (click)="loadFeed()">Retry</button>
+  </div>
+
+  <div class="card-container">
+    <div class="cards" *ngIf="!loading() && !error()">
+      <app-explore-card *ngFor="let it of items(); trackBy: trackById"
+                        [username]="it.username"
+                        [title]="it.title"
+                        [genres]="it.genres"
+                        [dateLabel]="it.dateLabel"
+                        [imageUrl]="it.imageUrl"
+                        [isArtist]="it.isArtist"
+                        [favorites]="it.favorites"
+                        [rating]="it.rating"
+                        [viewLink]="['/details', it.id]"
+                        [postType]="it.postType"
+                        [postContent]="it.postContent">
+
+      </app-explore-card>
+    </div>
+    <!-- Empty State -->
+    <div *ngIf="!loading() && !error() && items().length === 0" class="empty-state">
+      <p>No posts to display</p>
+    </div>
+
+    <!-- Loading More Indicator -->
+    <div *ngIf="loadingMore()" class="loading-more">
+      <p>Loading more...</p>
+    </div>
+
+    <!-- End of Feed -->
+    <div *ngIf="!loading() && !loadingMore() && !hasMore() && items().length > 0" class="end-of-feed">
+      <p>You've reached the end!</p>
+    </div>
+  </div>
+  
+
 </div>

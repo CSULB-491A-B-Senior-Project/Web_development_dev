@@ -20,6 +20,8 @@ export class ExploreCard {
   favorites = input<number>(0);
   rating = input<number>(0);
   viewLink = input<any[] | string>(['/explore']);
+  postType = input<'comment_post' | 'rating_post' | 'album_post'>('album_post');
+  postContent = input<string | undefined>(undefined);
 
   private readonly placeholder = '/assets/placeholder.png'; // match the default above
   usePlaceholder(ev: Event): void {
@@ -41,5 +43,38 @@ export class ExploreCard {
   extraCount = computed(() => {
     const all = this.genres() ?? [];
     return Math.max(0, all.length - this.visibleGenres().length);
+  });
+
+  // Computed properties for post type display
+  postTypeLabel = computed(() => {
+    const type = this.postType();
+    switch (type) {
+      case 'comment_post':
+        return 'commented on';
+      case 'rating_post':
+        return 'rated';
+      case 'album_post':
+        return 'new album';
+      default:
+        return '';
+    }
+  });
+
+  postTypeIcon = computed(() => {
+    const type = this.postType();
+    switch (type) {
+      case 'comment_post':
+        return 'comment';
+      case 'rating_post':
+        return 'star';
+      case 'album_post':
+        return 'album';
+      default:
+        return '';
+    }
+  });
+
+  showPostContent = computed(() => {
+    return this.postType() === 'comment_post' && this.postContent();
   });
 }
