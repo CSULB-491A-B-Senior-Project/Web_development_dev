@@ -9,8 +9,15 @@
     <p>{{ error() }}</p>
     <button (click)="loadFeed()">Retry</button>
   </div>
-
+  
   <div class="card-container">
+    <div class="welcome-txt">
+      <h1>
+        Welcome,
+      </h1>
+      <h1 class="profile-txt" routerLink="/profile">{{ username }}</h1>
+    </div>
+    <div class="divider" role="separator"></div>
     <div class="cards" *ngIf="!loading() && !error()">
       <app-explore-card *ngFor="let it of items(); trackBy: trackById"
                         [username]="it.username"
