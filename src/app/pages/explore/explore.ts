@@ -1,10 +1,12 @@
-import { Component, OnInit, signal, HostListener } from '@angular/core';
+import { Component, OnInit, signal, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ExploreCard } from '../../ui/explore-card/explore-card';
 import { FeedService, FeedPost, FeedResponse } from '../../services/feed.service';
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
 import { Router, RouterLink } from '@angular/router';
+import { ListCreateComponent } from '../list-create/list-create';
+import { PlaylistCreatorService } from '../../services/playlist.service';
 
 type Item = {
   id: string;
@@ -23,7 +25,7 @@ type Item = {
 @Component({
   standalone: true,
   selector: 'app-explore',
-  imports: [CommonModule, ExploreCard, RouterLink],
+  imports: [CommonModule, ExploreCard, RouterLink, ListCreateComponent],
   templateUrl: './explore.html',
   styleUrl: './explore.scss'
 })
@@ -36,6 +38,10 @@ export class Explore implements OnInit {
   hasMore = signal(true);
   username: string = '';
 
+
+  @ViewChild('listCreateOverlay') listCreateOverlay!: ListCreateComponent;
+
+  
   constructor(private feedService: FeedService, private accountService: AccountService) { }
   ngOnInit() {
     this.loadFeed();
@@ -143,4 +149,8 @@ export class Explore implements OnInit {
   }
 
   trackById = (_: number, it: Item) => it.id;
+
+  openPlaylistCreator(): void {
+    this.listCreateOverlay?.open();
+  }
 }

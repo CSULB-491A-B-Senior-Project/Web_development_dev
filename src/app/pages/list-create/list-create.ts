@@ -1,86 +1,237 @@
-import { Component, inject, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragHandle, moveItemInArray } from '@angular/cdk/drag-drop';
-
-interface Artist { artistName: string; }
-interface Album { id: string; name: string; releaseYear: number; artist: Artist; albumCover: string; }
-
-const MOCK_ALBUMS: Album[] = [
-  { id: 'p237', name: 'Morning Waves', releaseYear: 2019, artist: { artistName: 'The Coast' }, albumCover: 'https://picsum.photos/id/237/300/300' },
-  { id: 'p1025', name: 'Neon Nights', releaseYear: 2021, artist: { artistName: 'City Lights' }, albumCover: 'https://picsum.photos/id/1025/300/300' },
-  { id: 'p1069', name: 'Autumn Lines', releaseYear: 2018, artist: { artistName: 'Maple & Co.' }, albumCover: 'https://picsum.photos/id/1069/300/300' },
-  { id: 'p1074', name: 'Orbit', releaseYear: 2020, artist: { artistName: 'Satellite 7' }, albumCover: 'https://picsum.photos/id/1074/300/300' },
-  { id: 'p1084', name: 'Horizon', releaseYear: 2017, artist: { artistName: 'Wide Open' }, albumCover: 'https://picsum.photos/id/1084/300/300' },
-  { id: 'p1027', name: 'Night Drive', releaseYear: 2016, artist: { artistName: 'FM 99' }, albumCover: 'https://picsum.photos/id/1027/300/300' },
-  { id: 'p1021', name: 'Sunlit', releaseYear: 2015, artist: { artistName: 'Golden Hour' }, albumCover: 'https://picsum.photos/id/1021/300/300' },
-  { id: 'p1011', name: 'Under Current', releaseYear: 2022, artist: { artistName: 'Riverton' }, albumCover: 'https://picsum.photos/id/1011/300/300' },
-];
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { Track } from '../../models/playlist.models';
+import { CreatePlaylistRequest, PlaylistService } from '../../services/playlist.service';
 
 @Component({
   selector: 'app-list-create',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NgIf, NgFor, RouterLink, CdkDropList, CdkDrag, CdkDragHandle],
-  // IMPORTANT: template file name the user wants
   templateUrl: './list-create.html',
   styleUrls: ['./list-create.scss']
 })
 export class ListCreateComponent {
-  private fb = inject(FormBuilder);  // ✅ initialized before field initializers
+  private fb = inject(FormBuilder);
+  private playlistService = inject(PlaylistService);
 
+  // Overlay state
+  isOpen = signal(false);
+  
+  // Form state
   form: FormGroup = this.fb.group({
     listName: ['', [Validators.required, Validators.maxLength(120)]],
     description: [''],
   });
-  constructor() { }
 
-  albumSearch = new FormControl<string>('', { nonNullable: true });
+  // Search state
+  trackSearch = new FormControl<string>('', { nonNullable: true });
   showResults = false;
-  results: Album[] = [];
+  results: Track[] = [];
+  searching = signal(false);
+  private searchSubject = new Subject<string>();
 
-  selected: Album[] = [MOCK_ALBUMS[0], MOCK_ALBUMS[1], MOCK_ALBUMS[2]]; // pre-seeded
+  // Selected tracks
+  selected: Track[] = [];
 
-  onSearchInput(value: string) {
-    const q = (value || '').trim().toLowerCase();
-    this.showResults = q.length > 0;
-    if (!q) { this.results = []; return; }
-    this.results = MOCK_ALBUMS.filter(a =>
-      a.name.toLowerCase().includes(q) || a.artist.artistName.toLowerCase().includes(q)
-    ).slice(0, 12);
+  // Submission state
+  submitting = signal(false);
+  error = signal<string | null>(null);
+  success = signal<string | null>(null);
+
+  constructor() {
+    this.setupSearchSubscription();
   }
 
-  addAlbum(album: Album) {
-    if (!this.selected.some(a => a.id === album.id)) {
-      this.selected = [...this.selected, album];
+  /**
+   * Setup search subscription with debounce
+   */
+  private setupSearchSubscription(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => {
+        if (!query || query.trim().length === 0) {
+          this.showResults = false;
+          this.results = [];
+          this.searching.set(false);
+          return of(null);
+        }
+
+        this.searching.set(true);
+        return this.playlistService.searchTracks(query, 1, 20).pipe(
+          catchError(err => {
+            console.error('Search error:', err);
+            this.searching.set(false);
+            return of(null);
+          })
+        );
+      })
+    ).subscribe(response => {
+      this.searching.set(false);
+      if (response) {
+        this.results = response.data;
+        this.showResults = this.results.length > 0;
+      }
+    });
+  }
+
+  /**
+   * Open the overlay
+   */
+  open(): void {
+    this.isOpen.set(true);
+    this.resetForm();
+  }
+
+  /**
+   * Close the overlay
+   */
+  close(): void {
+    this.isOpen.set(false);
+    this.resetForm();
+  }
+
+  /**
+   * Reset form and state
+   */
+  private resetForm(): void {
+    this.form.reset({
+      listName: '',
+      description: ''
+    });
+    this.trackSearch.setValue('');
+    this.results = [];
+    this.showResults = false;
+    this.selected = [];
+    this.error.set(null);
+    this.success.set(null);
+    this.submitting.set(false);
+  }
+
+  /**
+   * Handle search input
+   */
+  onSearchInput(value: string): void {
+    this.searchSubject.next(value);
+  }
+
+  /**
+   * Add track to selected list
+   */
+  addTrack(track: Track): void {
+    if (this.selected.some(t => t.id === track.id)) {
+      this.error.set('Track already added');
+      setTimeout(() => this.error.set(null), 3000);
+      return;
     }
+
+    this.selected = [...this.selected, track];
     this.clearSearch();
   }
 
-  removeAlbum(album: Album) {
-    this.selected = this.selected.filter(a => a.id !== album.id);
+  /**
+   * Remove track from selected list
+   */
+  removeTrack(track: Track): void {
+    this.selected = this.selected.filter(t => t.id !== track.id);
   }
 
-  drop(ev: CdkDragDrop<Album[]>) {
-    // Reorder in-place
+  /**
+   * Get total selected track count
+   */
+  getSelectedTrackCount(): number {
+    return this.selected.length;
+  }
+
+  /**
+   * Check if form can be submitted
+   */
+  canSubmit(): boolean {
+    return (
+      this.form.valid &&
+      this.getSelectedTrackCount() > 0 &&
+      !this.submitting()
+    );
+  }
+
+  /**
+   * Handle drag and drop reordering
+   */
+  drop(ev: CdkDragDrop<Track[]>): void {
     moveItemInArray(this.selected, ev.previousIndex, ev.currentIndex);
-    // Force change detection update
     this.selected = [...this.selected];
   }
 
-  submit() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const payload = {
-      listName: this.form.value.listName,
-      description: this.form.value.description,
-      albumIds: this.selected.map(a => a.id)
+  /**
+   * Submit the form and create playlist with tracks
+   */
+  submit(): void {
+    if (!this.canSubmit()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.submitting.set(true);
+    this.error.set(null);
+    this.success.set(null);
+
+    const request: CreatePlaylistRequest = {
+      name: this.form.value.listName.trim(),
+      description: this.form.value.description?.trim() || undefined
     };
-    console.log('[demo] Save List payload:', payload);
+
+    // Collect all selected track IDs
+    const trackIds: string[] = this.selected.map(t => t.id);
+
+    // Create playlist first
+    this.playlistService.createPlaylist(request).subscribe({
+      next: (playlist) => {
+        // Then add tracks in bulk
+        this.playlistService.addTracksToPlaylist(playlist.id, trackIds).subscribe({
+          next: () => {
+            this.success.set('Playlist created successfully!');
+            setTimeout(() => {
+              this.close();
+            }, 1500);
+          },
+          error: (err) => {
+            console.error('Error adding tracks:', err);
+            this.error.set('Playlist created but failed to add tracks');
+            this.submitting.set(false);
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error creating playlist:', err);
+        this.error.set(err.error?.message || 'Failed to create playlist');
+        this.submitting.set(false);
+      }
+    });
   }
 
-  clearSearch() {
-    this.albumSearch.setValue('');
+  /**
+   * Clear search input and results
+   */
+  clearSearch(): void {
+    this.trackSearch.setValue('');
     this.results = [];
     this.showResults = false;
   }
+
+  /**
+   * Format track duration (seconds to mm:ss)
+   */
+  formatDuration(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  trackById = (_: number, it: Track) => it.id;
 }

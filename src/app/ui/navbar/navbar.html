@@ -8,7 +8,7 @@
            (keypress)="onSearchKeypress($event)"
            placeholder="Search albums, users, and posts"/>
   <div class="profile" aria-label="Profile">
-    <a class="create" routerLink="/list-create">
+    <a class="create" (click)="openPlaylistCreator($event)" style="cursor: pointer;">
       <img src="assets/create.png" alt="Create New Playlist" />
     </a>
     <a class="profile-picture" routerLink="/profile">
