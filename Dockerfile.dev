@@ -1,0 +1,15 @@
+# Development Dockerfile
+# Runs the Angular CLI development server directly for hot-reloading
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Expose Angular default port
+EXPOSE 4200

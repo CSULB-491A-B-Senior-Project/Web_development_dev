@@ -5,15 +5,24 @@
 <div class="overlay-container" *ngIf="isOpen()">
   <div class="overlay-content">
     <div class="header">
-      <h1 class="header-text">New List</h1>
+      <h1 class="header-text">New Playlist</h1>
       <div class="header-actions">
         <button type="button" class="button-close" (click)="close()" aria-label="Close">✕</button>
-        <button type="button" class="button-save" (click)="submit()" [disabled]="submitting()">
-          {{ submitting() ? 'Saving...' : 'Save List' }}
+        <button 
+          type="button" 
+          class="button-save" 
+          (click)="submit()" 
+          [disabled]="!canSubmit()"
+        >
+          {{ submitting() ? 'Creating...' : 'Create Playlist' }}
         </button>
       </div>
     </div>
     <hr class="divider" />
+
+    <!-- Error/Success Messages -->
+    <div class="alert alert-error" *ngIf="error()">{{ error() }}</div>
+    <div class="alert alert-success" *ngIf="success()">{{ success() }}</div>
 
     <div class="list-form">
       <form [formGroup]="form" (ngSubmit)="submit()">
@@ -21,13 +30,13 @@
           <div class="list-info">
             <div class="name-and-search">
               <div class="form-group">
-                <label for="listName" class="input-label">List Name</label>
+                <label for="listName" class="input-label">Playlist Name</label>
                 <input 
                   id="listName" 
                   class="form-control" 
                   type="text" 
                   formControlName="listName" 
-                  placeholder="My Favorite Albums" 
+                  placeholder="My Favorite Songs" 
                 />
                 <small class="error" *ngIf="form.get('listName')?.touched && form.get('listName')?.invalid">
                   Required
@@ -49,7 +58,7 @@
                   <li class="list-group-item" *ngFor="let album of results" (click)="addAlbum(album)">
                     <img [src]="album.albumCover" class="item-image" alt="cover" />
                     <div class="item-meta">
-                      <span class="item-title">{{ album.name }}</span>
+                      <span class="item-title">{{ album.title }}</span>
                       <span class="item-sub">{{ album.releaseYear }} • {{ album.artist.artistName }}</span>
                     </div>
                   </li>
@@ -73,32 +82,79 @@
                 ></textarea>
               </div>
             </div>
+
+            <div class="track-count" *ngIf="getSelectedTrackCount() > 0">
+              <strong>{{ getSelectedTrackCount() }}</strong> track(s) selected
+            </div>
           </div>
         </div>
 
         <div class="list-container" *ngIf="selected.length">
-          <div cdkDropList (cdkDropListDropped)="drop($event)" class="grid">
+          <div cdkDropList (cdkDropListDropped)="drop($event)" class="album-list">
             <div 
               class="album-card"
               *ngFor="let album of selected; let i = index"
               cdkDrag
               [cdkDragData]="album"
             >
-              <div class="album-data">
+              <div class="album-header" (click)="toggleAlbum(album)">
                 <img class="album-cover" [src]="album.albumCover" alt="album cover" />
                 <div class="album-meta">
-                  <div class="album-title">{{ album.name }}</div>
+                  <div class="album-title">{{ album.title }}</div>
                   <div class="album-sub">
                     {{ album.artist.artistName }} • {{ album.releaseYear }}
                   </div>
-                  <label class="card-index">{{ i + 1 }}</label>
+                  <div class="album-track-info">
+                    {{ album.selectedTrackIds.size }} of {{ album.tracks.length }} tracks
+                  </div>
+                </div>
+                <div class="album-actions">
+                  <button 
+                    type="button" 
+                    class="btn-icon" 
+                    (click)="toggleAllTracks(album); $event.stopPropagation()" 
+                    [title]="areAllTracksSelected(album) ? 'Deselect all' : 'Select all'"
+                  >
+                    {{ areAllTracksSelected(album) ? '☑' : '☐' }}
+                  </button>
+                  <button 
+                    type="button" 
+                    class="btn-icon danger" 
+                    (click)="removeAlbum(album); $event.stopPropagation()" 
+                    title="Remove album"
+                  >
+                    ✕
+                  </button>
+                  <span class="expand-icon">{{ album.expanded ? '▼' : '▶' }}</span>
                 </div>
               </div>
-              <div class="card-actions">
-                <button type="button" class="icon danger" (click)="removeAlbum(album)" title="Remove">✕</button>
+
+              <!-- Track List -->
+              <div class="track-list" *ngIf="album.expanded && !album.loadingTracks">
+                <div 
+                  class="track-item" 
+                  *ngFor="let track of album.tracks"
+                  (click)="toggleTrack(album, track.id)"
+                  [class.selected]="isTrackSelected(album, track.id)"
+                >
+                  <span class="track-checkbox">
+                    {{ isTrackSelected(album, track.id) ? '☑' : '☐' }}
+                  </span>
+                  <span class="track-number">{{ track.trackNumber }}</span>
+                  <span class="track-name">{{ track.name }}</span>
+                  <span class="track-duration">{{ formatDuration(track.duration) }}</span>
+                </div>
+              </div>
+
+              <div class="track-loading" *ngIf="album.loadingTracks">
+                Loading tracks...
               </div>
             </div>
           </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!selected.length">
+          <p>Search and add albums to get started</p>
         </div>
       </form>
     </div>

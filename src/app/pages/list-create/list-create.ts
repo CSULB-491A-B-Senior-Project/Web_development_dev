@@ -6,7 +6,16 @@ import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragHandle, moveItemInArray } fro
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { PlaylistService, Album, CreatePlaylistRequest } from './playlist.service';
+import { Album, Track,  } from '../../models/playlist.models';
+import {CreatePlaylistRequest, PlaylistService} from '../../services/playlist.service';
+
+
+interface SelectedAlbum extends Album {
+  tracks: Track[];
+  selectedTrackIds: Set<string>;
+  loadingTracks: boolean;
+  expanded: boolean;
+}
 
 @Component({
   selector: 'app-list-create',
@@ -35,12 +44,13 @@ export class ListCreateComponent {
   searching = signal(false);
   private searchSubject = new Subject<string>();
 
-  // Selected albums
-  selected: Album[] = [];
+  // Selected albums with tracks
+  selected: SelectedAlbum[] = [];
 
   // Submission state
   submitting = signal(false);
   error = signal<string | null>(null);
+  success = signal<string | null>(null);
 
   constructor() {
     this.setupSearchSubscription();
@@ -108,6 +118,7 @@ export class ListCreateComponent {
     this.showResults = false;
     this.selected = [];
     this.error.set(null);
+    this.success.set(null);
     this.submitting.set(false);
   }
 
@@ -119,57 +130,175 @@ export class ListCreateComponent {
   }
 
   /**
-   * Add album to selected list
+   * Add album to selected list and load its tracks
    */
   addAlbum(album: Album): void {
-    if (!this.selected.some(a => a.id === album.id)) {
-      this.selected = [...this.selected, album];
+    if (this.selected.some(a => a.id === album.id)) {
+      this.error.set('Album already added');
+      setTimeout(() => this.error.set(null), 3000);
+      return;
     }
+
+    const selectedAlbum: SelectedAlbum = {
+      ...album,
+      tracks: [],
+      selectedTrackIds: new Set(),
+      loadingTracks: true,
+      expanded: true
+    };
+
+    this.selected = [...this.selected, selectedAlbum];
     this.clearSearch();
+
+    // Load tracks for the album
+    this.playlistService.getAlbumTracks(album.id).subscribe({
+      next: (tracks) => {
+        this.selected = this.selected.map(a =>
+          a.id === album.id
+            ? { ...a, tracks, loadingTracks: false, selectedTrackIds: new Set(tracks.map(t => t.id)) }
+            : a
+        );
+      },
+      error: (err) => {
+        console.error('Error loading tracks:', err);
+        this.selected = this.selected.filter(a => a.id !== album.id);
+        this.error.set('Failed to load album tracks');
+        setTimeout(() => this.error.set(null), 3000);
+      }
+    });
   }
 
   /**
    * Remove album from selected list
    */
-  removeAlbum(album: Album): void {
+  removeAlbum(album: SelectedAlbum): void {
     this.selected = this.selected.filter(a => a.id !== album.id);
+  }
+
+  /**
+   * Toggle album expansion
+   */
+  toggleAlbum(album: SelectedAlbum): void {
+    this.selected = this.selected.map(a =>
+      a.id === album.id ? { ...a, expanded: !a.expanded } : a
+    );
+  }
+
+  /**
+   * Toggle track selection
+   */
+  toggleTrack(album: SelectedAlbum, trackId: string): void {
+    this.selected = this.selected.map(a => {
+      if (a.id === album.id) {
+        const newSelectedTracks = new Set(a.selectedTrackIds);
+        if (newSelectedTracks.has(trackId)) {
+          newSelectedTracks.delete(trackId);
+        } else {
+          newSelectedTracks.add(trackId);
+        }
+        return { ...a, selectedTrackIds: newSelectedTracks };
+      }
+      return a;
+    });
+  }
+
+  /**
+   * Toggle all tracks for an album
+   */
+  toggleAllTracks(album: SelectedAlbum): void {
+    this.selected = this.selected.map(a => {
+      if (a.id === album.id) {
+        const allSelected = a.selectedTrackIds.size === a.tracks.length;
+        return {
+          ...a,
+          selectedTrackIds: allSelected ? new Set() : new Set(a.tracks.map(t => t.id))
+        };
+      }
+      return a;
+    });
+  }
+
+  /**
+   * Check if track is selected
+   */
+  isTrackSelected(album: SelectedAlbum, trackId: string): boolean {
+    return album.selectedTrackIds.has(trackId);
+  }
+
+  /**
+   * Check if all tracks are selected
+   */
+  areAllTracksSelected(album: SelectedAlbum): boolean {
+    return album.selectedTrackIds.size === album.tracks.length && album.tracks.length > 0;
+  }
+
+  /**
+   * Get total selected track count
+   */
+  getSelectedTrackCount(): number {
+    return this.selected.reduce((total, album) => total + album.selectedTrackIds.size, 0);
+  }
+
+  /**
+   * Check if form can be submitted
+   */
+  canSubmit(): boolean {
+    return (
+      this.form.valid &&
+      this.getSelectedTrackCount() > 0 &&
+      !this.submitting()
+    );
   }
 
   /**
    * Handle drag and drop reordering
    */
-  drop(ev: CdkDragDrop<Album[]>): void {
+  drop(ev: CdkDragDrop<SelectedAlbum[]>): void {
     moveItemInArray(this.selected, ev.previousIndex, ev.currentIndex);
     this.selected = [...this.selected];
   }
 
   /**
-   * Submit the form and create playlist
+   * Submit the form and create playlist with tracks
    */
   submit(): void {
-    if (this.form.invalid) {
+    if (!this.canSubmit()) {
       this.form.markAllAsTouched();
-      return;
-    }
-
-    if (this.submitting()) {
       return;
     }
 
     this.submitting.set(true);
     this.error.set(null);
+    this.success.set(null);
 
     const request: CreatePlaylistRequest = {
       name: this.form.value.listName.trim(),
       description: this.form.value.description?.trim() || undefined
     };
 
+    // Collect all selected track IDs
+    const trackIds: string[] = [];
+    this.selected.forEach(album => {
+      album.selectedTrackIds.forEach(trackId => trackIds.push(trackId));
+    });
+
+    // Create playlist first
     this.playlistService.createPlaylist(request).subscribe({
-      next: (response) => {
-        console.log('Playlist created:', response);
-        this.submitting.set(false);
-        this.close();
-        // TODO: Navigate to playlist page or show success message
+      next: (playlist) => {
+        // Then add tracks in bulk
+        this.playlistService.addTracksToPlaylist(playlist.id, trackIds).subscribe({
+          next: () => {
+            this.success.set('Playlist created successfully!');
+            setTimeout(() => {
+              this.close();
+            }, 1500);
+          },
+          error: (err) => {
+            console.error('Error adding tracks:', err);
+            this.error.set('Playlist created but failed to add tracks');
+            this.submitting.set(false);
+          }
+        });
       },
       error: (err) => {
         console.error('Error creating playlist:', err);
@@ -186,5 +315,14 @@ export class ListCreateComponent {
     this.albumSearch.setValue('');
     this.results = [];
     this.showResults = false;
+  }
+
+  /**
+   * Format track duration (seconds to mm:ss)
+   */
+  formatDuration(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
 }
