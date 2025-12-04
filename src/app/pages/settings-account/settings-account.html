@@ -32,7 +32,13 @@
                 Please fill at least one field.</div>
             <div *ngIf="accountForm.get('email')?.invalid && accountForm.get('email')?.touched" class="error">
                 Please enter a valid email address.</div>
-            
+            <div *ngIf="usernameTakenError" class="error">
+                Username is already taken. Please choose another.</div>
+            <div *ngIf="accountUpdateSuccess" class="error">
+                Account successfully updated.</div>
+            <div *ngIf="accountUpdateError" class="error">
+                Account update failed. Please try again.</div>
+
             <button type="submit" [disabled]="!accountForm.dirty">Update</button>
         </form>
 
@@ -62,6 +68,10 @@
             <!--PASSWORD ERRORS-->
             <div *ngIf="passwordMatchError" class="error">
                 Passwords do not match. Try again.</div>
+            <div *ngIf="passwordncorrectError" class="error">
+                Current password is incorrect. Please try again.</div>
+            <div *ngIf="passwordUpdateSuccess" class="success">
+                Password successfully updated.</div>
 
             <div class="password-btns">
                 <button type="submit" [disabled]="passwordForm.invalid">Update</button>

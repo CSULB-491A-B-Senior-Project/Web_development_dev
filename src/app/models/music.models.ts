@@ -11,6 +11,15 @@ export interface Artist {
   artistImage: string;
 }
 
+export interface ArtistInfo {
+  id: string;
+  artistName: string;
+  artistImage: string;
+  bio: string;
+  followers: number;
+  albums: Album[];
+}
+
 export interface Album {
   id: string;
   name: string;
