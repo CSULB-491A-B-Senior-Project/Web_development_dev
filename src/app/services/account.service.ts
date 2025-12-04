@@ -12,4 +12,12 @@ export class AccountService {
     getAccount(): Observable<UserAccount> {
         return this.api.get<UserAccount>('/Users/me');
     }
+    updateAccount(account: Partial<UserAccount>): Observable<UserAccount> {
+        return this.api.put<UserAccount>('/Users/me', account);
+    }
+    changePassword(oldPassword: string, newPassword: string): Observable<void> {
+        return this.api.put<void>('/Users/me/password', {
+            currentPassword: oldPassword,
+            newPassword: newPassword });
+    }
 }
