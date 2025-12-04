@@ -159,14 +159,25 @@ export class ApiService {
     );
   }
 
-  /**
+  // /**
+  //  * Generic DELETE request with authentication
+  //  */
+  // public delete<T>(endpoint: string): Observable<T> {
+  //   return this.http.delete<T>(
+  //     `${this.baseUrl}${endpoint}`,
+  //     { headers: this.getAuthHeaders() }
+  //   );
+  // }
+
+
+    /**
    * Generic DELETE request with authentication
    */
-  public delete<T>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(
-      `${this.baseUrl}${endpoint}`,
-      { headers: this.getAuthHeaders() }
-    );
+  public delete<T>(endpoint: string, body?: any): Observable<T> {
+    return this.http.request<T>('delete', `${this.baseUrl}${endpoint}`, {
+        body: body,
+        headers: this.getAuthHeaders()
+    });
   }
 
   /**

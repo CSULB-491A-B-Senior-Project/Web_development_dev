@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
+import { PlaylistCreatorService } from '../../services/playlist.service';
 
 @Component({
   standalone: true,
@@ -16,8 +17,10 @@ export class Navbar implements OnInit {
   username: string = '';
   search = new FormControl('');
 
-  constructor(private router: Router,
-    private accountService: AccountService
+  constructor(
+    private router: Router,
+    private accountService: AccountService,
+    private playlistCreatorService: PlaylistCreatorService
   ) { }
 
   onSearchKeypress(event: KeyboardEvent) {
@@ -40,5 +43,10 @@ export class Navbar implements OnInit {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
       this.username = account.username;}
     );
+  }
+
+  openPlaylistCreator(event: Event): void {
+    event.preventDefault();
+    this.playlistCreatorService.openCreator();
   }
 }
