@@ -41,14 +41,17 @@ export class Explore implements OnInit {
 
   @ViewChild('listCreateOverlay') listCreateOverlay!: ListCreateComponent;
 
-  
-  constructor(private feedService: FeedService, private accountService: AccountService) { }
+
+constructor(private feedService: FeedService, private accountService: AccountService, private playlistCreatorService: PlaylistCreatorService) { }
   ngOnInit() {
     this.loadFeed();
     this.accountService.getAccount().subscribe((account: UserAccount) => {
       this.username = account.username;
     }
     );
+    this.playlistCreatorService.openCreator$.subscribe(() => {
+      this.openPlaylistCreator();
+    });
   }
 
   @HostListener('window:scroll')
