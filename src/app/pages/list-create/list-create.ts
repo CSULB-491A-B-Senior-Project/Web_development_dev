@@ -6,16 +6,8 @@ import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragHandle, moveItemInArray } fro
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { Album, Track,  } from '../../models/playlist.models';
-import {CreatePlaylistRequest, PlaylistService} from '../../services/playlist.service';
-
-
-interface SelectedAlbum extends Album {
-  tracks: Track[];
-  selectedTrackIds: Set<string>;
-  loadingTracks: boolean;
-  expanded: boolean;
-}
+import { Track } from '../../models/playlist.models';
+import { CreatePlaylistRequest, PlaylistService } from '../../services/playlist.service';
 
 @Component({
   selector: 'app-list-create',
@@ -38,14 +30,14 @@ export class ListCreateComponent {
   });
 
   // Search state
-  albumSearch = new FormControl<string>('', { nonNullable: true });
+  trackSearch = new FormControl<string>('', { nonNullable: true });
   showResults = false;
-  results: Album[] = [];
+  results: Track[] = [];
   searching = signal(false);
   private searchSubject = new Subject<string>();
 
-  // Selected albums with tracks
-  selected: SelectedAlbum[] = [];
+  // Selected tracks
+  selected: Track[] = [];
 
   // Submission state
   submitting = signal(false);
@@ -72,7 +64,7 @@ export class ListCreateComponent {
         }
 
         this.searching.set(true);
-        return this.playlistService.searchAlbums(query, 1, 12).pipe(
+        return this.playlistService.searchTracks(query, 1, 20).pipe(
           catchError(err => {
             console.error('Search error:', err);
             this.searching.set(false);
@@ -113,7 +105,7 @@ export class ListCreateComponent {
       listName: '',
       description: ''
     });
-    this.albumSearch.setValue('');
+    this.trackSearch.setValue('');
     this.results = [];
     this.showResults = false;
     this.selected = [];
@@ -130,113 +122,31 @@ export class ListCreateComponent {
   }
 
   /**
-   * Add album to selected list and load its tracks
+   * Add track to selected list
    */
-  addAlbum(album: Album): void {
-    if (this.selected.some(a => a.id === album.id)) {
-      this.error.set('Album already added');
+  addTrack(track: Track): void {
+    if (this.selected.some(t => t.id === track.id)) {
+      this.error.set('Track already added');
       setTimeout(() => this.error.set(null), 3000);
       return;
     }
 
-    const selectedAlbum: SelectedAlbum = {
-      ...album,
-      tracks: [],
-      selectedTrackIds: new Set(),
-      loadingTracks: true,
-      expanded: true
-    };
-
-    this.selected = [...this.selected, selectedAlbum];
+    this.selected = [...this.selected, track];
     this.clearSearch();
-
-    // Load tracks for the album
-    this.playlistService.getAlbumTracks(album.id).subscribe({
-      next: (tracks) => {
-        this.selected = this.selected.map(a =>
-          a.id === album.id
-            ? { ...a, tracks, loadingTracks: false, selectedTrackIds: new Set(tracks.map(t => t.id)) }
-            : a
-        );
-      },
-      error: (err) => {
-        console.error('Error loading tracks:', err);
-        this.selected = this.selected.filter(a => a.id !== album.id);
-        this.error.set('Failed to load album tracks');
-        setTimeout(() => this.error.set(null), 3000);
-      }
-    });
   }
 
   /**
-   * Remove album from selected list
+   * Remove track from selected list
    */
-  removeAlbum(album: SelectedAlbum): void {
-    this.selected = this.selected.filter(a => a.id !== album.id);
-  }
-
-  /**
-   * Toggle album expansion
-   */
-  toggleAlbum(album: SelectedAlbum): void {
-    this.selected = this.selected.map(a =>
-      a.id === album.id ? { ...a, expanded: !a.expanded } : a
-    );
-  }
-
-  /**
-   * Toggle track selection
-   */
-  toggleTrack(album: SelectedAlbum, trackId: string): void {
-    this.selected = this.selected.map(a => {
-      if (a.id === album.id) {
-        const newSelectedTracks = new Set(a.selectedTrackIds);
-        if (newSelectedTracks.has(trackId)) {
-          newSelectedTracks.delete(trackId);
-        } else {
-          newSelectedTracks.add(trackId);
-        }
-        return { ...a, selectedTrackIds: newSelectedTracks };
-      }
-      return a;
-    });
-  }
-
-  /**
-   * Toggle all tracks for an album
-   */
-  toggleAllTracks(album: SelectedAlbum): void {
-    this.selected = this.selected.map(a => {
-      if (a.id === album.id) {
-        const allSelected = a.selectedTrackIds.size === a.tracks.length;
-        return {
-          ...a,
-          selectedTrackIds: allSelected ? new Set() : new Set(a.tracks.map(t => t.id))
-        };
-      }
-      return a;
-    });
-  }
-
-  /**
-   * Check if track is selected
-   */
-  isTrackSelected(album: SelectedAlbum, trackId: string): boolean {
-    return album.selectedTrackIds.has(trackId);
-  }
-
-  /**
-   * Check if all tracks are selected
-   */
-  areAllTracksSelected(album: SelectedAlbum): boolean {
-    return album.selectedTrackIds.size === album.tracks.length && album.tracks.length > 0;
+  removeTrack(track: Track): void {
+    this.selected = this.selected.filter(t => t.id !== track.id);
   }
 
   /**
    * Get total selected track count
    */
   getSelectedTrackCount(): number {
-    return this.selected.reduce((total, album) => total + album.selectedTrackIds.size, 0);
+    return this.selected.length;
   }
 
   /**
@@ -253,7 +163,7 @@ export class ListCreateComponent {
   /**
    * Handle drag and drop reordering
    */
-  drop(ev: CdkDragDrop<SelectedAlbum[]>): void {
+  drop(ev: CdkDragDrop<Track[]>): void {
     moveItemInArray(this.selected, ev.previousIndex, ev.currentIndex);
     this.selected = [...this.selected];
   }
@@ -277,10 +187,7 @@ export class ListCreateComponent {
     };
 
     // Collect all selected track IDs
-    const trackIds: string[] = [];
-    this.selected.forEach(album => {
-      album.selectedTrackIds.forEach(trackId => trackIds.push(trackId));
-    });
+    const trackIds: string[] = this.selected.map(t => t.id);
 
     // Create playlist first
     this.playlistService.createPlaylist(request).subscribe({
@@ -312,7 +219,7 @@ export class ListCreateComponent {
    * Clear search input and results
    */
   clearSearch(): void {
-    this.albumSearch.setValue('');
+    this.trackSearch.setValue('');
     this.results = [];
     this.showResults = false;
   }
@@ -325,4 +232,6 @@ export class ListCreateComponent {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }
+
+  trackById = (_: number, it: Track) => it.id;
 }

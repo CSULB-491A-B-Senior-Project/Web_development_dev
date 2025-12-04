@@ -44,22 +44,21 @@
               </div>
 
               <div class="form-group">
-                <label for="albumSearch" class="input-label">Add Albums</label>
+                <label for="trackSearch" class="input-label">Add Tracks</label>
                 <input
-                  id="albumSearch"
+                  id="trackSearch"
                   class="form-control"
                   type="text"
-                  [formControl]="albumSearch"
+                  [formControl]="trackSearch"
                   (input)="onSearchInput($any($event.target).value)"
-                  placeholder="Search for albums..."
+                  placeholder="Search for tracks..."
                 />
 
                 <ul class="list-group" *ngIf="showResults && results.length">
-                  <li class="list-group-item" *ngFor="let album of results" (click)="addAlbum(album)">
-                    <img [src]="album.albumCover" class="item-image" alt="cover" />
+                  <li class="list-group-item" *ngFor="let track of results" (click)="addTrack(track)">
                     <div class="item-meta">
-                      <span class="item-title">{{ album.title }}</span>
-                      <span class="item-sub">{{ album.releaseYear }} • {{ album.artist.artistName }}</span>
+                      <span class="item-title">{{ track.name }}</span>
+                      <span class="item-sub">Track {{ track.trackNumber }} • {{ formatDuration(track.duration) }}</span>
                     </div>
                   </li>
                 </ul>
@@ -90,71 +89,38 @@
         </div>
 
         <div class="list-container" *ngIf="selected.length">
-          <div cdkDropList (cdkDropListDropped)="drop($event)" class="album-list">
+          <div cdkDropList (cdkDropListDropped)="drop($event)" class="track-list">
             <div 
-              class="album-card"
-              *ngFor="let album of selected; let i = index"
+              class="track-card"
+              *ngFor="let track of selected; let i = index; trackBy: trackById"
               cdkDrag
-              [cdkDragData]="album"
+              [cdkDragData]="track"
             >
-              <div class="album-header" (click)="toggleAlbum(album)">
-                <img class="album-cover" [src]="album.albumCover" alt="album cover" />
-                <div class="album-meta">
-                  <div class="album-title">{{ album.title }}</div>
-                  <div class="album-sub">
-                    {{ album.artist.artistName }} • {{ album.releaseYear }}
-                  </div>
-                  <div class="album-track-info">
-                    {{ album.selectedTrackIds.size }} of {{ album.tracks.length }} tracks
+              <div class="track-header">
+                <div class="track-meta">
+                  <div class="track-title">{{ track.name }}</div>
+                  <div class="track-sub">
+                    Track {{ track.trackNumber }} • {{ formatDuration(track.duration) }}
                   </div>
                 </div>
-                <div class="album-actions">
-                  <button 
-                    type="button" 
-                    class="btn-icon" 
-                    (click)="toggleAllTracks(album); $event.stopPropagation()" 
-                    [title]="areAllTracksSelected(album) ? 'Deselect all' : 'Select all'"
-                  >
-                    {{ areAllTracksSelected(album) ? '☑' : '☐' }}
-                  </button>
+                <div class="track-actions">
                   <button 
                     type="button" 
                     class="btn-icon danger" 
-                    (click)="removeAlbum(album); $event.stopPropagation()" 
-                    title="Remove album"
+                    (click)="removeTrack(track)" 
+                    title="Remove track"
                   >
                     ✕
                   </button>
-                  <span class="expand-icon">{{ album.expanded ? '▼' : '▶' }}</span>
+                  <span class="drag-handle" cdkDragHandle>☰</span>
                 </div>
-              </div>
-
-              <!-- Track List -->
-              <div class="track-list" *ngIf="album.expanded && !album.loadingTracks">
-                <div 
-                  class="track-item" 
-                  *ngFor="let track of album.tracks"
-                  (click)="toggleTrack(album, track.id)"
-                  [class.selected]="isTrackSelected(album, track.id)"
-                >
-                  <span class="track-checkbox">
-                    {{ isTrackSelected(album, track.id) ? '☑' : '☐' }}
-                  </span>
-                  <span class="track-number">{{ track.trackNumber }}</span>
-                  <span class="track-name">{{ track.name }}</span>
-                  <span class="track-duration">{{ formatDuration(track.duration) }}</span>
-                </div>
-              </div>
-
-              <div class="track-loading" *ngIf="album.loadingTracks">
-                Loading tracks...
               </div>
             </div>
           </div>
         </div>
 
         <div class="empty-state" *ngIf="!selected.length">
-          <p>Search and add albums to get started</p>
+          <p>Search and add tracks to get started</p>
         </div>
       </form>
     </div>

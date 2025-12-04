@@ -35,6 +35,13 @@ export interface SearchAlbumsResponse {
   totalCount: number;
 }
 
+export interface SearchTracksResponse {
+  data: Track[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}
+
 export interface CreatePlaylistRequest {
   name: string;
   description?: string;
@@ -75,6 +82,25 @@ export class PlaylistService {
 
     return this.apiService.get<SearchAlbumsResponse>(
       `/Search/albums?${params.toString()}`
+    );
+  }
+
+  /**
+   * Search for tracks
+   */
+  searchTracks(
+    query: string,
+    page: number = 1,
+    pageSize: number = 20
+  ): Observable<SearchTracksResponse> {
+    const params = new URLSearchParams({
+      query,
+      page: page.toString(),
+      pageSize: pageSize.toString()
+    });
+
+    return this.apiService.get<SearchTracksResponse>(
+      `/Tracks?${params.toString()}`
     );
   }
 
