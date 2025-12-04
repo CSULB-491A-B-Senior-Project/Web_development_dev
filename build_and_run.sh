@@ -1,4 +1,6 @@
 #!/bin/bash
+# 1. Build using the specific Dev Dockerfile
+docker build -f Dockerfile.dev -t crescendo-dev .
+docker run -p 4200:4200 --add-host=host.docker.internal:host-gateway crescendo-dev
+wait
 
-docker build -t crescendo-frontend .
-docker run -p 80:80 --add-host=host.docker.internal:host-gateway crescendo-frontend

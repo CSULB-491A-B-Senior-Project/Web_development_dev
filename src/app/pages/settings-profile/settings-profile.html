@@ -72,7 +72,7 @@
         <p>Choose a favorite song to feature on your profile.</p>
         @if (favoriteSong(); as song) {
             <div class="favorite-song-card">
-                <img class="item-cover" [ngSrc]="song.albumCover" width="60" height="60" [alt]="song.name" />
+                <img class="item-cover" [ngSrc]="song.albumCover || ''" width="60" height="60" [alt]="song.name" />
                 <div class="item-meta">
                     <div class="item-title">{{ song.name }}</div>
                     <div class="item-sub">{{ song.artistName }}</div>
@@ -90,7 +90,7 @@
                     <ul class="search-results">
                         @for (song of songResults(); track song.id) {
                             <li class="result-item" (click)="selectSong(song)">
-                                <img [ngSrc]="song.albumCover" class="item-image" width="50" height="50" [alt]="song.name" />
+                                <img [ngSrc]="song.albumCover || ''" class="item-image" width="50" height="50" [alt]="song.name" />
                                 <div class="item-meta">
                                     <span class="item-title">{{ song.name }}</span>
                                     <span class="item-sub">{{ song.artistName }}</span>
@@ -113,7 +113,7 @@
             @for (artist of topTenFavoriteArtists(); track artist.id; let i = $index) {
               <div class="artist-rank-item" cdkDrag>
                 <span class="rank-number">{{ i + 1 }}</span>
-                <img [ngSrc]="artist.artistImage" width="48" height="48" [alt]="artist.artistName" />
+                <img [ngSrc]="artist.artistImage || ''" width="48" height="48" [alt]="artist.artistName" />
                 <span class="artist-name">{{ artist.artistName }}</span>
                 <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
               </div>
@@ -138,10 +138,10 @@
               <ul class="search-results">
                 @for (album of albumResults(); track album.id) {
                   <li class="result-item">
-                    <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
+                    <img [ngSrc]="album.albumCover || ''" class="item-image" width="50" height="50" [alt]="album.name" />
                     <div class="item-meta">
                       <span class="item-title">{{ album.name }}</span>
-                      <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
+                      <span class="item-sub">{{ album.artist?.artistName ?? '' }} • {{ album.releaseYear }}</span>
                     </div>
                     <button
                       type="button"
@@ -161,10 +161,10 @@
           <div class="selection-list album-list">
             @for (album of favoriteAlbums(); track album.id) {
               <div class="selection-item" [class.unhearted]="isAlbumUnhearted(album)">
-                <img [ngSrc]="album.albumCover" class="item-image" width="50" height="50" [alt]="album.name" />
+                <img [ngSrc]="album.albumCover || ''" class="item-image" width="50" height="50" [alt]="album.name" />
                 <div class="item-meta">
                   <span class="item-title">{{ album.name }}</span>
-                  <span class="item-sub">{{ album.artist.artistName }} • {{ album.releaseYear }}</span>
+                  <span class="item-sub">{{ album.artist?.artistName ?? '' }} • {{ album.releaseYear }}</span>
                 </div>
                 <button
                   type="button"

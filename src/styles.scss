@@ -20,7 +20,7 @@
   --secondary: #c06effff;
   --other1: #501DAF;
   --other2: #000240;
-  --other3: #12101a;
+  --other3: #171717;
 
   --input-border: #2a2a2f;
   --input-color: #1d1a2a;
@@ -72,7 +72,7 @@ input {
 
   &:focus {
     outline: none;
-    border-color: #3a3a44;
+    border-color: var(--primary);
   }
 }
 

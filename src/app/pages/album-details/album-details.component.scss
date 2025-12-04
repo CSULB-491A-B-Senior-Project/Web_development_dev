@@ -1,4 +1,8 @@
-// Reusable placeholders
+// ============================================================================
+// MIXINS & PLACEHOLDERS
+// ============================================================================
+
+// Button reset
 %btn-reset {
   background: transparent;
   border: none;
@@ -6,32 +10,80 @@
   padding: 0;
   margin: 0;
   cursor: pointer;
+  font-family: inherit;
 }
-%focus-ring-4 { &:focus-visible { outline: none; box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 30%, transparent); } }
-%focus-ring-3 { &:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent); } }
-%star-button-base {
+
+// Focus rings
+%focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--txt-primary) 35%, transparent);
+  }
+}
+
+// Visually hidden (accessibility)
+%visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+
+// Card base
+%card {
+  background-color: var(--txt-box);
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+// Interactive link
+%interactive-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--txt-primary);
+    border-bottom-color: var(--txt-primary);
+  }
+}
+
+// Star button base
+%star-button {
   @extend %btn-reset;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.3);
   transition: color 120ms ease, transform 100ms ease;
-  i { pointer-events: none; }
-  &:hover { color: var(--txt-primary); transform: translateY(-1px); }
-}
-%v-hidden {
-  position: absolute !important;
-  height: 1px; width: 1px; overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap; border: 0; padding: 0; margin: -1px;
+
+  i {
+    pointer-events: none;
+  }
+
+  &:hover {
+    color: var(--txt-primary);
+    transform: translateY(-1px);
+  }
+
+  &.filled {
+    color: var(--txt-primary);
+  }
 }
 
-header {
-  margin: 30px;
-  img { width: 80px; }
-}
+// ============================================================================
+// MAIN CONTAINER
+// ============================================================================
 
 .album-review-container {
   display: flex;
@@ -39,340 +91,698 @@ header {
   align-items: center;
   max-width: 800px;
   margin: 0 auto;
-  padding-top: 2rem;
+  padding: 2rem 1rem;
   color: white;
-
+  // Section dividers
   .album-header,
   .tracklist,
   .comment-section {
     width: 100%;
     margin-bottom: 2.5rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-color);
   }
+}
 
-  /* --- Header --- */
-  .album-header {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
+// ============================================================================
+// ALBUM HEADER
+// ============================================================================
 
-    .album-artwork {
-      width: 250px; height: 250px;
-      background-color: #222;
-      border: 1px solid #444;
-      border-radius: 6px;
-      background-size: cover;
-      background-position: center;
-    }
+.album-header {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
 
-    .album-details {
-      display: flex; flex-direction: column; gap: 0.5rem;
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
 
-      .title-container { display: flex; align-items: baseline; gap: 1.5rem; }
+.album-artwork {
+  width: 250px;
+  height: 250px;
+  background-color: var(--other3);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
 
-      .favorite-button {
-        @extend %btn-reset;
-        padding: 0.25rem;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: transform 0.1s ease-out, background-color 0.2s ease-in-out;
-        .fa-heart { font-size: 24px; color: var(--txt-primary); transition: color 0.2s ease-in-out; }
-        &:active { transform: translateY(-1px) scale(1.1); }
-      }
+.album-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
 
-      h1 {
-        font-size: 2rem; font-weight: 600; margin-bottom: 0.5rem;
-        .year { font-size: 1.5rem; font-weight: 400; margin-left: 1rem; color: #aaa; }
-      }
+.title-container {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
 
-      h3 {
-        font-size: 1.2rem; font-weight: 600; margin-bottom: 2rem;
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
 
-        &.artist-names {
-          color: white; cursor: pointer; transition: color 160ms ease-in-out;
-          .artist-link { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
-          .artist-link:hover { color: var(--txt-primary); border-bottom-color: currentColor; }
-          .sep { margin: 0 .25rem; }
-        }
-      }
-
-      .star-rating {
-        display: flex; align-items: center; gap: 0.25rem;
-        font-size: 1.4rem; color: var(--txt-primary); letter-spacing: 0.1rem;
-
-        .star-button {
-          @extend %star-button-base;
-          padding: 0.06rem 0.18rem; font-size: 1.35rem;
-          &.filled { color: var(--txt-primary); }
-          &[aria-checked="true"] { color: color-mix(in oklab, var(--txt-primary) 46%, white 6%); }
-          @extend %focus-ring-4;
-        }
-
-        .current-rating { font-size: 0.9rem; color: #aaa; margin-left: 0.26rem; }
-      }
+    .year {
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-left: 1rem;
+      color: var(--txt-secondary);
     }
   }
+}
 
-  /* --- Tracklist --- */
-  .tracklist {
-    padding-top: 0.25rem;
+.favorite-button {
+  @extend %btn-reset;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: transform 100ms ease;
 
-    h3 { font-size: 1.4rem; font-weight: 600; margin: 0 0 1rem; }
-
-    ul {
-      list-style: none; padding: 0; margin: 0; counter-reset: track;
-
-      li {
-        counter-increment: track;
-        display: grid; grid-template-columns: auto 1fr auto; /* index | name | duration */
-        align-items: center; gap: 0.5rem;
-        padding: 0.6rem 0.75rem 0.6rem 0.25rem;
-        border-radius: 6px;
-        transition: background-color 150ms ease, color 120ms ease;
-
-        &:nth-child(even) { background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent); }
-        &:hover { background-color: #1a1a1a; .track-name { color: var(--txt-primary); font-weight: 500; } .duration { color: var(--txt-secondary); } }
-        &:focus-within { outline: 2px solid color-mix(in oklab, var(--focus) 30%, transparent); outline-offset: 2px; }
-
-        .index {
-          width: 1.6rem; text-align: right; color: #888;
-          font-variant-numeric: tabular-nums; user-select: none;
-        }
-
-        &:not(:has(.index))::before {
-          content: counter(track); grid-column: 1; width: 1.6rem; text-align: right;
-          color: #888; font-variant-numeric: tabular-nums; user-select: none;
-        }
-
-        .track-name {
-          grid-column: 2; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-          color: #ddd; font-weight: 500;
-        }
-
-        .duration {
-          grid-column: 3; min-width: 3.4ch; text-align: right; color: #aaa;
-          font-size: 0.95rem; font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
-          justify-self: end;
-        }
-      }
-    }
-
-    @media (max-width: 768px) {
-      ul li { grid-template-columns: 1fr auto; gap: 0.5rem; padding: 0.5rem 0.75rem 0.5rem 0.5rem; }
-      ul li .index, ul li:not(:has(.index))::before { display: none; }
-    }
+  .fa-heart {
+    font-size: 24px;
+    color: var(--txt-primary);
+    transition: color 200ms ease;
   }
 
-  /* --- Comments --- */
-  .comment-section {
-    display: flex; flex-direction: column; gap: 1.25rem;
+  &:active {
+    transform: scale(1.1);
+  }
 
-    .comment-actions {
-      display: flex; align-items: center; width: 100%;
-      gap: 0.5rem; margin-bottom: 0.25rem; justify-content: flex-start;
-      @media (max-width: 480px) { justify-content: stretch; }
+  @extend %focus-ring;
+}
+
+.artist-names {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0.5rem 0 1.5rem;
+
+  .artist-link {
+    @extend %interactive-link;
+  }
+
+  .sep {
+    margin: 0 0.25rem;
+  }
+}
+
+.album-meta {
+  margin-top: 0.5rem;
+}
+
+// ============================================================================
+// STAR RATINGS
+// ============================================================================
+
+.star-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.2rem;
+
+  .star-button {
+    @extend %star-button;
+    padding: 0.1rem 0.2rem;
+    font-size: 1.35rem;
+    @extend %focus-ring;
+  }
+
+  .current-rating {
+    font-size: 0.9rem;
+    color: var(--txt-secondary);
+    margin-left: 0.5rem;
+  }
+  // Average rating variant (read-only)
+  &.avg {
+    .star-button {
+      pointer-events: none;
+      color: rgba(255, 255, 255, 0.28);
+    }
+  }
+}
+
+// ============================================================================
+// TRACKLIST
+// ============================================================================
+
+.tracklist {
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: track;
+  }
+
+  li {
+    counter-increment: track;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    transition: background-color 150ms ease;
+
+    &:nth-child(even) {
+      background: linear-gradient( to right, rgba(255, 255, 255, 0.02), transparent );
     }
 
-    .add-comment-button {
-      background-color: var(--btn-primary); color: black;
-      width: 150px; height: 40px; border: none; border-radius: 5px;
-      font-size: 1.02rem; font-weight: 600; align-self: flex-start;
-      transition: background 120ms ease, transform 100ms ease;
-      &:hover { background-color: var(--btn-hover); transform: translateY(-1px); }
-      &:active { transform: translateY(0); }
-    }
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
 
-    .comments {
-      display: flex; flex-direction: column; gap: 1rem;
-
-      .comment {
-        position: relative; background-color: #1f1f1f;
-        padding: 1rem; border-radius: 6px; border: 1px solid #2a2a2a;
-
-        .username {
-          display: inline-block; margin: 0.3rem 0; font-weight: 600;
-          color: inherit; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .15s ease;
-          &:hover, 
-          &:focus-visible 
-          { 
-            color: var(--txt-primary);
-            border-bottom-color: var(--txt-primary); 
-          }
-        }
-
-        /* Inline edit form */
-        > form {
-          display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0;
-
-          .comment-rating { margin-left: auto; display: flex; align-items: center; gap: 0.08rem; }
-
-          .comment-rating .star-button {
-            @extend %star-button-base;
-            font-size: 0.95rem; padding: 0.04rem 0.06rem; color: rgba(255,255,255,0.28);
-          }
-          .comment-rating .star-button:hover,
-          .comment-rating .star-button.filled { color: var(--txt-primary); transform: translateY(-1px); }
-
-          .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0; }
-        }
-
-        .comment-text { margin-bottom: 0.5rem; line-height: 1.5; white-space: pre-wrap; }
-        .comment-meta { display: flex; gap: 0.5rem; align-items: center; color: #aaa; font-size: 0.9rem; }
-
-        .reply-button {
-          @extend %btn-reset;
-          background: transparent; color: var(--txt-primary);
-          padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.95rem;
-          i { font-size: 0.95rem; line-height: 1; color: white; }
-          .count { font-weight: 700; font-size: 0.95rem; color: white; margin-left: 0.3rem; }
-
-          &:is(:hover) { .count, i { color: var(--txt-primary); } }
-          &[aria-pressed="true"] {
-            background: rgba(255,255,255,0.03); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-            transform: translateY(-1px);
-            .count, i { color: var(--txt-primary); }
-          }
-        }
-
-        > .comment-rating {
-          position: absolute; top: 0.6rem; right: 0.6rem;
-          display: flex; align-items: center; gap: 0.12rem; font-size: 0.95rem; z-index: 5;
-          .star-button { @extend %btn-reset; font-size: 0.95rem; padding: 0.04rem 0.08rem; color: rgba(255,255,255,0.25); pointer-events: none; }
-          .star-button.filled { color: var(--txt-primary); }
-          .current-rating { font-size: 0.85rem; color: #bbb; margin-left: 0.25rem; }
-        }
-        &:has(> form) > .comment-rating { display: none; }
-
-        .replies {
-          margin: 0.75rem 0 0 0.75rem; padding-left: 0.75rem; border-left: 2px solid #232323;
-          display: flex; flex-direction: column; gap: 0.5rem;
-
-          .reply {
-            background: #151515; padding: 0.6rem; border-radius: 6px; border: 1px solid #212121;
-            .username { font-weight: 600; margin-bottom: 0.75rem; }
-            .comment-text { margin: 0.2rem 0; font-weight: 400; }
-            .comment-meta { font-size: 0.85rem; color: #aaa; }
-            form { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.2rem; }
-          }
-        }
-
-        .reply-form {
-          margin-top: 0.75rem; padding: 0.6rem; background: #121212; border-radius: 6px; border: 1px solid #222;
-          form { display: flex; flex-direction: column; gap: 0.5rem; }
-          label { font-weight: 400; font-size: 0.95rem; }
-          .error { color: #ffb3c1; font-size: 0.85rem; }
-        }
-
-        .expanding-textarea {
-          width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #2b2b2b;
-          background: transparent; color: inherit; resize: none; overflow: hidden; box-sizing: border-box;
-          &:focus { border-color: var(--txt-primary); background: #222222; outline: none; }
-        }
-        > form .expanding-textarea { min-height: 72px; max-height: 220px; }
-        .reply-form .expanding-textarea,
-        .replies .reply form .expanding-textarea { min-height: 56px; max-height: 160px; }
-
-        .modal-actions {
-          display: flex; gap: 0.5rem; justify-content: flex-end;
-          .btn { padding: 0.4rem 0.6rem; border-radius: 6px; background: transparent; border: 1px solid #2b2b2b; color: inherit; }
-          .primary {
-            background: var(--btn-primary); color: #000; border-color: var(--btn-primary);
-            &:disabled { opacity: 0.6; cursor: not-allowed; }
-          }
-        }
+      .track-name {
+        color: var(--txt-primary);
+        font-weight: 500;
       }
+
+      .duration {
+        color: white;
+      }
+    }
+
+    &::before {
+      content: counter(track);
+      width: 1.6rem;
+      text-align: right;
+      color: var(--txt-secondary);
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+    }
+
+    .track-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #ddd;
+    }
+
+    .duration {
+      min-width: 3.5ch;
+      text-align: right;
+      color: var(--txt-secondary);
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
     }
   }
 
   @media (max-width: 768px) {
-    .album-header { flex-direction: column; align-items: center; text-align: center; .album-artwork { margin-bottom: 1rem; } }
-    .tracklist ul li { flex-direction: column; align-items: center; gap: 0.3rem; }
+    li {
+      grid-template-columns: 1fr auto;
+      padding: 0.5rem 0.75rem;
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// COMMENTS SECTION
+// ============================================================================
+
+.comment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.add-comment-button {
+  background-color: var(--btn-primary);
+  color: black;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, transform 100ms ease;
+
+  &:hover {
+    background-color: var(--btn-hover);
+    transform: translateY(-1px);
   }
 
-  /* --- Modal --- */
-  .modal-backdrop {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    background: rgba(0, 0, 0, 0.6); z-index: 60; padding: 1rem;
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+// ============================================================================
+// COMMENT CARD
+// ============================================================================
+
+.comment {
+  @extend %card;
+  position: relative;
+
+  .username {
+    @extend %interactive-link;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
   }
 
-  .modal {
-    background: #0f0f0f; color: #fff; padding: 1.25rem; border-radius: 8px;
-    width: 100%; max-width: 640px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); outline: none;
+  .comment-text {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  // Comment rating badge (top-right)
+  > .comment-rating {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.95rem;
+    z-index: 1;
 
-    label { display: block; margin-bottom: 0.35rem; }
+    .star-button {
+      @extend %btn-reset;
+      font-size: 0.95rem;
+      padding: 0.05rem 0.1rem;
+      color: rgba(255, 255, 255, 0.25);
+      pointer-events: none;
 
-    .modal-rating .comment-rating { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem; border-radius: 8px; }
-    .modal-rating .star-button {
-      @extend %star-button-base;
-      width: 38px; height: 38px; font-size: 1.2rem; padding: 0;
-      color: rgba(255, 255, 255, 0.3);
-      &.filled { color: var(--txt-primary); }
-      &:hover { transform: scale(1.15); }
-      @extend %focus-ring-4;
-    }
-
-    .overwrite-warning {
-      margin-top: 1rem; padding: 0.75rem; border-radius: 8px;
-      background: color-mix(in oklab, #f2f2a1 10%, transparent);
-      border: 1px solid color-mix(in oklab, #f2f2a1 20%, transparent);
-      color: #f2f2a1;
-      p { margin: 0 0 0.6rem 0; font-size: 0.9rem; line-height: 1.4; max-width: 90%; }
-    }
-
-    .checkbox-label {
-      display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.95rem; font-weight: 400; color: #eee; margin-bottom: 0;
-      input[type="checkbox"] {
-        appearance: none; -webkit-appearance: none; margin: 0; width: 20px; height: 20px;
-        border: 2px solid rgba(255, 255, 255, 0.4); border-radius: 4px; display: grid; place-content: center;
-        transition: background-color 120ms ease-in-out, border-color 120ms ease-in-out;
-        &::before {
-          content: ""; width: 10px; height: 10px; transform: scale(0); transition: 120ms transform ease-in-out;
-          box-shadow: inset 1em 1em var(--btn-primary);
-          clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-        }
-        &:checked { background-color: color-mix(in oklab, var(--btn-primary) 25%, transparent); border-color: var(--btn-primary); &::before { transform: scale(1); } }
-        @extend %focus-ring-3;
+      &.filled {
+        color: var(--txt-primary);
       }
     }
 
-    textarea.expanding-textarea {
-      width: 100%; min-height: 80px; padding: 0.8em; font-size: 1em; color: white;
-      background-color: #1f1f1f; border: 1px solid #333; border-radius: 6px; resize: none; overflow: hidden; box-sizing: border-box;
-      transition: height 0.2s ease, border-color 150ms ease, background-color 150ms ease;
-      &:focus { border-color: var(--txt-primary); background: #222; outline: none; }
+    .current-rating {
+      font-size: 0.85rem;
+      color: var(--txt-secondary);
+      margin-left: 0.3rem;
+    }
+  }
+  // Hide badge when editing
+  &:has(> form) > .comment-rating {
+    display: none;
+  }
+}
+
+// ============================================================================
+// COMMENT META (actions bar)
+// ============================================================================
+
+.comment-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+
+  .date {
+    color: var(--txt-secondary);
+    font-size: 0.9rem;
+  }
+}
+
+.reply-button {
+  @extend %btn-reset;
+  color: var(--txt-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 150ms ease;
+
+  i {
+    font-size: 0.95rem;
+    color: white;
+  }
+
+  .count {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+    margin-left: 0.3rem;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+
+    .count,
+    i {
+      color: var(--txt-primary);
     }
   }
 
-  .modal-actions {
-    display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-top: 1.25rem;
+  &[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.08);
+
+    .count,
+    i {
+      color: var(--txt-primary);
+    }
   }
+
+  @extend %focus-ring;
+}
+
+// ============================================================================
+// REPLIES
+// ============================================================================
+
+.replies {
+  margin: 1rem 0 0 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .reply {
+    background: var(--other3);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+
+    .username {
+      @extend %interactive-link;
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .comment-text {
+      margin: 0.25rem 0;
+    }
+
+    .comment-meta {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// ============================================================================
+// REPLY FORM
+// ============================================================================
+
+.reply-form {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--other3);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  label {
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
+// ============================================================================
+// FORMS & TEXTAREAS
+// ============================================================================
+
+.expanding-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background: var(--input-color);
+  color: inherit;
+  resize: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: inherit;
+  line-height: 1.5;
+  transition: border-color 150ms ease, background-color 150ms ease;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  &:focus {
+    border-color: var(--input-border-purp);
+    background: rgba(255, 255, 255, 0.03);
+    outline: none;
+  }
+  // Size variants
+  .comment > form &,
+  .modal & {
+    min-height: 80px;
+    max-height: 220px;
+  }
+
+  .reply-form &,
+  .replies .reply form & {
+    min-height: 60px;
+    max-height: 160px;
+  }
+}
+
+// Form actions (button row)
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
 
   .btn {
-    background: #b78cff; color: #000; border: none;
-    padding: 0.5rem 0.75rem; border-radius: 6px;
-    &.primary { background: #9a5fff; color: #fff; &[disabled] { opacity: 0.5; cursor: not-allowed; background: #555; border-color: #555; } }
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease, transform 100ms ease;
+    // Default / cancel button
+    background: transparent;
+    border: 1px solid var(--input-border);
+    color: white;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    // Primary action button
+    &.primary {
+      background: var(--btn-primary);
+      color: black;
+      border-color: var(--btn-primary);
+
+      &:hover {
+        background: var(--btn-hover);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+    }
+  }
+}
+
+// Inline comment rating in forms
+.comment-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+
+  .star-button {
+    @extend %star-button;
+    font-size: 0.95rem;
+    padding: 0.05rem 0.1rem;
   }
 
-  .error { color: #ffb3c1; font-size: 0.85rem; margin-top: 0.25rem; }
-
-  textarea, input, button, select { font: inherit; color: inherit; }
+  .current-rating {
+    font-size: 0.85rem;
+    color: var(--txt-secondary);
+    margin-left: 0.5rem;
+  }
 }
 
-/* Read-only average rating variant */
-.star-rating.avg {
-  gap: 0.12rem; font-size: 1.05rem;
-  .star-button { @extend %btn-reset; padding: 0 0.08rem; color: rgba(255,255,255,0.28); pointer-events: none; &.filled { color: var(--txt-primary); } }
-  .current-rating { font-size: 0.85rem; color: #bbb; }
+// ============================================================================
+// MODAL
+// ============================================================================
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 60;
+  padding: 1rem;
 }
 
-/* Utilities */
-.visually-hidden { @extend %v-hidden; }
-.comment-body { margin: 0.5rem 0; white-space: pre-wrap; }
-.inline-edit-form {
-  display: flex; flex-direction: column; gap: 0.5rem; margin: 0.5rem 0;
-  textarea { width: 100%; padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
-  .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.modal {
+  background: var(--other3);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  width: 100%;
+  max-width: 640px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  outline: none;
+
+  h3 {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .modal-author {
+    font-size: 0.95rem;
+    color: var(--txt-secondary);
+    margin-bottom: 1rem;
+
+    strong {
+      color: var(--txt-primary);
+    }
+  }
+
+  .modal-rating {
+    margin: 1rem 0;
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .comment-rating {
+      display: inline-flex;
+      padding: 0.25rem;
+      border-radius: 8px;
+    }
+
+    .star-button {
+      @extend %star-button;
+      width: 40px;
+      height: 40px;
+      font-size: 1.3rem;
+      padding: 0;
+
+      &:hover {
+        transform: scale(1.15);
+      }
+
+      @extend %focus-ring;
+    }
+
+    .current-rating {
+      margin-left: 0.75rem;
+      font-size: 1rem;
+    }
+  }
+}
+
+// ============================================================================
+// OVERWRITE WARNING
+// ============================================================================
+
+.overwrite-warning {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 8px;
+  background: color-mix(in oklab, #f2f2a1 10%, transparent);
+  border: 1px solid color-mix(in oklab, #f2f2a1 20%, transparent);
+  color: #f2f2a1;
+
+  p {
+    margin: 0 0 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #eee;
+  margin: 0;
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+    display: grid;
+    place-content: center;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+
+    &::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      transform: scale(0);
+      transition: transform 150ms ease;
+      box-shadow: inset 1em 1em var(--btn-primary);
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    &:checked {
+      background-color: color-mix(in oklab, var(--btn-primary) 25%, transparent);
+      border-color: var(--btn-primary);
+
+      &::before {
+        transform: scale(1);
+      }
+    }
+
+    @extend %focus-ring;
+  }
+}
+
+// ============================================================================
+// UTILITIES
+// ============================================================================
+
+.visually-hidden {
+  @extend %visually-hidden;
+}
+
+.error {
+  color: #ffb3c1;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
 }
