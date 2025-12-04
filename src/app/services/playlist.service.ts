@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../api.service';
-import {Track, Album, Artist} from '../models/playlist.models';
+import { Subject } from 'rxjs';
+import {Track, Album} from '../models/playlist.models';
 
 // export interface Artist {
 //   artistName: string;
@@ -14,6 +15,18 @@ import {Track, Album, Artist} from '../models/playlist.models';
 //   artist: Artist;
 //   albumCover: string;
 // }
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PlaylistCreatorService {
+  private openCreatorSubject = new Subject<void>();
+  public openCreator$ = this.openCreatorSubject.asObservable();
+
+  openCreator(): void {
+    this.openCreatorSubject.next();
+  }
+}
 
 export interface SearchAlbumsResponse {
   data: Album[];
