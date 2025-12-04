@@ -1,11 +1,11 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { take } from 'rxjs';
 import { AlbumReviewsService } from '../../services/album-reviews.service';
 
-// Local types to avoid relying on external model files
+// Local types
 type Reaction = 'like' | 'dislike' | null;
 
 interface Reply {
@@ -33,14 +33,7 @@ interface CommentItem {
 interface TrackItem {
   id: string;
   title: string;
-  duration?: string; // mm:ss
-}
-
-interface CommentDto {
-  id: string;
-  author: unknown;
-  text: string;
-  // other fields are read via safe readers
+  duration?: string;
 }
 
 @Component({
@@ -51,7 +44,7 @@ interface CommentDto {
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
 })
 export class AlbumDetailsComponent {
-  // Album header fields used by your HTML
+  // Album header fields
   title = 'Album Name';
   year: number | null = null;
   private albumArtists = signal<string>('Artist Names');
@@ -60,7 +53,7 @@ export class AlbumDetailsComponent {
   // Favorite toggle
   isFavorited = signal(false);
 
-  // Current user placeholder (used by Edit visibility)
+  // Current user placeholder
   username = 'username';
 
   // Tracklist and comments
@@ -68,7 +61,7 @@ export class AlbumDetailsComponent {
   comments = signal<CommentItem[]>([]);
   commentCount = computed(() => this.comments().length);
 
-  // Ratings (stars shown in header and in comments)
+  // Ratings
   stars = Array.from({ length: 5 });
   averageRating = computed(() => {
     const rated = this.comments().filter(c => typeof c.rating === 'number' && (c.rating ?? 0) > 0);
@@ -77,7 +70,7 @@ export class AlbumDetailsComponent {
     return Math.round((sum / rated.length) * 10) / 10;
   });
 
-  // Forms/signals referenced by your HTML
+  // Forms
   private readonly fb = inject(FormBuilder);
 
   commentForm = this.fb.group({
@@ -90,6 +83,7 @@ export class AlbumDetailsComponent {
     text: ['', [Validators.required, Validators.maxLength(500)]],
   });
 
+  // Modal and UI state
   showCommentModal = signal(false);
   commentRating = signal<number>(0);
   hoverRating = signal<number>(0);
@@ -102,7 +96,7 @@ export class AlbumDetailsComponent {
 
   userReviewIndex = computed(() => this.comments().findIndex(c => c.author === this.username));
 
-  // Backend wiring (no private # fields to avoid TS target issues)
+  // Backend wiring
   private readonly api = inject(AlbumReviewsService);
   private readonly route = inject(ActivatedRoute);
 
@@ -115,43 +109,41 @@ export class AlbumDetailsComponent {
     this.albumId.set(id);
 
     if (!id) {
-      this.seedIfMock();
+      console.warn('No album ID provided');
       return;
     }
 
     this.loadAlbum(id);
     this.loadComments(id);
-    this.loadTracks(id); // also fetch songs
+    this.loadTracks(id);
   }
 
-  // ---------------- Album loading ----------------
+  // ================ Album Loading ================
 
   private loadAlbum(id: string): void {
     this.api.getAlbumById(id).pipe(take(1)).subscribe({
       next: (album) => {
         const a = album as Record<string, unknown>;
 
-        // title
-        const title = typeof a?.['title'] === 'string' && a['title'] ? (a['title'] as string) : 'Unknown Album';
-        this.title = title;
+        // Title
+        this.title = this.readString(a, 'title') || 'Unknown Album';
 
-        // artists
+        // Artists
         const artistNames =
-          typeof a?.['artistNames'] === 'string' && a['artistNames']
-            ? (a['artistNames'] as string)
-            : Array.isArray(a?.['artists'])
-              ? (a['artists'] as unknown[])
-                  .map(v => (typeof v === 'string'
-                    ? v
-                    : (v && typeof v === 'object' && typeof (v as { name?: string }).name === 'string')
-                      ? (v as { name: string }).name
-                      : ''))
-                  .filter(Boolean)
-                  .join(', ')
-              : '';
+          this.readString(a, 'artistNames') ||
+          (Array.isArray(a?.['artists'])
+            ? (a['artists'] as unknown[])
+              .map(v => (typeof v === 'string'
+                ? v
+                : (v && typeof v === 'object' && typeof (v as { name?: string }).name === 'string')
+                  ? (v as { name: string }).name
+                  : ''))
+              .filter(Boolean)
+              .join(', ')
+            : '');
         this.albumArtists.set(artistNames || 'Unknown Artist');
 
-        // year
+        // Year
         const rawYear = a?.['year'];
         const parsedYear =
           typeof rawYear === 'number'
@@ -161,75 +153,62 @@ export class AlbumDetailsComponent {
               : null;
         this.year = Number.isFinite(parsedYear as number) ? (parsedYear as number) : null;
 
-        // cover
+        // Cover
         const cover =
-          (typeof a?.['coverUrl'] === 'string' && a['coverUrl']) ||
-          (typeof a?.['image'] === 'string' && a['image']) ||
-          (typeof a?.['albumCover'] === 'string' && a['albumCover']) ||
-          '';
-        this.coverUrl = String(cover ?? '');
+          this.readString(a, 'coverArt');
+        this.coverUrl = cover;
 
-        // tracks embedded in album payload (optional)
+        // Tracks embedded in album payload
         const mapped = this.mapTracksFromAlbumObject(a);
         if (mapped.length) this.tracks.set(mapped);
       },
-      error: () => this.error.set('Failed to load album'),
+      error: (err) => {
+        console.error('Failed to load album:', err);
+        this.error.set('Failed to load album');
+      },
     });
   }
 
-  // ---------------- Tracks ----------------
+  // ================ Tracks ================
 
   private loadTracks(id: string): void {
-    // Call getAlbumTracks if the service provides it; otherwise skip (album payload mapping may suffice)
-    const maybe = (this.api as unknown as Record<string, unknown>)['getAlbumTracks'];
-    if (typeof maybe !== 'function') return;
-
-    (maybe as (albumId: string) => unknown)(id as string);
-
-    // Type-safe call with runtime guard
-    try {
-      (this.api.getAlbumTracks as (albumId: string) => { pipe: (op: unknown) => any })(id)
-        .pipe(take(1))
-        .subscribe({
-          next: (res: unknown) => {
-            const itemsUnknown = this.readUnknown(res, 'items');
-            const list: unknown[] = Array.isArray(itemsUnknown)
-              ? itemsUnknown
-              : Array.isArray(res as unknown) ? (res as unknown as unknown[]) : [];
-            const tracks = list.map((t, idx) => this.mapTrackDto(t, idx));
-            if (tracks.length) this.tracks.set(tracks);
-          },
-          error: () => { /* non-fatal */ },
-        });
-    } catch {
-      // ignore if method signature differs; album payload mapping still works
+    // Check if getAlbumTracks exists on the service
+    if (typeof this.api.getAlbumTracks !== 'function') {
+      console.log('getAlbumTracks not available on service');
+      return;
     }
+
+    this.api.getAlbumTracks(id).pipe(take(1)).subscribe({
+      next: (res: unknown) => {
+        // Handle both array and {items: []} formats
+        const list: unknown[] = Array.isArray(res) ? res : [];
+        const tracks = list.map((t, idx) => this.mapTrackDto(t, idx));
+        if (tracks.length) this.tracks.set(tracks);
+      },
+      error: (err) => {
+        console.warn('Failed to load tracks (non-fatal):', err);
+      },
+    });
   }
 
   private mapTracksFromAlbumObject(a: Record<string, unknown>): TrackItem[] {
     const raw =
-      (Array.isArray(a['tracks']) && a['tracks']) ||
-      (Array.isArray(a['tracklist']) && a['tracklist']) ||
-      (Array.isArray(a['songs']) && a['songs']) ||
-      [];
+      (Array.isArray(a['tracks']) && a['tracks']);
     if (!Array.isArray(raw)) return [];
     return raw.map((t, idx) => this.mapTrackDto(t, idx));
   }
 
   private mapTrackDto(raw: unknown, idx: number): TrackItem {
     const id =
-      this.readString(raw, 'id') ||
-      this.readString(raw, 'trackId') ||
+      this.readString(raw, 'id')
       String(idx + 1);
     const title =
-      this.readString(raw, 'title') ||
-      this.readString(raw, 'name') ||
-      `Track ${idx + 1}`;
+      this.readString(raw, 'name');
     const durationSec = this.readNumber(raw, 'duration', NaN);
     const durationStr =
       Number.isFinite(durationSec) ? this.formatSeconds(durationSec) :
-      this.readString(raw, 'durationText', '') ||
-      this.readString(raw, 'length', '');
+        this.readString(raw, 'durationText', '') ||
+        this.readString(raw, 'length', '');
     return { id, title, duration: durationStr || undefined };
   }
 
@@ -240,47 +219,51 @@ export class AlbumDetailsComponent {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   }
 
-  // ---------------- Comments loading/mapping ----------------
+  // ================ Comments Loading ================
 
   private loadComments(id: string): void {
     this.loading.set(true);
     this.api.getComments(id, 1, 50).pipe(take(1)).subscribe({
       next: (res: unknown) => {
+        // Handle both {items: []} and direct array
         const itemsUnknown = this.readUnknown(res, 'items');
         const list: unknown[] = Array.isArray(itemsUnknown)
           ? itemsUnknown
-          : Array.isArray(res as unknown) ? (res as unknown as unknown[]) : [];
-        const mapped = list.map(dto => this.mapCommentDtoToItem(dto as CommentDto));
+          : Array.isArray(res) ? (res as unknown[]) : [];
+
+        const mapped = list.map(dto => this.mapCommentDtoToItem(dto));
         this.comments.set(mapped);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to load comments:', err);
         this.error.set('Failed to load comments');
         this.loading.set(false);
-        this.seedIfMock();
       },
     });
   }
 
-  private mapCommentDtoToItem(dto: CommentDto): CommentItem {
+  private mapCommentDtoToItem(dto: unknown): CommentItem {
+    const id = this.readString(dto, 'id') || this.cryptoId();
+    const authorRaw = this.readUnknown(dto, 'author');
     const author =
-      typeof dto.author === 'string'
-        ? dto.author
-        : (this.readString(dto.author, 'displayName') ||
-           this.readString(dto.author, 'username') ||
-           'username');
+      typeof authorRaw === 'string'
+        ? authorRaw
+        : (this.readString(authorRaw, 'username') ||
+          'username');
 
-    const createdAt = this.readString(dto as unknown, 'createdAt', new Date().toISOString());
-    const likes = this.readNumber(dto as unknown, 'likes', 0);
-    const dislikes = this.readNumber(dto as unknown, 'dislikes', 0);
-    const userReaction = this.readReaction(dto as unknown, 'userReaction');
-    const replies = this.mapReplies(this.readUnknown(dto as unknown, 'replies'));
-    const ratingVal = this.readNumber(dto as unknown, 'rating', NaN);
+    const text = this.readString(dto, 'text');
+    const createdAt = this.readString(dto, 'createdAt', new Date().toISOString());
+    const likes = this.readNumber(dto, 'likes', 0);
+    const dislikes = this.readNumber(dto, 'dislikes', 0);
+    const userReaction = this.readReaction(dto, 'userReaction');
+    const replies = this.mapReplies(this.readUnknown(dto, 'replies'));
+    const ratingVal = this.readNumber(dto, 'rating', NaN);
 
     return {
-      id: dto.id,
+      id,
       author,
-      text: dto.text,
+      text,
       createdAt,
       likes,
       dislikes,
@@ -298,9 +281,8 @@ export class AlbumDetailsComponent {
       const author =
         typeof authorRaw === 'string'
           ? authorRaw
-          : (this.readString(authorRaw, 'displayName') ||
-             this.readString(authorRaw, 'username') ||
-             'username');
+          : (this.readString(authorRaw, 'username') ||
+            'username');
       return {
         id,
         author,
@@ -313,7 +295,7 @@ export class AlbumDetailsComponent {
     });
   }
 
-  // ---------------- Template helpers used by your HTML ----------------
+  // ================ Template Helpers ================
 
   splitArtists(): string[] {
     return (this.albumArtists() || '')
@@ -345,16 +327,7 @@ export class AlbumDetailsComponent {
     return [base, ''];
   }
 
-  toggleFavorite(): void {
-    this.isFavorited.update(f => !f);
-    const id = this.albumId();
-    if (!id) return;
-    this.api.toggleAlbumFavorite(id, this.isFavorited()).pipe(take(1)).subscribe({
-      error: () => this.isFavorited.update(f => !f), // rollback on error
-    });
-  }
-
-  // ---------------- Comment modal flows (used by HTML) ----------------
+  // ================ Comment Modal ================
 
   openCommentModal(): void {
     this.editingId.set(null);
@@ -406,7 +379,11 @@ export class AlbumDetailsComponent {
   }
 
   submitComment(): void {
-    if (!this.canSubmit()) { this.commentForm.markAllAsTouched(); return; }
+    if (!this.canSubmit()) {
+      this.commentForm.markAllAsTouched();
+      return;
+    }
+
     const raw = this.commentForm.get('text')?.value ?? '';
     const text = String(raw).trim() || '';
     const ratingToAttach = this.commentRating() || undefined;
@@ -438,14 +415,19 @@ export class AlbumDetailsComponent {
       }];
     });
 
-    // Persist create/update
+    // Persist
     const id = this.albumId();
     const editingIdNow = this.editingId();
     if (id) {
       (editingIdNow
         ? this.api.updateComment(editingIdNow, { text, rating: ratingToAttach ?? null })
         : this.api.createComment(id, { text, rating: ratingToAttach ?? null })
-      ).pipe(take(1)).subscribe({ error: () => this.error.set('Failed to save comment') });
+      ).pipe(take(1)).subscribe({
+        error: (err) => {
+          console.error('Failed to save comment:', err);
+          this.error.set('Failed to save comment');
+        }
+      });
     }
 
     // Reset modal
@@ -457,7 +439,7 @@ export class AlbumDetailsComponent {
     if (ratingToAttach) this.userRating.set(ratingToAttach);
   }
 
-  // ---------------- Inline edit + replies (used by HTML) ----------------
+  // ================ Inline Edit + Replies ================
 
   setEditRating(rating: number): void {
     this.editRating.set(rating);
@@ -470,7 +452,10 @@ export class AlbumDetailsComponent {
   }
 
   submitEdit(commentId: string): void {
-    if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
     const raw = this.editForm.get('text')?.value ?? '';
     const text = String(raw).trim();
     if (!text) return;
@@ -486,7 +471,10 @@ export class AlbumDetailsComponent {
     );
 
     this.api.updateComment(commentId, { text, rating: ratingToAttach ?? null }).pipe(take(1)).subscribe({
-      error: () => this.error.set('Failed to update comment'),
+      error: (err) => {
+        console.error('Failed to update comment:', err);
+        this.error.set('Failed to update comment');
+      },
     });
 
     this.cancelEdit();
@@ -499,7 +487,10 @@ export class AlbumDetailsComponent {
   }
 
   submitEditReply(parentId: string, replyId: string): void {
-    if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
     const raw = this.editForm.get('text')?.value ?? '';
     const text = String(raw).trim();
     if (!text) return;
@@ -514,7 +505,6 @@ export class AlbumDetailsComponent {
       }),
     );
 
-    // If you add a replies update API later, call it here
     this.cancelEdit();
   }
 
@@ -539,12 +529,12 @@ export class AlbumDetailsComponent {
       list.map(c =>
         c.id === parentId
           ? {
-              ...c,
-              replies: [
-                ...(c.replies ?? []),
-                { id: tempId, author: this.username, text, createdAt: new Date().toISOString(), likes: 0, dislikes: 0, userReaction: null },
-              ],
-            }
+            ...c,
+            replies: [
+              ...(c.replies ?? []),
+              { id: tempId, author: this.username, text, createdAt: new Date().toISOString(), likes: 0, dislikes: 0, userReaction: null },
+            ],
+          }
           : c,
       ),
     );
@@ -557,29 +547,33 @@ export class AlbumDetailsComponent {
             const idx = c.replies.findIndex(r => r.id === tempId);
             if (idx === -1) return c;
             const next = c.replies.slice();
-            const sr = serverReply as Record<string, unknown>;
             next[idx] = {
-              id: String(sr['id'] ?? tempId),
-              author: typeof sr['author'] === 'string'
-                ? String(sr['author'])
-                : (this.readString(sr['author'], 'displayName') || this.readString(sr['author'], 'username') || 'username'),
-              text: String(sr['text'] ?? text),
-              createdAt: String(sr['createdAt'] ?? new Date().toISOString()),
-              likes: typeof sr['likes'] === 'number' ? (sr['likes'] as number) : 0,
-              dislikes: typeof sr['dislikes'] === 'number' ? (sr['dislikes'] as number) : 0,
-              userReaction: this.readReaction(serverReply as unknown, 'userReaction'),
+              id: this.readString(serverReply, 'id', tempId),
+              author: typeof this.readUnknown(serverReply, 'author') === 'string'
+                ? String(this.readUnknown(serverReply, 'author'))
+                : (this.readString(this.readUnknown(serverReply, 'author'), 'displayName') ||
+                  this.readString(this.readUnknown(serverReply, 'author'), 'username') ||
+                  'username'),
+              text: this.readString(serverReply, 'text', text),
+              createdAt: this.readString(serverReply, 'createdAt', new Date().toISOString()),
+              likes: this.readNumber(serverReply, 'likes', 0),
+              dislikes: this.readNumber(serverReply, 'dislikes', 0),
+              userReaction: this.readReaction(serverReply, 'userReaction'),
             };
             return { ...c, replies: next };
           }),
         );
       },
-      error: () => this.error.set('Failed to add reply'),
+      error: (err) => {
+        console.error('Failed to add reply:', err);
+        this.error.set('Failed to add reply');
+      },
     });
 
     this.closeReply();
   }
 
-  // ---------------- Reactions ----------------
+  // ================ Reactions ================
 
   toggleLike(targetId: string): void {
     this.comments.update(list =>
@@ -611,7 +605,10 @@ export class AlbumDetailsComponent {
 
   private persistReaction(targetId: string, reaction: Reaction): void {
     this.api.reactToComment(targetId, reaction).pipe(take(1)).subscribe({
-      error: () => this.error.set('Failed to update reaction'),
+      error: (err) => {
+        console.error('Failed to update reaction:', err);
+        this.error.set('Failed to update reaction');
+      },
     });
   }
 
@@ -625,18 +622,34 @@ export class AlbumDetailsComponent {
     let next: Reaction = current;
 
     if (action === 'like') {
-      if (current === 'like') { likes = Math.max(0, likes - 1); next = null; }
-      else if (current === 'dislike') { dislikes = Math.max(0, dislikes - 1); likes += 1; next = 'like'; }
-      else { likes += 1; next = 'like'; }
+      if (current === 'like') {
+        likes = Math.max(0, likes - 1);
+        next = null;
+      } else if (current === 'dislike') {
+        dislikes = Math.max(0, dislikes - 1);
+        likes += 1;
+        next = 'like';
+      } else {
+        likes += 1;
+        next = 'like';
+      }
     } else {
-      if (current === 'dislike') { dislikes = Math.max(0, dislikes - 1); next = null; }
-      else if (current === 'like') { likes = Math.max(0, likes - 1); dislikes += 1; next = 'dislike'; }
-      else { dislikes += 1; next = 'dislike'; }
+      if (current === 'dislike') {
+        dislikes = Math.max(0, dislikes - 1);
+        next = null;
+      } else if (current === 'like') {
+        likes = Math.max(0, likes - 1);
+        dislikes += 1;
+        next = 'dislike';
+      } else {
+        dislikes += 1;
+        next = 'dislike';
+      }
     }
     return { ...item, likes, dislikes, userReaction: next };
   }
 
-  // ---------------- Utilities ----------------
+  // ================ Utilities ================
 
   autoResize(event: Event): void {
     const textarea = event.target as HTMLTextAreaElement;
@@ -648,61 +661,29 @@ export class AlbumDetailsComponent {
     if (!obj || typeof obj !== 'object') return undefined;
     return (obj as Record<string, unknown>)[key];
   }
+
   private readString(obj: unknown, key: string, fallback = ''): string {
     const v = this.readUnknown(obj, key);
     return typeof v === 'string' ? v : fallback;
   }
+
   private readNumber(obj: unknown, key: string, fallback = 0): number {
     const v = this.readUnknown(obj, key);
     return typeof v === 'number' && Number.isFinite(v) ? v : fallback;
   }
+
   private readReaction(obj: unknown, key: string): Reaction {
     const v = this.readUnknown(obj, key);
     return v === 'like' || v === 'dislike' ? v : null;
   }
+
   private cryptoId(): string {
-    // Use Web Crypto if available
     try {
       const arr = new Uint8Array(6);
       crypto.getRandomValues(arr);
       return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('').slice(0, 10);
     } catch {
       return Math.random().toString(36).slice(2, 12);
-    }
-  }
-
-  private seedIfMock(): void {
-    // Seed album
-    this.api.getAlbumById('demo').pipe(take(1)).subscribe(a => {
-      const album = a as Record<string, unknown>;
-      this.title = String(album['title'] ?? 'Demo Album');
-      this.albumArtists.set(String(album['artistNames'] ?? 'Demo Artist'));
-      const y = typeof album['year'] === 'number' ? (album['year'] as number) : Number.parseInt(String(album['year'] ?? ''), 10);
-      this.year = Number.isFinite(y) ? y : null;
-      this.coverUrl = String(album['coverUrl'] ?? this.coverUrl);
-
-      // seed tracks from album mock if present
-      const mapped = this.mapTracksFromAlbumObject(album);
-      if (mapped.length) this.tracks.set(mapped);
-    });
-
-    // Seed comments
-    this.api.getComments('demo', 1, 10).pipe(take(1)).subscribe(r => {
-      const itemsUnknown = this.readUnknown(r, 'items');
-      const list: unknown[] = Array.isArray(itemsUnknown) ? itemsUnknown : [];
-      this.comments.set(list.map(i => this.mapCommentDtoToItem(i as CommentDto)));
-    });
-
-    // Fallback seed tracks if still empty
-    if (!this.tracks().length) {
-      this.tracks.set([
-        { id: 't1', title: 'Song 1', duration: '3:42' },
-        { id: 't2', title: 'Song 2', duration: '4:05' },
-        { id: 't3', title: 'Song 3', duration: '2:58' },
-        { id: 't4', title: 'Song 4', duration: '3:13' },
-        { id: 't5', title: 'Song 5', duration: '5:01' },
-        { id: 't6', title: 'Song 6', duration: '3:27' },
-      ]);
     }
   }
 }
