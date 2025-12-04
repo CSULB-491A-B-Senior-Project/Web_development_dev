@@ -44,7 +44,7 @@ export const routes: Routes = [
           .then(m => m.Explore)
       },
       {
-        path: 'album-details',
+        path: 'albums/:id',
         component: AlbumDetailsComponent
       },
       {

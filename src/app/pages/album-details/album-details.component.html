@@ -16,7 +16,6 @@
             <button
               class="favorite-button"
               [class.is-favorited]="isFavorited()"
-              (click)="toggleFavorite()"
               [attr.aria-pressed]="isFavorited()"
               [title]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'">
               <i class="fa-heart" [class.fa-solid]="isFavorited()" [class.fa-regular]="!isFavorited()" aria-hidden="true"></i>

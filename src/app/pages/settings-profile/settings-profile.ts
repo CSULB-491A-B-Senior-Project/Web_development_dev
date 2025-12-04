@@ -4,7 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { of, take } from 'rxjs';
-
+import { HttpClient } from '@angular/common/http';
 import { ProfileService } from '../../services/profile.service';
 import { MusicSearchService } from '../../services/music-search.service';
 import { Artist, Album, Song } from '../../models/music.models';
@@ -28,8 +28,9 @@ import { ApiService } from '../../api.service';
 })
 export class SettingsProfile implements AfterViewInit {
   #nfb = inject(NonNullableFormBuilder); // added for non-nullable controls
-  #profileService = inject(ProfileService);
+  #profileService = inject(ProfileService) as any;
   #musicSearchService = inject(MusicSearchService);
+  #http = inject(HttpClient);
 
   // Signals
   profilePictureUrl = signal<string>('/assets/default-profile.png');
@@ -88,11 +89,13 @@ export class SettingsProfile implements AfterViewInit {
     private apiService: ApiService,
     private router: Router
   ) {
-    this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
+    this.#profileService.getProfile().pipe(take(1)).subscribe((p: any) => {
       const bio = p.bio ?? '';
       this.bioForm.patchValue({ bio }, { emitEvent: false });
       this.bioForm.markAsPristine();
-      this.profilePictureUrl.set(p.profilePictureUrl);
+      this.profilePictureUrl.set(
+        p.profilePictureUrl ?? '/assets/default-profile.png'
+      );
       this.favoriteSong.set(p.favoriteSong);
       this.favoriteArtists.set(p.favoriteArtists);
       this.favoriteAlbums.set(p.favoriteAlbums);
@@ -129,8 +132,8 @@ export class SettingsProfile implements AfterViewInit {
         const filtered = res.filter(a => {
           if (!term) return true;
           const name = a.name.toLowerCase();
-          const artist = a.artist.artistName.toLowerCase();
-          return name.includes(term) || artist.includes(term);
+          const artistName = (a.artist?.artistName ?? '').toLowerCase();
+          return name.includes(term) || artistName.includes(term);
         });
         this._albumResultsRaw.set(filtered);
         this.loadingAlbumSearch.set(false);
@@ -193,7 +196,7 @@ export class SettingsProfile implements AfterViewInit {
     form.append('image', file);
 
     this.#http.post<{ url: string }>('/api/profile/image', form).subscribe({
-      next: ({ url }) => {
+      next: ({ url }: { url: string }) => {
         // cache-bust to ensure fresh image
         this.profilePictureUrl.set(url + '?v=' + Date.now());
       },
@@ -296,8 +299,8 @@ export class SettingsProfile implements AfterViewInit {
         const term = q.toLowerCase();
         const filtered = res.filter(a => {
           const name = a.name.toLowerCase();
-          const artist = a.artist.artistName.toLowerCase();
-          return name.includes(term) || artist.includes(term);
+          const artistName = (a.artist?.artistName ?? '').toLowerCase();
+          return name.includes(term) || artistName.includes(term);
         });
         this._albumResultsRaw.set(filtered);
       });
