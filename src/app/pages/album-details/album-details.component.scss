@@ -90,9 +90,13 @@
   flex-direction: column;
   align-items: center;
   max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+  margin: 16px auto;
+  padding: 3rem 2rem;
   color: white;
+  background: var(--other3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  border-radius: 14px;
   // Section dividers
   .album-header,
   .tracklist,
@@ -100,7 +104,7 @@
     width: 100%;
     margin-bottom: 2.5rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
   }
 }
 
@@ -239,10 +243,15 @@
   }
 
   ul {
+    background: #0f0f0f;
+    border-radius: 6px;
     list-style: none;
     padding: 0;
     margin: 0;
     counter-reset: track;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 48px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   }
 
   li {
@@ -252,7 +261,6 @@
     align-items: center;
     gap: 1rem;
     padding: 0.6rem 1rem;
-    border-radius: 6px;
     transition: background-color 150ms ease;
 
     &:nth-child(even) {
@@ -260,7 +268,7 @@
     }
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.05);
+      background-color: rgba(208, 176, 255, 0.2);
 
       .track-name {
         color: var(--txt-primary);
@@ -532,28 +540,34 @@
 // FORMS & TEXTAREAS
 // ============================================================================
 
-.expanding-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 6px;
-  border: 1px solid var(--input-border);
-  background: var(--input-color);
-  color: inherit;
+.form-control {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  font: inherit;
+  font-size: 1rem;
   resize: none;
   overflow: hidden;
   box-sizing: border-box;
-  font-family: inherit;
   line-height: 1.5;
-  transition: border-color 150ms ease, background-color 150ms ease;
+  width: 100%;
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: #696d76;
   }
 
   &:focus {
-    border-color: var(--input-border-purp);
-    background: rgba(255, 255, 255, 0.03);
     outline: none;
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(167, 139, 250, 0.5);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+  }
+
+  &:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.2);
   }
   // Size variants
   .comment > form &,
@@ -568,6 +582,30 @@
     max-height: 160px;
   }
 }
+  /*width: 100%;
+  color: var(--text);
+  background: var(--input-color);
+  border: 1px solid var(--input-border-purp);
+  border-radius: 4px;
+  padding: 12px 12px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  line-height: 1.5;
+
+  &::placeholder {
+    color: #696d76;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+}*/
 
 // Form actions (button row)
 .modal-actions {
@@ -577,38 +615,6 @@
   gap: 0.75rem;
   margin-top: 0.75rem;
 
-  .btn {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 150ms ease, transform 100ms ease;
-    // Default / cancel button
-    background: transparent;
-    border: 1px solid var(--input-border);
-    color: white;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
-    // Primary action button
-    &.primary {
-      background: var(--btn-primary);
-      color: black;
-      border-color: var(--btn-primary);
-
-      &:hover {
-        background: var(--btn-hover);
-      }
-
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.2);
-      }
-    }
-  }
 }
 
 // Inline comment rating in forms
@@ -633,34 +639,50 @@
 // ============================================================================
 // MODAL
 // ============================================================================
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 999;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 60;
-  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .modal {
-  background: var(--other3);
-  color: white;
+  background: rgba(26, 26, 26, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   width: 100%;
   max-width: 640px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-  outline: none;
-
-  h3 {
-    margin: 0 0 1rem;
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
+  animation: slideUp 0.2s ease-out;
 
   .modal-author {
     font-size: 0.95rem;
