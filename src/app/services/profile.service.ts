@@ -158,10 +158,10 @@ export class ProfileService {
   }
 
   // Crescendo API: DELETE /v1/Users/me
-  deleteProfile(): Observable<void> {
-    if (this.#mock) return of(void 0);
-    return this.#http.delete<void>(`${this.#apiUrl}/v1/Users/me`);
-  }
+  // deleteProfile(): Observable<void> {
+  //   if (this.#mock) return of(void 0);
+  //   return this.#http.delete<void>(`${this.#apiUrl}/v1/Users/me`);
+  // }
 
   // Crescendo API: PUT /v1/Users/me/password
   changePassword(currentPassword: string, newPassword: string): Observable<void> {
@@ -177,41 +177,61 @@ export class ProfileService {
 
   updateBio(bio: string): Observable<void> {
     if (this.#mock) return of(void 0);
-    throw new Error('No /profile/bio endpoint in Crescendo v1. Use PUT /v1/Users/me to update bio.');
+    return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/bio`, { bio });
   }
 
-  updateFavoriteSong(song: Song | null): Observable<void> {
+  updateFavoriteSong(songId: string | null): Observable<void> {
+  if (this.#mock) return of(void 0);
+  return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/favorite-song`, { favoriteSongId: songId });
+}
+
+  // followArtist(): Observable<void> {
+  //   if (this.#mock) return of(void 0);
+  //   throw new Error('Follow artist is not defined in Crescendo v1. Add backend support or remove UI.');
+  // }
+
+  // unfollowArtist(): Observable<void> {
+  //   if (this.#mock) return of(void 0);
+  //   throw new Error('Unfollow artist is not defined in Crescendo v1. Add backend support or remove UI.');
+  // }
+
+  getFavoriteArtists(): Observable<Artist[]> {
+    if (this.#mock) return of(this.#mockProfile().favoriteArtists ?? []);
+    return this.#http.get<Artist[]>(`${this.#apiUrl}/v1/Users/me/favorite-artists`);
+  }
+
+  updateFavoriteArtistRanks(rankedArtists: { artistId: string; rank: number }[]): Observable<void> {
     if (this.#mock) return of(void 0);
-    throw new Error('Favorites API not defined in Crescendo v1. Add backend support or remove UI.');
+    return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/favorite-artists`, { artists: rankedArtists });
   }
 
-  followArtist(): Observable<void> {
+  getFavoriteAlbums(): Observable<Album[]> {
+    if (this.#mock) return of(this.#mockProfile().favoriteAlbums ?? []);
+    return this.#http.get<Album[]>(`${this.#apiUrl}/v1/Users/me/favorite-albums`);
+  }
+
+  addFavoriteAlbum(albumId: string): Observable<void> {
     if (this.#mock) return of(void 0);
-    throw new Error('Follow artist is not defined in Crescendo v1. Add backend support or remove UI.');
+    return this.#http.post<void>(`${this.#apiUrl}/v1/Users/me/favorite-albums`, { albumId });
   }
 
-  unfollowArtist(): Observable<void> {
+  removeFavoriteAlbum(albumId: string): Observable<void> {
     if (this.#mock) return of(void 0);
-    throw new Error('Unfollow artist is not defined in Crescendo v1. Add backend support or remove UI.');
+    return this.#http.delete<void>(`${this.#apiUrl}/v1/Users/me/favorite-albums/${albumId}`);
   }
 
-  updateFavoriteArtists(): Observable<void> {
+  // uploadProfilePicture(): Observable<{ url: string }> {
+  //   if (this.#mock) return of({ url: 'https://picsum.photos/seed/new-profile/600/600' });
+  //   throw new Error('Profile picture upload is not defined in Crescendo v1.');
+  // }
+
+  // uploadBackgroundImage(): Observable<{ url: string }> {
+  //   if (this.#mock) return of({ url: 'https://picsum.photos/seed/new-background/1200/600' });
+  //   throw new Error('Background image upload is not defined in Crescendo v1.');
+  // }
+
+  confirmUpload(filePath: string, type: 'profile' | 'bg'): Observable<{ url?: string } | void> {
     if (this.#mock) return of(void 0);
-    throw new Error('Favorite artists endpoint is not defined in Crescendo v1.');
-  }
-
-  updateFavoriteAlbums(): Observable<void> {
-    if (this.#mock) return of(void 0);
-    throw new Error('Favorite albums endpoint is not defined in Crescendo v1.');
-  }
-
-  uploadProfilePicture(): Observable<{ url: string }> {
-    if (this.#mock) return of({ url: 'https://picsum.photos/seed/new-profile/600/600' });
-    throw new Error('Profile picture upload is not defined in Crescendo v1.');
-  }
-
-  uploadBackgroundImage(): Observable<{ url: string }> {
-    if (this.#mock) return of({ url: 'https://picsum.photos/seed/new-background/1200/600' });
-    throw new Error('Background image upload is not defined in Crescendo v1.');
+    return this.#http.post<{ url?: string }>(`${this.#apiUrl}/v1/Users/confirm-upload`, { filePath, type });
   }
 }

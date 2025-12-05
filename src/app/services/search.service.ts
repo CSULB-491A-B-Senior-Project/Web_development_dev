@@ -162,18 +162,31 @@ export class SearchService {
   }
 
   private transformAlbums(albums: AlbumResult[]): SearchItem[] {
-    return albums.map(album => ({
-      id: album.id,
-      username: album.artistName,
-      title: album.title,
-      genres: album.genres || [],
-      dateLabel: album.releaseDate ? new Date(album.releaseDate).getFullYear().toString() : '',
-      imageUrl: album.coverArt || '/assets/placeholder.png',
-      isArtist: false,
-      favorites: 0,
-      rating: 0,
-      type: 'album' as const
-    }));
+    return albums.map(album => {
+      // Fallback: use artistNames (comma/pipe/semicolon separated) if artistName is missing
+      interface AlbumWithArtistNames extends AlbumResult {
+        artistNames?: string;
+      }
+
+      const artist: string =
+        album.artistName ||
+        (typeof (album as AlbumWithArtistNames).artistNames === 'string'
+          ? (album as AlbumWithArtistNames).artistNames?.split(/[|,;]/).map((s: string) => s.trim()).filter(Boolean)[0] ?? ''
+          : '');
+
+      return {
+        id: album.id,
+        username: artist, // normalized artist name
+        title: album.title,
+        genres: album.genres || [],
+        dateLabel: album.releaseDate ? new Date(album.releaseDate).getFullYear().toString() : '',
+        imageUrl: album.coverArt || '/assets/placeholder.png',
+        isArtist: false,
+        favorites: 0,
+        rating: 0,
+        type: 'album' as const
+      };
+    });
   }
 
   private transformArtists(artists: ArtistResult[]): SearchItem[] {
