@@ -1,9 +1,20 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http'; import { of, Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { of, Observable } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 type Reaction = 'like' | 'dislike' | null;
+interface CommentDto {
+  id: string;
+  albumId: string;
+  parentCommentId?: string;
+  userId: string;
+  username: string;
+  text: string;
+  createdDate: string;
+  editedDate: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AlbumReviewsService {
@@ -24,106 +35,192 @@ export class AlbumReviewsService {
   }
 
   getComments(albumId: string, page = 1, pageSize = 50): Observable<any> {
-    const params = new HttpParams()
-      .set('pageNumber', String(page))
-      .set('pageSize', String(pageSize));
-
-    // If your API doesn’t support paging yet, it will just ignore these params.
-    return this.#http.get<any>(
-      `${this.#apiUrl}/Comments/albumComments/${albumId}`,
-      { params }
+    return this.#http.get<CommentDto[]>(
+      `${this.#apiUrl}/v1/Comments/albumComments/${albumId}`
+    ).pipe(
+      map(comments => {
+        return this.buildCommentTree(comments);
+      })
     );
   }
 
   /**
-   * Creates a new top-level comment on an album.
-   * album-details calls: createComment(albumId, { text, rating })
+   * Builds a nested comment tree from flat array
+   * Comments with parentCommentId become replies to their parent
+   */
+  private buildCommentTree(comments: CommentDto[]): any {
+    const topLevel = comments.filter(c => !c.parentCommentId);
+
+    return topLevel.map(comment => ({
+      id: comment.id,
+      author: comment.username,
+      text: comment.text,
+      createdAt: comment.createdDate,
+      likes: 0,
+      dislikes: 0,
+      userReaction: null,
+      replies: comments
+        .filter(c => c.parentCommentId === comment.id)
+        .map(reply => ({
+          id: reply.id,
+          author: reply.username,
+          text: reply.text,
+          createdAt: reply.createdDate,
+          likes: 0,
+          dislikes: 0,
+          userReaction: null
+        }))
+    }));
+  }
+
+  /**
+   * POST /v1/Comments
+   * Creates a new top-level comment on an album
    */
   createComment(
     albumId: string,
-    payload: { text: string; rating: number | null }
+    payload: { text: string }
   ): Observable<any> {
-    return this.#http.post<any>(`${this.#apiUrl}/Comments`, {
+    return this.#http.post<CommentDto>(`${this.#apiUrl}/v1/Comments`, {
       albumId,
       text: payload.text,
-      rating: payload.rating,
-    });
+      parentCommentId: null
+    }).pipe(
+      map(dto => ({
+        id: dto.id,
+        author: dto.username,
+        text: dto.text,
+        createdAt: dto.createdDate,
+        likes: 0,
+        dislikes: 0,
+        userReaction: null,
+        replies: []
+      }))
+    );
   }
 
   /**
-   * Updates an existing comment.
-   * album-details calls: updateComment(commentId, { text, rating })
-   *
-   * This assumes your backend exposes PUT /v1/Comments/{id}
-   * (if it’s PATCH instead, just change to this.http.patch).
+   * Updates an existing comment (not working yet)
    */
   updateComment(
     commentId: string,
-    payload: { text: string; rating: number | null }
+    payload: { text: string; }
   ): Observable<any> {
-    return this.#http.put<any>(`${this.#apiUrl}/Comments/${commentId}`, {
-      text: payload.text,
-      rating: payload.rating,
-    });
+    return this.#http.put<CommentDto>(`${this.#apiUrl}/v1/Comments/${commentId}`, {
+      text: payload.text
+    }).pipe(
+      map(dto => ({
+        id: dto.id,
+        author: dto.username,
+        text: dto.text,
+        createdAt: dto.createdDate,
+        likes: 0,
+        dislikes: 0,
+        userReaction: null,
+        replies: []
+      }))
+    );
   }
 
   /**
-   * Adds a reply to a comment.
-   * album-details calls: addReply(parentId, { text })
-   *
-   * Here I’m assuming replies are modeled as Comments with a parentCommentId.
-   * If your API has a dedicated /Replies endpoint, just change the URL/body.
+   * POST /v1/Comments with parentCommentId
+   * Adds a reply to a comment
    */
   addReply(
     parentCommentId: string,
-    payload: { text: string }
+    payload: { text: string; albumId: string }
   ): Observable<any> {
-    return this.#http.post<any>(`${this.#apiUrl}/Comments`, {
-      parentCommentId,
-      text: payload.text,
-    });
+    return this.#http.post<CommentDto>(`${this.#apiUrl}/v1/Comments`, {
+      albumId: payload.albumId,
+      parentCommentId: parentCommentId,
+      text: payload.text
+    }).pipe(
+      map(dto => ({
+        id: dto.id,
+        author: dto.username,
+        text: dto.text,
+        createdAt: dto.createdDate,
+        likes: 0,
+        dislikes: 0,
+        userReaction: null
+      }))
+    );
   }
 
   /**
-   * Loads a single comment; handy if you ever need to refresh one.
+   * GET /v1/Comments/{id}
+   * Loads a single comment
    */
-  getCommentById(commentId: string): Observable<any> {
-    return this.#http.get<any>(`${this.#apiUrl}/Comments/${commentId}`);
+  getCommentById(commentId: string): Observable<CommentDto> {
+    return this.#http.get<CommentDto>(`${this.#apiUrl}/v1/Comments/${commentId}`);
   }
 
   /**
-   * Reacts to a comment.
-   * album-details calls: reactToComment(commentId, reaction)
-   *
-   * From your Swagger:
-   *   POST   /v1/CommentLikes/{commentId}/like
-   *   DELETE /v1/CommentLikes/{commentId}/like
-   *
-   * I’ve mapped:
-   *   'like'  -> POST  /like
-   *   null    -> DELETE /like (remove like)
-   *   'dislike' -> placeholder; adjust to your real backend endpoint.
+   * POST /v1/CommentLikes/{commentId}/like
+   * DELETE /v1/CommentLikes/{commentId}/like
    */
   reactToComment(
     commentId: string,
     reaction: Reaction
   ): Observable<any> {
     if (reaction === 'like') {
-      return this.#http.post<any>(
-        `${this.#apiUrl}/CommentLikes/${commentId}/like`,
+      return this.#http.post<void>(
+        `${this.#apiUrl}/v1/CommentLikes/${commentId}/like`,
         {}
       );
     }
 
     if (reaction === null) {
-      // remove like / clear reaction
-      return this.#http.delete<any>(
-        `${this.#apiUrl}/CommentLikes/${commentId}/like`
+      // Remove like
+      return this.#http.delete<void>(
+        `${this.#apiUrl}/v1/CommentLikes/${commentId}/like`
       );
     }
 
-    // 'dislike' case – adjust if your API has a proper dislike endpoint
-    // e.g. POST /v1/CommentLikes/{commentId}/dislike
+    // 'dislike' - not supported
+    console.warn('Dislike not supported by API');
     return of(null);
+  }
+
+  /**
+   * GET /v1/CommentLikes/{commentId}
+   * Gets like count for a comment
+   */
+  getCommentLikes(commentId: string): Observable<any> {
+    return this.#http.get<any>(`${this.#apiUrl}/v1/CommentLikes/${commentId}`);
+  }
+
+  /**
+ * POST /v1/Ratings
+ * Creates or updates a rating for an album (upsert)
+ */
+  createOrUpdateRating(
+    albumId: string,
+    ratingValue: number
+  ): Observable<any> {
+    return this.#http.post<any>(`${this.#apiUrl}/v1/Ratings`, {
+      albumId,
+      ratingValue
+    });
+  }
+
+  /**
+   * GET /v1/Ratings/albumRating/{albumId}
+   * Gets all ratings for an album
+   */
+  getAlbumRatings(albumId: string): Observable<any[]> {
+    return this.#http.get<any[]>(
+      `${this.#apiUrl}/v1/Ratings/albumRating/${albumId}`
+    );
+  }
+
+  /**
+   * GET /v1/Ratings/albumRating/{albumId}/user/{userId}
+   * Gets a specific user's rating for an album
+   */
+  getUserRating(albumId: string, userId: string): Observable<any> {
+    return this.#http.get<any>(
+      `${this.#apiUrl}/v1/Ratings/albumRating/${albumId}/user/${userId}`
+    );
   }
 }

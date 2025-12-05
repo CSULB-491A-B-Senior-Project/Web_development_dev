@@ -4,6 +4,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { take } from 'rxjs';
 import { AlbumReviewsService } from '../../services/album-reviews.service';
+import { AccountService } from '../../services/account.service';
+import { UserAccount } from '../../models/account.models';
 
 // Local types
 type Reaction = 'like' | 'dislike' | null;
@@ -53,8 +55,9 @@ export class AlbumDetailsComponent {
   // Favorite toggle
   isFavorited = signal(false);
 
-  // Current user placeholder
-  username = 'username';
+  // Current user from account service
+  private readonly accountService = inject(AccountService);
+  username = signal<string>('');
 
   // Tracklist and comments
   tracks = signal<TrackItem[]>([]);
@@ -94,7 +97,7 @@ export class AlbumDetailsComponent {
   userRating = signal<number>(0);
   editRating = signal<number>(0);
 
-  userReviewIndex = computed(() => this.comments().findIndex(c => c.author === this.username));
+  userReviewIndex = computed(() => this.comments().findIndex(c => c.author === this.username()));
 
   // Backend wiring
   private readonly api = inject(AlbumReviewsService);
@@ -103,6 +106,8 @@ export class AlbumDetailsComponent {
   albumId = signal<string>('');
   loading = signal(false);
   error = signal<string | null>(null);
+  userId = signal<string>('');
+  userAlbumRating = signal<number>(0);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -113,9 +118,23 @@ export class AlbumDetailsComponent {
       return;
     }
 
+    // Load current user
+    this.accountService.getAccount().subscribe({
+      next: (account: UserAccount) => {
+        this.username.set(account.username);
+        this.userId.set(account.id);
+        console.log('Loaded username:', account.username);
+        this.loadUserRating(id, account.id);
+      },
+      error: (err) => {
+        console.error('Failed to load account:', err);
+      }
+    });
+
     this.loadAlbum(id);
     this.loadComments(id);
     this.loadTracks(id);
+    this.loadAlbumRatings(id);
   }
 
   // ================ Album Loading ================
@@ -200,10 +219,12 @@ export class AlbumDetailsComponent {
 
   private mapTrackDto(raw: unknown, idx: number): TrackItem {
     const id =
-      this.readString(raw, 'id')
+      this.readString(raw, 'id') ||
       String(idx + 1);
     const title =
-      this.readString(raw, 'name');
+      this.readString(raw, 'name') ||
+      this.readString(raw, 'title') ||
+      `Track ${idx + 1}`;
     const durationSec = this.readNumber(raw, 'duration', NaN);
     const durationStr =
       Number.isFinite(durationSec) ? this.formatSeconds(durationSec) :
@@ -240,6 +261,32 @@ export class AlbumDetailsComponent {
         this.error.set('Failed to load comments');
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadAlbumRatings(albumId: string): void {
+    this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
+      next: (ratings) => {
+        console.log('Loaded album ratings:', ratings);
+      },
+      error: (err) => {
+        console.warn('Failed to load album ratings:', err);
+      }
+    });
+  }
+
+  private loadUserRating(albumId: string, userId: string): void {
+    this.api.getUserRating(albumId, userId).pipe(take(1)).subscribe({
+      next: (rating) => {
+        this.userAlbumRating.set(rating.ratingValue);
+        this.commentRating.set(rating.ratingValue); // Pre-fill modal
+        console.log('User rating:', rating.ratingValue);
+      },
+      error: (err) => {
+        // 404 means user hasn't rated yet - this is normal
+        console.log('No existing rating for user');
+        this.userAlbumRating.set(0);
+      }
     });
   }
 
@@ -388,40 +435,66 @@ export class AlbumDetailsComponent {
     const text = String(raw).trim() || '';
     const ratingToAttach = this.commentRating() || undefined;
 
-    // Local upsert
+    if (ratingToAttach) {
+      this.api.createOrUpdateRating(this.albumId(), ratingToAttach)
+        .pipe(take(1))
+        .subscribe({
+          next: () => {
+            console.log('Rating saved:', ratingToAttach);
+            this.userAlbumRating.set(ratingToAttach);
+            // Reload album ratings to update average
+            this.loadAlbumRatings(this.albumId());
+          },
+          error: (err) => {
+            console.error('Failed to save rating:', err);
+            this.error.set('Failed to save rating');
+          }
+        });
+    }
+
+    if (!text && !this.editingId()) {
+      this.closeCommentModal();
+      return;
+    }
+
     this.comments.update(prev => {
       const editingIdNow = this.editingId();
+      const currentUsername = this.username();
       if (editingIdNow) {
-        const cleared = prev.map(c => (c.author === this.username ? { ...c, rating: undefined } : c));
-        return cleared.map(c => c.id === editingIdNow ? { ...c, text, rating: ratingToAttach, createdAt: new Date().toISOString() } : c);
+        return prev.map(c =>
+          c.id === editingIdNow
+            ? { ...c, text, createdAt: new Date().toISOString() }
+            : c
+        );
       }
-      const cleared = prev.map(c => (c.author === this.username ? { ...c, rating: undefined } : c));
-      const existingIndex = cleared.findIndex(c => c.author === this.username);
+      const existingIndex = prev.findIndex(c => c.author === currentUsername);
       if (existingIndex !== -1) {
-        const updated = cleared.slice();
-        updated[existingIndex] = { ...updated[existingIndex], text, createdAt: new Date().toISOString(), rating: ratingToAttach };
+        const updated = prev.slice();
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          text,
+          createdAt: new Date().toISOString()
+        };
         return updated;
       }
-      return [...cleared, {
+      return [...prev, {
         id: this.cryptoId(),
-        author: this.username,
+        author: currentUsername,
         text,
         createdAt: new Date().toISOString(),
         likes: 0,
         dislikes: 0,
         userReaction: null,
-        replies: [],
-        rating: ratingToAttach,
+        replies: []
       }];
     });
 
-    // Persist
     const id = this.albumId();
     const editingIdNow = this.editingId();
-    if (id) {
+    if (id && text) {
       (editingIdNow
-        ? this.api.updateComment(editingIdNow, { text, rating: ratingToAttach ?? null })
-        : this.api.createComment(id, { text, rating: ratingToAttach ?? null })
+        ? this.api.updateComment(editingIdNow, { text })
+        : this.api.createComment(id, { text })
       ).pipe(take(1)).subscribe({
         error: (err) => {
           console.error('Failed to save comment:', err);
@@ -436,8 +509,8 @@ export class AlbumDetailsComponent {
     this.confirmOverwrite.set(false);
     this.editingId.set(null);
     this.showCommentModal.set(false);
-    if (ratingToAttach) this.userRating.set(ratingToAttach);
   }
+
 
   // ================ Inline Edit + Replies ================
 
@@ -460,17 +533,15 @@ export class AlbumDetailsComponent {
     const text = String(raw).trim();
     if (!text) return;
 
-    const ratingToAttach = this.editRating() || undefined;
-
     this.comments.update(prev =>
       prev.map(c =>
         c.id === commentId
-          ? { ...c, text, rating: ratingToAttach ?? c.rating, createdAt: new Date().toISOString() }
+          ? { ...c, text, createdAt: new Date().toISOString() }
           : c,
       ),
     );
 
-    this.api.updateComment(commentId, { text, rating: ratingToAttach ?? null }).pipe(take(1)).subscribe({
+    this.api.updateComment(commentId, { text }).pipe(take(1)).subscribe({
       error: (err) => {
         console.error('Failed to update comment:', err);
         this.error.set('Failed to update comment');
@@ -481,7 +552,7 @@ export class AlbumDetailsComponent {
   }
 
   startEditReply(reply: Reply): void {
-    if (reply.author !== this.username) return;
+    if (reply.author !== this.username()) return;
     this.editForm.patchValue({ text: reply.text ?? '' });
     this.editTargetId.set(reply.id);
   }
@@ -525,6 +596,7 @@ export class AlbumDetailsComponent {
     if (!text) return;
 
     const tempId = this.cryptoId();
+    const currentUsername = this.username();
     this.comments.update(list =>
       list.map(c =>
         c.id === parentId
@@ -532,14 +604,14 @@ export class AlbumDetailsComponent {
             ...c,
             replies: [
               ...(c.replies ?? []),
-              { id: tempId, author: this.username, text, createdAt: new Date().toISOString(), likes: 0, dislikes: 0, userReaction: null },
+              { id: tempId, author: currentUsername, text, createdAt: new Date().toISOString(), likes: 0, dislikes: 0, userReaction: null },
             ],
           }
           : c,
       ),
     );
 
-    this.api.addReply(parentId, { text }).pipe(take(1)).subscribe({
+    this.api.addReply(parentId, { text, albumId: this.albumId() }).pipe(take(1)).subscribe({
       next: (serverReply: unknown) => {
         this.comments.update(list =>
           list.map(c => {
