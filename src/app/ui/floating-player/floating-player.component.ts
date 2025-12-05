@@ -1,11 +1,15 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { SpotifyPlayerService, PlayerState } from '../../services/spotify-player.service';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { CommonModule, AsyncPipe } from '@angular/common';
+
 
 @Component({
   selector: 'app-floating-player',
   templateUrl: './floating-player.component.html',
+    imports: [CommonModule, AsyncPipe, DragDropModule],
   styleUrls: ['./floating-player.component.css']
 })
 

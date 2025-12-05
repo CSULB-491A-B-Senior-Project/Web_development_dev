@@ -1,7 +1,6 @@
 <div *ngIf="isVisible && (playerState$ | async) as state" 
      class="floating-player" 
-     cdkDrag
-     cdkDragBoundary=".app-container">
+     cdkDrag>
   
   <!-- Drag Handle -->
   <div class="player-header" cdkDragHandle>
