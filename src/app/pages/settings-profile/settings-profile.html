@@ -118,7 +118,13 @@
                 <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
               </div>
             } @empty {
-              <p class="empty-list-text">No favorite artists to rank.</p>
+              <div class="artist-rank-list">
+                <div class="empty-list-text">
+                  <div class="empty-icon">🎧</div>
+                  <div class="empty-title">No favorite artists to rank</div>
+                  <div class="empty-sub">Favorite artists to build your top 10. Changes save automatically.</div>
+                </div>
+              </div>
             }
           </div>
         </div>
@@ -187,7 +193,15 @@
                 } -->
               </div>
             } @empty {
-              <p class="empty-list-text">No favorite albums yet. Search above to add some.</p>
+              <div class="album-favorites">
+                <div class="selection-list album-list">
+                  <div class="empty-list-text">
+                    <div class="empty-icon">💿</div>
+                    <div class="empty-title">No favorite albums yet</div>
+                    <div class="empty-sub">Search above and heart albums to add them. Click again to remove.</div>
+                  </div>
+                </div>
+              </div>
             }
           </div>
         </div>

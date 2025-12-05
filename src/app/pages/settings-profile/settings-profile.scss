@@ -4,6 +4,7 @@ body {
   height: 100vh;
   display: flex;
   overflow: auto;
+  // padding-bottom: 3rem;
 
   h1 {
     font-size: 2rem;
@@ -414,10 +415,35 @@ body {
       }
     }
 
+    // Enhanced empty state (shared style)
     .empty-list-text {
-      padding: 1rem;
+      padding: 1.25rem 1.5rem;
       text-align: center;
-      color: #888;
+      color: #aaa;
+      font-size: 0.95rem;
+      border: 1px dashed #444;
+      border-radius: 6px;
+      background: #181818;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+
+      &:hover {
+        background-color: #222;
+        border-color: #555;
+      }
+
+      .empty-title {
+        font-weight: 600;
+        color: #cfcfcf;
+      }
+
+      .empty-sub {
+        font-size: 0.85rem;
+        color: #9a9a9a;
+      }
     }
   }
 
@@ -476,6 +502,32 @@ body {
   border: 1px solid #444;
   border-radius: 6px;
   max-width: 480px;
+
+  // Empty state variant for artist ranking
+  .empty-list-text {
+    padding: 1.5rem;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.95rem;
+    border: 1px dashed #444;
+    border-radius: 6px;
+    background: #181818;
+
+    .empty-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .empty-title {
+      font-weight: 600;
+      color: #cfcfcf;
+    }
+
+    .empty-sub {
+      font-size: 0.85rem;
+      color: #9a9a9a;
+    }
+  }
 }
 
 .artist-rank-item {
@@ -688,11 +740,25 @@ body {
       }
     }
 
+    // Enhanced empty state for albums
     .empty-list-text {
-      padding: 1rem;
+      padding: 1.25rem 1.5rem;
       text-align: center;
-      font-size: .85rem;
+      font-size: .9rem;
       color: #8d8d8d;
+      border: 1px dashed #444;
+      border-radius: 6px;
+      background: #181818;
+
+      .empty-title {
+        font-weight: 600;
+        color: #cfcfcf;
+      }
+
+      .empty-sub {
+        font-size: 0.85rem;
+        color: #9a9a9a;
+      }
     }
   }
 }
@@ -715,6 +781,3 @@ body {
   0%,100% { transform: scale(1); }
   50% { transform: scale(1.3); }
 }
-
-
-

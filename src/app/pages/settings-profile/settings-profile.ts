@@ -97,8 +97,8 @@ export class SettingsProfile implements AfterViewInit {
         p.profilePictureUrl ?? '/assets/default-profile.png'
       );
       this.favoriteSong.set(p.favoriteSong);
-      this.favoriteArtists.set(p.favoriteArtists);
-      this.favoriteAlbums.set(p.favoriteAlbums);
+      this.favoriteArtists.set(p.favoriteArtists ?? []);
+      this.favoriteAlbums.set(p.favoriteAlbums ?? []);
     });
 
     const destroyRef = inject(DestroyRef);
