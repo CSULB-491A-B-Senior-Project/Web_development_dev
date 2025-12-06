@@ -103,17 +103,17 @@ export class MusicSearchService {
   // Crescendo does not expose generic search endpoints. Use listing endpoints or Spotify import.
   listArtists(page = 1, pageSize = 20): Observable<Artist[]> {
     if (this.#mock) return of(this.#mockArtists);
-    return this.#http.get<Artist[]>(`${this.#apiUrl}/v1/Artists`, { params: { page, pageSize } });
+    return this.#http.get<Artist[]>(`${this.#apiUrl}/v1/Search/artists`, { params: { page, pageSize } });
   }
 
   listAlbums(page = 1, pageSize = 20): Observable<Album[]> {
     if (this.#mock) return of(this.#mockAlbums);
-    return this.#http.get<Album[]>(`${this.#apiUrl}/v1/Albums`, { params: { page, pageSize } });
+    return this.#http.get<Album[]>(`${this.#apiUrl}/v1/Search/albums`, { params: { page, pageSize } });
   }
 
   listTracks(page = 1, pageSize = 50): Observable<Song[]> {
     if (this.#mock) return of(this.#mockSongs);
-    return this.#http.get<Song[]>(`${this.#apiUrl}/v1/Tracks`, { params: { page, pageSize } });
+    return this.#http.get<Song[]>(`${this.#apiUrl}/v1/Search/tracks`, { params: { page, pageSize } });
   }
 
   // Spotify import endpoints

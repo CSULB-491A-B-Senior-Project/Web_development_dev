@@ -1,195 +1,220 @@
-<body>
+<div class="settings-page">
     <div class="settings-sidebar">
-        <a class="logo" routerLink="/explore"><img src="/assets/crescendo-logo-no-text.png"/></a>
-        <h1>Settings</h1>
-        <h2 class="active">Edit Profile</h2>
-        <h2><a routerLink="/settings-account">Account</a></h2>
-        <button class="logout" (click)="onLogout()">Logout</button>
-
+      <a class="logo" routerLink="/explore"><img src="/assets/crescendo-logo-no-text.png" /></a>
+      <h1>Settings</h1>
+      <h2 class="active">Edit Profile</h2>
+      <h2><a routerLink="/settings-account">Account</a></h2>
+      <button class="logout" (click)="onLogout()">Logout</button>
     </div>
 
     <div class="settings-container">
-        <!-- CUSTOMIZE PROFILE PICTURE -->
-        <h1>Profile Picture</h1>
-        <p>Upload a new photo for your profile.</p>
-        <div class="profile-picture-container">
-          <img
-            class="profile-picture"
-            [src]="profilePictureUrl()"
-            width="100"
-            height="100"
-            alt="Current profile picture" />
-          <button type="button" class="action-button" (click)="profilePicInput.click()">
-            Change Picture
+      <!-- PROFILE PICTURE -->
+      <h1>✨ Profile Picture</h1>
+      <p><b>Show off your best self!</b> Add a photo that makes your profile uniquely yours.</p>
+      <div class="profile-picture-container">
+        <!-- Use NgOptimizedImage and [ngSrc] to match the signal -->
+        <img
+          ngOptimizedImage
+          class="profile-picture"
+          [ngSrc]="profilePictureUrl() || '/assets/default-profile.png'"
+          width="100"
+          height="100"
+          alt="Current profile picture" />
+        <button type="button" class="action-button" (click)="profilePicInput.click()">
+          Change Picture
+          <input
+            #profilePicInput
+            type="file"
+            accept=".jpg,.png,.jpeg,.webp"
+            (change)="onProfilePictureSelected($event)"
+            style="display: none;" />
+        </button>
+        <span class="file-name">
+          {{ profilePicFileName() || 'No file selected. Must not exceed 3MB. File types .jpg, .png, .jpeg accepted.' }}
+        </span>
+      </div>
+
+      <!-- BACKGROUND -->
+      <h1>🌅 Background</h1>
+      <p><b>Set the vibe.</b> Upload an image that brings your profile to life.</p>
+      <div class="file-upload-container">
+        <!-- View current background and optional preview -->
+        <div *ngIf="backgroundImageUrl() as bgUrl" style="margin-top: .5rem;">
+          <div style="margin-top:.5rem; margin-bottom:.75rem;">
+            <img
+              ngOptimizedImage
+              [ngSrc]="bgUrl"
+              width="320"
+              height="180"
+              alt="Current background image preview"
+              style="border-radius:6px;border:1px solid #333;"
+            />
+          </div>
+        </div>
+
+          <button type="button" class="custom-upload-button" (click)="fileInput.click()">
+            <span>Upload</span>
             <input
-              #profilePicInput
+              #fileInput
               type="file"
-              accept=".jpg,.png,.jpeg,.webp"
-              (change)="onProfilePictureSelected($event)"
+              accept=".jpg,.png,.jpeg"
+              (change)="onFileSelected($event)"
               style="display: none;" />
           </button>
-          <span class="file-name">{{ profilePicFileName() || 'No file selected. Must not exceed 3MB. File types .jpg, .png, .jpeg accepted.' }}</span>
-        </div>
+          <span class="file-name">
+            {{ selectedFileName() || 'No file selected. Must not exceed 5MB. File types .jpg, .png, .jpeg accepted.' }}
+          </span>
+      </div>
 
-        <!-- CUSTOMIZE BACKGROUND -->
-        <h1>Background</h1>
-        <p>Upload a new image to personalize your profile background.</p>
-        <div class="file-upload-container">
-            <button type="button" class="custom-upload-button" (click)="fileInput.click()">
-                <span>Upload</span>
-                <input
-                #fileInput
-                type="file"
-                accept=".jpg,.png,.jpeg"
-                (change)="onFileSelected($event)"
-                style="display: none;"
-                />
-            </button>
-            <span class="file-name">{{ selectedFileName() || 'No file selected. Must not exceed 5MB. File types .jpg, .png, .jpeg accepted.' }}</span>
-        </div>
+      <!-- BIO -->
+      <h1>📝 About Me</h1>
+      <p><b>Tell your story.</b> Share a short bio so others can get to know the real you.</p>
+      <form [formGroup]="bioForm" (ngSubmit)="onBioSubmit()" class="bio-form">
+        <div class="textarea-wrapper">
+          <textarea
+            #bioTextarea
+            (input)="autoResizeBio()"
+            formControlName="bio"
+            maxlength="150"
+            rows="1"
+            class="expanding-textarea"></textarea>
 
-        <!-- CUSTOMIZE BIO -->
-        <h1>About Me</h1>
-        <p>Share a short bio to let others know who you are.</p>
-        <form [formGroup]="bioForm" (ngSubmit)="onBioSubmit()" class="bio-form">
-          <div class="textarea-wrapper">
-            <textarea
-              #bioTextarea
-              (input)="autoResizeBio()"
-              formControlName="bio"
-              maxlength="150"
-              rows="1"
-              class="expanding-textarea"></textarea>
-            @if (bioForm.get('bio'); as bio) {
-              <small class="char-count">{{ bio.value?.length || 0 }}/150 characters</small>
-            }
+          <ng-container *ngIf="bioForm.get('bio') as bio">
+            <small class="char-count">{{ (bio.value || '').toString().length }}/150 characters</small>
+          </ng-container>
+        </div>
+        <button type="submit" [disabled]="bioForm.pristine || bioForm.invalid">Save Bio</button>
+      </form>
+
+      <!-- SELECT MUSIC -->
+      <h1>🎶 Favorite Song</h1>
+      <p><b>Pick your anthem.</b> Feature the track that represents your mood or style.</p>
+
+      <ng-container *ngIf="favoriteSong() as song; else songSearchBlock">
+        <div class="favorite-song-card">
+          <img ngOptimizedImage class="item-cover" [ngSrc]="song.albumCover || placeholderAlbum" width="60" height="60" [alt]="song.name || 'Song cover'" />
+          <div class="item-meta">
+            <div class="item-title">{{ song.name || 'Unknown song' }}</div>
+            <div class="item-sub">{{ song.artistName || '' }}</div>
           </div>
-          <button type="submit" [disabled]="bioForm.pristine || bioForm.invalid">Save Bio</button>
+          <button type="button" class="clear-btn" (click)="clearFavoriteSong()" title="Clear selection">✕</button>
+        </div>
+      </ng-container>
+
+      <ng-template #songSearchBlock>
+        <form [formGroup]="songSearchForm" class="search-container">
+          <input
+            class="form-control"
+            type="text"
+            formControlName="query"
+            placeholder="Search for a song..." />
+          <ul class="search-results" *ngIf="songSearchQuery() && songResults().length > 0">
+            <li class="result-item" *ngFor="let s of songResults(); trackBy: trackBySong" (click)="selectSong(s)">
+              <img ngOptimizedImage [ngSrc]="s.albumCover || placeholderAlbum" class="item-image" width="50" height="50" [alt]="s.name || 'Song cover'" />
+              <div class="item-meta">
+                <span class="item-title">{{ s.name || 'Unknown song' }}</span>
+                <span class="item-sub">{{ s.artistName || '' }}</span>
+              </div>
+            </li>
+          </ul>
+        </form>
+      </ng-template>
+
+      <!-- FAVORITE ARTISTS -->
+      <div class="favorites-section">
+        <h1>🎤 Top 10 Artists</h1>
+        <p><b>Rank your icons.</b> Celebrate the artists who inspire you most.</p>
+        <div
+          cdkDropList
+          (cdkDropListDropped)="dropFavoriteArtist($event)"
+          class="artist-rank-list">
+
+          <div *ngFor="let artist of topTenFavoriteArtistsListArr; let i = index; trackBy: trackByArtist" class="artist-rank-item" cdkDrag>
+            <span class="rank-number">{{ i + 1 }}</span>
+            <img ngOptimizedImage [ngSrc]="artist.artistImage || placeholderArtist" width="48" height="48" [alt]="artist.artistName || 'Artist image'" />
+            <span class="artist-name">{{ artist.artistName || 'Unknown artist' }}</span>
+            <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
+          </div>
+
+          <div *ngIf="(topTenFavoriteArtistsListArr || []).length === 0" class="artist-rank-list">
+            <div class="empty-list-text">
+              <div class="empty-icon">🎧</div>
+              <div class="empty-title">No favorite artists to rank</div>
+              <div class="empty-sub">Favorite artists to build your top 10. Changes save automatically.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAVORITE ALBUMS -->
+      <div class="favorites-section album-favorites">
+        <h1>💿 Favorite Albums</h1>
+        <p><b>Heart what you love.</b> Showcase the albums that define your taste.</p>
+
+        <form [formGroup]="albumSearchForm" class="search-container">
+          <input
+            type="text"
+            class="form-control"
+            [formControl]="albumSearchForm.controls.query"
+            placeholder="Search for albums..."
+          />
+          <ul class="search-results" *ngIf="albumSearchQuery() && albumResults().length > 0">
+            <li class="result-item" *ngFor="let album of albumResults(); trackBy: trackByAlbum">
+              <img ngOptimizedImage [ngSrc]="album.albumCover || placeholderAlbum" class="item-image" width="50" height="50" [alt]="album.name || 'Album cover'" />
+              <div class="item-meta">
+                <span class="item-title">{{ album.name || 'Unknown album' }}</span>
+                <span class="item-sub">{{ album.artist?.artistName ?? '' }}{{ album.releaseYear ? ' • ' + album.releaseYear : '' }}</span>
+              </div>
+              <button
+                type="button"
+                class="heart-btn"
+                (click)="$event.stopPropagation(); addAlbumToFavorites(album)"
+                [attr.aria-pressed]="false"
+                [title]="'Add to favorites'">
+                <i class="fa-heart fa-regular" aria-hidden="true"></i>
+                <span class="visually-hidden">Add favorite</span>
+              </button>
+            </li>
+          </ul>
         </form>
 
-        <!-- SELECT MUSIC -->
-        <h1>Select music</h1>
-        <p>Choose a favorite song to feature on your profile.</p>
-        @if (favoriteSong(); as song) {
-            <div class="favorite-song-card">
-                <img class="item-cover" [ngSrc]="song.albumCover || ''" width="60" height="60" [alt]="song.name" />
-                <div class="item-meta">
-                    <div class="item-title">{{ song.name }}</div>
-                    <div class="item-sub">{{ song.artistName }}</div>
-                </div>
-                <button type="button" class="clear-btn" (click)="clearFavoriteSong()" title="Clear selection">✕</button>
+        <div class="selection-list album-list">
+          <div *ngFor="let album of favoriteAlbums(); trackBy: trackByAlbum" class="selection-item" [class.unhearted]="isAlbumUnhearted(album)">
+            <img ngOptimizedImage [ngSrc]="album.albumCover || placeholderAlbum" class="item-image" width="50" height="50" [alt]="album.name || 'Album cover'" />
+            <div class="item-meta">
+              <span class="item-title">{{ album.name || 'Unknown album' }}</span>
+              <span class="item-sub">{{ album.artist?.artistName ?? '' }}{{ album.releaseYear ? ' • ' + album.releaseYear : '' }}</span>
             </div>
-        } @else {
-            <form [formGroup]="songSearchForm" class="search-container">
-                <input
-                    class="form-control"
-                    type="text"
-                    formControlName="query"
-                    placeholder="Search for a song..." />
-                @if (songSearchQuery() && songResults().length > 0) {
-                    <ul class="search-results">
-                        @for (song of songResults(); track song.id) {
-                            <li class="result-item" (click)="selectSong(song)">
-                                <img [ngSrc]="song.albumCover || ''" class="item-image" width="50" height="50" [alt]="song.name" />
-                                <div class="item-meta">
-                                    <span class="item-title">{{ song.name }}</span>
-                                    <span class="item-sub">{{ song.artistName }}</span>
-                                </div>
-                            </li>
-                        }
-                    </ul>
-                }
-            </form>
-        }
+            <button
+              type="button"
+              class="heart-btn"
+              (click)="isAlbumUnhearted(album) ? addAlbumToFavorites(album) : removeAlbumFromFavorites(album)"
+              [attr.aria-pressed]="!isAlbumUnhearted(album)"
+              [title]="isAlbumUnhearted(album) ? 'Add to favorites' : 'Remove from favorites'"
+              [class.hearted]="!isAlbumUnhearted(album)"
+              [class.unhearted]="isAlbumUnhearted(album)">
+              <ng-container *ngIf="!isAlbumUnhearted(album); else unheartedIcon">
+                <i class="fa-heart fa-solid" aria-hidden="true"></i>
+                <span class="visually-hidden">Remove favorite</span>
+              </ng-container>
+              <ng-template #unheartedIcon>
+                <i class="fa-heart fa-regular" aria-hidden="true"></i>
+                <span class="visually-hidden">Add favorite</span>
+              </ng-template>
+            </button>
+          </div>
 
-        <div class="favorites-section">
-          <h1>Rank top 10 favorite artists</h1>
-          <p>Drag to reorder. Changes save automatically.</p>
-
-          <div
-            cdkDropList
-            (cdkDropListDropped)="dropFavoriteArtist($event)"
-            class="artist-rank-list">
-            @for (artist of topTenFavoriteArtists(); track artist.id; let i = $index) {
-              <div class="artist-rank-item" cdkDrag>
-                <span class="rank-number">{{ i + 1 }}</span>
-                <img [ngSrc]="artist.artistImage || ''" width="48" height="48" [alt]="artist.artistName" />
-                <span class="artist-name">{{ artist.artistName }}</span>
-                <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
+          <div *ngIf="(favoriteAlbums() || []).length === 0" class="album-favorites">
+            <div class="selection-list album-list">
+              <div class="empty-list-text">
+                <div class="empty-icon">💿</div>
+                <div class="empty-title">No favorite albums yet</div>
+                <div class="empty-sub">Search above and heart albums to add them. Click again to remove.</div>
               </div>
-            } @empty {
-              <p class="empty-list-text">No favorite artists to rank.</p>
-            }
+            </div>
           </div>
         </div>
-
-        <!-- CUSTOMIZE FAVORITE ALBUMS-->
-        <div class="favorites-section album-favorites">
-          <h1>Edit favorite albums</h1>
-          <p>Heart albums to add them. Click again to remove.</p>
-
-          <form [formGroup]="albumSearchForm" class="search-container">
-            <input
-              class="form-control"
-              type="text"
-              formControlName="query"
-              placeholder="Search for albums to add..." />
-            @if (albumSearchQuery() && albumResults().length > 0) {
-              <ul class="search-results">
-                @for (album of albumResults(); track album.id) {
-                  <li class="result-item">
-                    <img [ngSrc]="album.albumCover || ''" class="item-image" width="50" height="50" [alt]="album.name" />
-                    <div class="item-meta">
-                      <span class="item-title">{{ album.name }}</span>
-                      <span class="item-sub">{{ album.artist?.artistName ?? '' }} • {{ album.releaseYear }}</span>
-                    </div>
-                    <button
-                      type="button"
-                      class="heart-btn"
-                      (click)="$event.stopPropagation(); addAlbumToFavorites(album)"
-                      [attr.aria-pressed]="false"
-                      [title]="'Add to favorites'">
-                      <i class="fa-heart fa-regular" aria-hidden="true"></i>
-                      <span class="visually-hidden">Add favorite</span>
-                    </button>
-                  </li>
-                }
-              </ul>
-            }
-          </form>
-
-          <div class="selection-list album-list">
-            @for (album of favoriteAlbums(); track album.id) {
-              <div class="selection-item" [class.unhearted]="isAlbumUnhearted(album)">
-                <img [ngSrc]="album.albumCover || ''" class="item-image" width="50" height="50" [alt]="album.name" />
-                <div class="item-meta">
-                  <span class="item-title">{{ album.name }}</span>
-                  <span class="item-sub">{{ album.artist?.artistName ?? '' }} • {{ album.releaseYear }}</span>
-                </div>
-                <button
-                  type="button"
-                  class="heart-btn"
-                  (click)="isAlbumUnhearted(album) ? addAlbumToFavorites(album) : removeAlbumFromFavorites(album)"
-                  [attr.aria-pressed]="!isAlbumUnhearted(album)"
-                  [title]="isAlbumUnhearted(album) ? 'Add to favorites' : 'Remove from favorites'"
-                  [class.hearted]="!isAlbumUnhearted(album)"
-                  [class.unhearted]="isAlbumUnhearted(album)">
-                  @if (!isAlbumUnhearted(album)) {
-                    <i class="fa-heart fa-solid" aria-hidden="true"></i>
-                    <span class="visually-hidden">Remove favorite</span>
-                  } @else {
-                    <i class="fa-heart fa-regular" aria-hidden="true"></i>
-                    <span class="visually-hidden">Add favorite</span>
-                  }
-                </button>
-                <!-- @if (isAlbumUnhearted(album)) {
-                  <small class="unhearted-note">Removed — will disappear on refresh</small>
-                } -->
-              </div>
-            } @empty {
-              <p class="empty-list-text">No favorite albums yet. Search above to add some.</p>
-            }
-          </div>
-        </div>
+      </div>
     </div>
-</body>
+  </div>
+
