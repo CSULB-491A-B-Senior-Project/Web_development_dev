@@ -1,30 +1,37 @@
-body {
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Use a scoped wrapper instead of styling the global body */
+.settings-page {
   background-color: black;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
-  overflow: auto;
-  // padding-bottom: 3rem;
+  overflow-y: auto;     // single vertical scrollbar
+  overflow-x: hidden;   // prevent horizontal scrollbar
+}
 
-  h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-top: 5rem;
-    margin-bottom: 2.5rem;
-  }
+/* Move the heading/paragraph styles under the scoped wrapper */
+.settings-page h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 5rem;
+  margin-bottom: 2.5rem;
+}
 
-  h3 {
-    font-weight: 600;
-    margin-bottom: 1rem;
-  }
+.settings-page h3 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
 
-  p {
-    font-size: 1.1rem;
-    margin-top: -2rem;
-    margin-bottom: 2.5rem;
-    line-height: 1.6;
-    max-width: 600px;
-  }
+.settings-page p {
+  font-size: 1.1rem;
+  margin-top: -2rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  max-width: 600px;
 }
 
 .settings-sidebar {
@@ -271,6 +278,10 @@ body {
     max-height: 300px;
     overflow-y: auto;
     z-index: 1000;
+
+    .search-container:focus-within .search-results {
+      display: block;
+    }
 
     .result-item {
       display: flex;
