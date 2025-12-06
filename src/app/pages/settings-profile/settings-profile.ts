@@ -62,6 +62,9 @@ export class SettingsProfile implements AfterViewInit {
   // Track locally unhearted albums so they remain visible but appear "removed"
   unheartedAlbumIds = signal<Set<string>>(new Set());
 
+  // Background image URL (resolved absolute URL)
+  backgroundImageUrl = signal<string | null>(null);
+
   // Helpers
   isAlbumUnhearted(album: Album): boolean {
     return this.unheartedAlbumIds().has(album.id);
@@ -76,6 +79,23 @@ export class SettingsProfile implements AfterViewInit {
     const base = this.apiBase || window.location.origin;
     if (v.startsWith('/')) return `${base}${v}`;
     return `${base}/${v}`;
+  }
+
+  // Helper to extract a background image URL from profile payload
+  private extractBackgroundUrl(p: Record<string, unknown> | null | undefined): string | null {
+    const src = p ?? {};
+    const raw =
+      src['backgroundImageUrl'] ??
+      src['backgroundUrl'] ??
+      src['bannerImageUrl'] ??
+      src['bannerUrl'] ??
+      src['coverImageUrl'] ??
+      src['background'] ??
+      src['bgImageUrl'] ??
+      src['bgImage'] ??
+      '';
+    const v = (raw ?? '').toString().trim();
+    return v ? this.resolveImageUrl(v) : null;
   }
 
   // Normalizes various backend album shapes into the Album interface used by the template
@@ -232,6 +252,9 @@ export class SettingsProfile implements AfterViewInit {
           p.profilePictureUrl ?? p.profileImageUrl ?? p.avatarUrl ?? p.picture ?? p.imageUrl ?? p.profilePicture
         );
         this.profilePictureUrl.set(url);
+
+        // Set current background image URL if present
+        this.backgroundImageUrl.set(this.extractBackgroundUrl(p));
 
         this.favoriteSong.set(p.favoriteSong ?? null);
 
@@ -512,13 +535,23 @@ export class SettingsProfile implements AfterViewInit {
       take(1)
     ).subscribe({
       next: () => {
-        this.#profileService.getProfile().pipe(take(1)).subscribe();
+        // Refresh profile and update background image URL after confirm
+        this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
+          this.backgroundImageUrl.set(this.extractBackgroundUrl(p as any));
+        });
         this.persistFileName('bg', file.name); // persist background file name
       },
       error: (err) => {
         console.error('Background upload/confirm failed', err);
       }
     });
+  }
+
+  // Open the current background image in a new tab
+  viewBackground(): void {
+    const url = this.backgroundImageUrl();
+    if (!url) return;
+    window.open(url, '_blank');
   }
 
   // -------------------------

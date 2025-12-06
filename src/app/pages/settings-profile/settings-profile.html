@@ -1,5 +1,4 @@
-
-  <div class="settings-page">
+<div class="settings-page">
     <div class="settings-sidebar">
       <a class="logo" routerLink="/explore"><img src="/assets/crescendo-logo-no-text.png" /></a>
       <h1>Settings</h1>
@@ -10,8 +9,8 @@
 
     <div class="settings-container">
       <!-- PROFILE PICTURE -->
-      <h1>Profile Picture</h1>
-      <p>Upload a new photo for your profile.</p>
+      <h1>✨ Profile Picture</h1>
+      <p><b>Show off your best self!</b> Add a photo that makes your profile uniquely yours.</p>
       <div class="profile-picture-container">
         <!-- Use NgOptimizedImage and [ngSrc] to match the signal -->
         <img
@@ -36,26 +35,40 @@
       </div>
 
       <!-- BACKGROUND -->
-      <h1>Background</h1>
-      <p>Upload a new image to personalize your profile background.</p>
+      <h1>🌅 Background</h1>
+      <p><b>Set the vibe.</b> Upload an image that brings your profile to life.</p>
       <div class="file-upload-container">
-        <button type="button" class="custom-upload-button" (click)="fileInput.click()">
-          <span>Upload</span>
-          <input
-            #fileInput
-            type="file"
-            accept=".jpg,.png,.jpeg"
-            (change)="onFileSelected($event)"
-            style="display: none;" />
-        </button>
-        <span class="file-name">
-          {{ selectedFileName() || 'No file selected. Must not exceed 5MB. File types .jpg, .png, .jpeg accepted.' }}
-        </span>
+        <!-- View current background and optional preview -->
+        <div *ngIf="backgroundImageUrl() as bgUrl" style="margin-top: .5rem;">
+          <div style="margin-top:.5rem; margin-bottom:.75rem;">
+            <img
+              ngOptimizedImage
+              [ngSrc]="bgUrl"
+              width="320"
+              height="180"
+              alt="Current background image preview"
+              style="border-radius:6px;border:1px solid #333;"
+            />
+          </div>
+        </div>
+
+          <button type="button" class="custom-upload-button" (click)="fileInput.click()">
+            <span>Upload</span>
+            <input
+              #fileInput
+              type="file"
+              accept=".jpg,.png,.jpeg"
+              (change)="onFileSelected($event)"
+              style="display: none;" />
+          </button>
+          <span class="file-name">
+            {{ selectedFileName() || 'No file selected. Must not exceed 5MB. File types .jpg, .png, .jpeg accepted.' }}
+          </span>
       </div>
 
       <!-- BIO -->
-      <h1>About Me</h1>
-      <p>Share a short bio to let others know who you are.</p>
+      <h1>📝 About Me</h1>
+      <p><b>Tell your story.</b> Share a short bio so others can get to know the real you.</p>
       <form [formGroup]="bioForm" (ngSubmit)="onBioSubmit()" class="bio-form">
         <div class="textarea-wrapper">
           <textarea
@@ -74,8 +87,8 @@
       </form>
 
       <!-- SELECT MUSIC -->
-      <h1>Favorite Song</h1>
-      <p>Choose a favorite song to feature on your profile.</p>
+      <h1>🎶 Favorite Song</h1>
+      <p><b>Pick your anthem.</b> Feature the track that represents your mood or style.</p>
 
       <ng-container *ngIf="favoriteSong() as song; else songSearchBlock">
         <div class="favorite-song-card">
@@ -109,9 +122,8 @@
 
       <!-- FAVORITE ARTISTS -->
       <div class="favorites-section">
-        <h1>Rank top 10 favorite artists</h1>
-        <p>Drag to reorder. Changes save automatically.</p>
-
+        <h1>🎤 Top 10 Artists</h1>
+        <p><b>Rank your icons.</b> Celebrate the artists who inspire you most.</p>
         <div
           cdkDropList
           (cdkDropListDropped)="dropFavoriteArtist($event)"
@@ -136,8 +148,8 @@
 
       <!-- FAVORITE ALBUMS -->
       <div class="favorites-section album-favorites">
-        <h1>Favorite Albums</h1>
-        <p>Heart albums to add them. Click again to remove.</p>
+        <h1>💿 Favorite Albums</h1>
+        <p><b>Heart what you love.</b> Showcase the albums that define your taste.</p>
 
         <form [formGroup]="albumSearchForm" class="search-container">
           <input
