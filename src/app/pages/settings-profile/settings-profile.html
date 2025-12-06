@@ -127,24 +127,29 @@
         <div
           cdkDropList
           (cdkDropListDropped)="dropFavoriteArtist($event)"
-          class="artist-rank-list">
+          class="artist-rank-list"
+        >
+          <ng-container *ngIf="topTenFavoriteArtistsListArr.length; else artistsEmpty">
+            <div
+              *ngFor="let artist of topTenFavoriteArtistsListArr; let i = index; trackBy: trackByArtist"
+              class="artist-rank-item"
+              cdkDrag
+            >
+              <span class="rank-number">{{ i + 1 }}</span>
+              <img ngOptimizedImage [ngSrc]="artist.artistImage || placeholderArtist" width="48" height="48" [alt]="artist.artistName || 'Artist image'" />
+              <span class="artist-name">{{ artist.artistName || 'Unknown artist' }}</span>
+              <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
+            </div>
+          </ng-container>
 
-          <div *ngFor="let artist of topTenFavoriteArtistsListArr; let i = index; trackBy: trackByArtist" class="artist-rank-item" cdkDrag>
-            <span class="rank-number">{{ i + 1 }}</span>
-            <img ngOptimizedImage [ngSrc]="artist.artistImage || placeholderArtist" width="48" height="48" [alt]="artist.artistName || 'Artist image'" />
-            <span class="artist-name">{{ artist.artistName || 'Unknown artist' }}</span>
-            <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
-          </div>
-
-          <div *ngIf="(topTenFavoriteArtistsListArr || []).length === 0" class="artist-rank-list">
+          <ng-template #artistsEmpty>
             <div class="empty-list-text">
               <div class="empty-icon">🎧</div>
               <div class="empty-title">No favorite artists to rank</div>
               <div class="empty-sub">Favorite artists to build your top 10. Changes save automatically.</div>
             </div>
-          </div>
+          </ng-template>
         </div>
-      </div>
 
       <!-- FAVORITE ALBUMS -->
       <div class="favorites-section album-favorites">
@@ -178,33 +183,34 @@
           </ul>
         </form>
 
-        <div class="selection-list album-list">
-          <div *ngFor="let album of favoriteAlbums(); trackBy: trackByAlbum" class="selection-item" [class.unhearted]="isAlbumUnhearted(album)">
-            <img ngOptimizedImage [ngSrc]="album.albumCover || placeholderAlbum" class="item-image" width="50" height="50" [alt]="album.name || 'Album cover'" />
-            <div class="item-meta">
-              <span class="item-title">{{ album.name || 'Unknown album' }}</span>
-              <span class="item-sub">{{ album.artist?.artistName ?? '' }}{{ album.releaseYear ? ' • ' + album.releaseYear : '' }}</span>
+          <div class="selection-list album-list" *ngIf="favoriteAlbums().length; else albumsEmpty">
+            <div *ngFor="let album of favoriteAlbums(); trackBy: trackByAlbum" class="selection-item" [class.unhearted]="isAlbumUnhearted(album)">
+              <img ngOptimizedImage [ngSrc]="album.albumCover || placeholderAlbum" class="item-image" width="50" height="50" [alt]="album.name || 'Album cover'" />
+              <div class="item-meta">
+                <span class="item-title">{{ album.name || 'Unknown album' }}</span>
+                <span class="item-sub">{{ album.artist?.artistName ?? '' }}{{ album.releaseYear ? ' • ' + album.releaseYear : '' }}</span>
+              </div>
+              <button
+                type="button"
+                class="heart-btn"
+                (click)="isAlbumUnhearted(album) ? addAlbumToFavorites(album) : removeAlbumFromFavorites(album)"
+                [attr.aria-pressed]="!isAlbumUnhearted(album)"
+                [title]="isAlbumUnhearted(album) ? 'Add to favorites' : 'Remove from favorites'"
+                [class.hearted]="!isAlbumUnhearted(album)"
+                [class.unhearted]="isAlbumUnhearted(album)">
+                <ng-container *ngIf="!isAlbumUnhearted(album); else unheartedIcon">
+                  <i class="fa-heart fa-solid" aria-hidden="true"></i>
+                  <span class="visually-hidden">Remove favorite</span>
+                </ng-container>
+                <ng-template #unheartedIcon>
+                  <i class="fa-heart fa-regular" aria-hidden="true"></i>
+                  <span class="visually-hidden">Add favorite</span>
+                </ng-template>
+              </button>
             </div>
-            <button
-              type="button"
-              class="heart-btn"
-              (click)="isAlbumUnhearted(album) ? addAlbumToFavorites(album) : removeAlbumFromFavorites(album)"
-              [attr.aria-pressed]="!isAlbumUnhearted(album)"
-              [title]="isAlbumUnhearted(album) ? 'Add to favorites' : 'Remove from favorites'"
-              [class.hearted]="!isAlbumUnhearted(album)"
-              [class.unhearted]="isAlbumUnhearted(album)">
-              <ng-container *ngIf="!isAlbumUnhearted(album); else unheartedIcon">
-                <i class="fa-heart fa-solid" aria-hidden="true"></i>
-                <span class="visually-hidden">Remove favorite</span>
-              </ng-container>
-              <ng-template #unheartedIcon>
-                <i class="fa-heart fa-regular" aria-hidden="true"></i>
-                <span class="visually-hidden">Add favorite</span>
-              </ng-template>
-            </button>
           </div>
 
-          <div *ngIf="(favoriteAlbums() || []).length === 0" class="album-favorites">
+          <ng-template #albumsEmpty>
             <div class="selection-list album-list">
               <div class="empty-list-text">
                 <div class="empty-icon">💿</div>
@@ -212,7 +218,7 @@
                 <div class="empty-sub">Search above and heart albums to add them. Click again to remove.</div>
               </div>
             </div>
-          </div>
+          </ng-template>
         </div>
       </div>
     </div>
