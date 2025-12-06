@@ -9,7 +9,7 @@
 
     <div class="settings-container">
       <!-- PROFILE PICTURE -->
-      <h1>✨ Profile Picture</h1>
+      <h1>Profile Picture</h1>
       <p><b>Show off your best self!</b> Add a photo that makes your profile uniquely yours.</p>
       <div class="profile-picture-container">
         <!-- Use NgOptimizedImage and [ngSrc] to match the signal -->
@@ -35,7 +35,7 @@
       </div>
 
       <!-- BACKGROUND -->
-      <h1>🌅 Background</h1>
+      <h1>Background</h1>
       <p><b>Set the vibe.</b> Upload an image that brings your profile to life.</p>
       <div class="file-upload-container">
         <!-- View current background and optional preview -->
@@ -67,7 +67,7 @@
       </div>
 
       <!-- BIO -->
-      <h1>📝 About Me</h1>
+      <h1>About Me</h1>
       <p><b>Tell your story.</b> Share a short bio so others can get to know the real you.</p>
       <form [formGroup]="bioForm" (ngSubmit)="onBioSubmit()" class="bio-form">
         <div class="textarea-wrapper">
@@ -87,7 +87,7 @@
       </form>
 
       <!-- SELECT MUSIC -->
-      <h1>🎶 Favorite Song</h1>
+      <h1>Favorite Song</h1>
       <p><b>Pick your anthem.</b> Feature the track that represents your mood or style.</p>
 
       <ng-container *ngIf="favoriteSong() as song; else songSearchBlock">
@@ -122,7 +122,7 @@
 
       <!-- FAVORITE ARTISTS -->
       <div class="favorites-section">
-        <h1>🎤 Top 10 Artists</h1>
+        <h1>Top 10 Artists</h1>
         <p><b>Rank your icons.</b> Celebrate the artists who inspire you most.</p>
         <div
           cdkDropList
@@ -153,7 +153,7 @@
 
       <!-- FAVORITE ALBUMS -->
       <div class="favorites-section album-favorites">
-        <h1>💿 Favorite Albums</h1>
+        <h1>Favorite Albums</h1>
         <p><b>Heart what you love.</b> Showcase the albums that define your taste.</p>
 
         <form [formGroup]="albumSearchForm" class="search-container">

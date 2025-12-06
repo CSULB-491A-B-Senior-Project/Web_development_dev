@@ -166,12 +166,17 @@ export class SettingsProfile implements AfterViewInit {
   private toYear(raw: unknown): number | undefined {
     if (typeof raw === 'number') return raw;
     if (typeof raw === 'string') {
-      const d = new Date(raw);
-      if (!Number.isNaN(d.getTime())) return d.getFullYear();
-      const n = Number.parseInt(raw, 10);
+      const s = raw.trim();
+      // Prefer explicit year token to avoid timezone shifts
+      const m = s.match(/\b(19|20)\d{2}\b/);
+      if (m) return Number.parseInt(m[0], 10);
+
+      const d = new Date(s);
+      if (!Number.isNaN(d.getTime())) return d.getUTCFullYear(); // use UTC to avoid local time rollover
+      const n = Number.parseInt(s, 10);
       return Number.isNaN(n) ? undefined : n;
     }
-    if (raw instanceof Date) return raw.getFullYear();
+    if (raw instanceof Date) return raw.getUTCFullYear();
     return undefined;
   }
 

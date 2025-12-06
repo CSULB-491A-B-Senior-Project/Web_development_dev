@@ -65,6 +65,7 @@
 .settings-container {
   margin-left: 350px;
   padding: 10px 50px 50px 100px;
+  padding-bottom: 150px;
 }
 
 .profile-picture-container {
@@ -426,19 +427,6 @@
     }
 
     .empty-list-text {
-      padding: 1.25rem 1.5rem;
-      text-align: center;
-      color: #aaa;
-      font-size: 0.95rem;
-      border: 1px dashed #444;
-      border-radius: 6px;
-      background: #181818;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
-
       &:hover {
         background-color: #222;
         border-color: #555;
@@ -501,16 +489,35 @@
   }
 }
 
+.empty-list-text {
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  font-size: .9rem;
+  color: #aaa;  
+  border: 1px dashed #444;
+  border-radius: 6px;
+  background: #181818;
+}
+
+.artist-rank-list,
+.selection-list.album-list {
+  width: 100%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;   // force children to fill width
+}
+
 .artist-rank-list {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
-  padding: .5rem;
+  // gap: .5rem;
+  padding: .4rem;
   background: #1f1f1f;
   border: 1px solid #444;
   border-radius: 6px;
   width: 80%;
-  max-width: 40rem;
+  // max-width: 40rem;
   box-sizing: border-box;
 
   /* ▼ CHANGE: left-align normally */
@@ -518,18 +525,10 @@
 
   /* ▼ NEW: only center when empty */
   &:has(.empty-list-text) {
-    align-items: center;
+    align-items: stretch;
   }
 
   .empty-list-text {
-    padding: 1.5rem;
-    text-align: center;
-    color: #aaa;
-    font-size: 0.95rem;
-    border: 1px dashed #444;
-    border-radius: 6px;
-    background: #181818;
-
     .empty-icon {
       font-size: 1.5rem;
       margin-bottom: 0.3rem;
@@ -786,14 +785,6 @@
     }
 
     .empty-list-text {
-      padding: 1.25rem 1.5rem;
-      text-align: center;
-      font-size: .9rem;
-      color: #8d8d8d;
-      border: 1px dashed #444;
-      border-radius: 6px;
-      background: #181818;
-
       .empty-title {
         font-weight: 600;
         color: #cfcfcf;
@@ -819,6 +810,52 @@ artist-rank-list.empty,
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+// Shared scrollbar theme
+$scroll-track: #1a1a1a;
+$scroll-thumb: #444;
+$scroll-thumb-hover: #555;
+
+// Firefox (simple color styling)
+.search-results,
+.selection-list,
+.search-container .form-control {
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1a1a1a; // thumb track
+}
+
+// WebKit browsers (Chrome, Edge, Safari)
+.search-results,
+.selection-list,
+.search-container .form-control {
+  &::-webkit-scrollbar {
+    width: 10px;        // vertical scrollbar width
+    height: 10px;       // horizontal scrollbar height
+  }
+  &::-webkit-scrollbar-track {
+    background: $scroll-track;
+    border-radius: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $scroll-thumb;
+    border-radius: 8px;
+    border: 2px solid $scroll-track; // adds spacing around thumb
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: $scroll-thumb-hover;
+  }
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+// Optional: compact scrollbar for small result panes
+.search-results {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  scrollbar-width: thin;
 }
 
 /* Scrollbar theme omitted, unchanged */
