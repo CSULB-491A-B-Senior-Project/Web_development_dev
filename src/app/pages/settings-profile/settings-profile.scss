@@ -265,6 +265,14 @@
     }
   }
 
+  // Hide results by default; show when the form has focus
+  .search-results {
+    display: none; // hidden when input not focused
+  }
+  &:focus-within .search-results {
+    display: block; // visible when input is focused
+  }
+
   .search-results {
     position: absolute;
     width: 100%;
@@ -608,6 +616,13 @@
   .search-container {
     position: relative;
     margin-bottom: 1rem;
+
+    .search-results {
+      display: none; // hidden when input not focused
+    }
+    &:focus-within .search-results {
+      display: block; // visible when input is focused
+    }
   }
 
   .search-results {
@@ -619,6 +634,8 @@
     border-radius: 6px;
     max-height: 260px;
     overflow-y: auto;
+    box-sizing: border-box;
+    width: 80%;
 
     .result-item {
       display: flex;

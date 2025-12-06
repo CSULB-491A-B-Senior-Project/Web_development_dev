@@ -632,6 +632,7 @@ export class SettingsProfile implements AfterViewInit {
       next: () => {
         const serverUpdated = this.favoriteAlbums().filter(a => a.id !== album.id);
         this.favoriteAlbums.set(serverUpdated);
+        // ...do not clear album search results here; CSS will hide/show based on focus...
       },
       error: () => {
         this.unheartedAlbumIds.update(prev => {
@@ -643,23 +644,23 @@ export class SettingsProfile implements AfterViewInit {
     });
 
     const q = (this.albumSearchForm.controls.query.value ?? '').toString().trim();
-    if (q) {
-      this.#searchService.search({ query: q, tab: 'albums', page: 1, pageSize: 20 }).pipe(take(1)).subscribe(res => {
-        const results: any[] =
-          Array.isArray(res?.items) ? res.items.filter((it: SearchItem) => it.type === 'album') :
-          [];
+    // if (q) {
+    //   this.#searchService.search({ query: q, tab: 'albums', page: 1, pageSize: 20 }).pipe(take(1)).subscribe(res => {
+    //     const results: any[] =
+    //       Array.isArray(res?.items) ? res.items.filter((it: SearchItem) => it.type === 'album') :
+    //       [];
 
-        const albums = results.map((it: any) => this.normalizeAlbumFromApi({
-          id: it.id ?? it.albumId,
-          albumName: it.title ?? it.albumName ?? it.name,
-          albumImageUrl: it.imageUrl ?? it.albumImageUrl ?? it.coverArt ?? it.albumCover,
-          // Use artistNames from the album search endpoint
-          artistNames: typeof it.artistNames === 'string' ? it.artistNames : '',
-          releaseDate: it.releaseYear ?? it.year ?? it.releaseDate ?? it.dateLabel
-        }));
-        this._albumResultsRaw.set(albums);
-      });
-    }
+    //     const albums = results.map((it: any) => this.normalizeAlbumFromApi({
+    //       id: it.id ?? it.albumId,
+    //       albumName: it.title ?? it.albumName ?? it.name,
+    //       albumImageUrl: it.imageUrl ?? it.albumImageUrl ?? it.coverArt ?? it.albumCover,
+    //       // Use artistNames from the album search endpoint
+    //       artistNames: typeof it.artistNames === 'string' ? it.artistNames : '',
+    //       releaseDate: it.releaseYear ?? it.year ?? it.releaseDate ?? it.dateLabel
+    //     }));
+    //     this._albumResultsRaw.set(albums);
+    //   });
+    // }
   }
 
   // Getter for template
@@ -694,20 +695,6 @@ export class SettingsProfile implements AfterViewInit {
   ngOnDestroy() {
     const prev = this.localBlobUrl();
     if (prev) URL.revokeObjectURL(prev);
-  }
-
-  // Hide results when search inputs lose focus
-  onAlbumSearchBlur(): void {
-    setTimeout(() => {
-      this._albumResultsRaw.set([]);
-      this.loadingAlbumSearch.set(false);
-    }, 150);
-  }
-
-  onArtistSearchBlur(): void {
-    setTimeout(() => {
-      this._artistResultsRaw.set([]);
-    }, 150);
   }
 }
 
