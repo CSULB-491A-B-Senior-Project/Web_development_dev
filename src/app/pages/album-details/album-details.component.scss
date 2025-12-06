@@ -204,30 +204,44 @@
 // STAR RATINGS
 // ============================================================================
 
-.star-rating {
+.star-rating.avg {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 1.2rem;
+  gap: 4px;
 
-  .star-button {
-    @extend %star-button;
-    padding: 0.1rem 0.2rem;
-    font-size: 1.35rem;
-    @extend %focus-ring;
+  .star-container {
+    position: relative;
+    display: inline-block;
+    font-size: 1.2em;
+    line-height: 1;
   }
 
-  .current-rating {
-    font-size: 0.9rem;
-    color: var(--txt-secondary);
-    margin-left: 0.5rem;
-  }
-  // Average rating variant (read-only)
-  &.avg {
-    .star-button {
-      pointer-events: none;
-      color: rgba(255, 255, 255, 0.28);
+  .star-partial-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 1;
+
+    .empty {
+      color: rgb(255, 255, 255, 0.25);
+      display: block;
     }
+
+    .filled {
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--primary);
+      line-height: inherit;
+      display: block;
+    }
+  }
+
+  i.filled {
+    color: var(--primary);
+  }
+
+  i.empty {
+    color: rgb(255, 255, 255, 0.25);
   }
 }
 
@@ -369,11 +383,29 @@
   @extend %card;
   position: relative;
 
-  .username {
-    @extend %interactive-link;
-    display: inline-block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
+  .comment-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+
+    .username {
+      @extend %interactive-link;
+      display: inline-block;
+      font-weight: 600;
+    }
+
+    .user-rating-stars {
+      display: inline-flex;
+      gap: 2px;
+      margin-left: 8px;
+
+      i {
+        color: var(--primary);
+        font-size: 0.85em;
+      }
+    }
   }
 
   .comment-text {
@@ -483,7 +515,7 @@
 .replies {
   margin: 1rem 0 0 1rem;
   padding-left: 1rem;
-  border-left: 2px solid var(--border-color);
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -494,11 +526,16 @@
     border-radius: 6px;
     border: 1px solid var(--border-color);
 
+    .reply-input {
+      width: 100%;
+    }
+
     .username {
       @extend %interactive-link;
       display: block;
       font-weight: 600;
       margin-bottom: 0.5rem;
+      width: fit-content;
     }
 
     .comment-text {

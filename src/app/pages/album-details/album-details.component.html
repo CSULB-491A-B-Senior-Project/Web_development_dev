@@ -14,6 +14,7 @@
                 <span class="year">{{ year }}</span>
               </h1>
               <button class="favorite-button"
+                      (click)="toggleFavorite()"
                       [class.is-favorited]="isFavorited()"
                       [attr.aria-pressed]="isFavorited()"
                       [title]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'">
@@ -29,14 +30,24 @@
               <!-- Average (read-only) star rating for the album -->
               <div class="star-rating avg" aria-label="Average album rating">
                 @for (star of stars; track $index; let i = $index) {
-                <button type="button"
-                        class="star-button"
-                        role="img"
-                        aria-hidden="true"
-                        [class.filled]="averageRating() >= (i + 1)">
-                  <i class="fa-solid fa-star" aria-hidden="true"></i>
+                <span class="star-container"
+                      role="img"
+                      aria-hidden="true">
+                  @if (averageRating() >= (i + 1)) {
+                  <!-- Full star -->
+                  <i class="fa-solid fa-star filled"></i>
+                  } @else if (averageRating() > i) {
+                  <!-- Partial star -->
+                  <span class="star-partial-wrapper">
+                    <i class="fa-regular fa-star empty"></i>
+                    <i class="fa-solid fa-star filled" [style.clip-path]="'inset(0 ' + (100 - ((averageRating() - i) * 100)) + '% 0 0)'"></i>
+                  </span>
+                  } @else {
+                  <!-- Empty star -->
+                  <i class="fa-regular fa-star empty"></i>
+                  }
                   <span class="visually-hidden">{{ i + 1 }} star{{ i + 1 > 1 ? 's' : '' }}</span>
-                </button>
+                </span>
                 }
                 <span class="current-rating" aria-live="polite">
                   {{ averageRating() ? (averageRating() + ' / 5') : 'No ratings yet' }}
@@ -80,8 +91,18 @@
       <div class="comments">
         @for (c of comments(); track c.id) {
         <article class="comment">
-          <a class="username" [routerLink]="userLink(c.author)">{{ c.author || 'username' }}</a>
-
+          <div class="comment-header">
+            <a class="username" [routerLink]="userLink(c.author)">{{ c.author || 'username' }}</a>
+            @if (c.userRating) {
+            <span class="user-rating-stars">
+              @for (star of [1,2,3,4,5]; track $index) {
+              @if ($index < c.userRating) {
+              <i class="fa-solid fa-star"></i>
+              }
+              }
+            </span>
+            }
+          </div>
           @if (editTargetId() === c.id) {
           <!-- inline edit form for comment author (kept as optional inline edit) -->
           <div>
@@ -177,7 +198,7 @@
               @if (editTargetId() === r.id) {
               <form [formGroup]="editForm" (ngSubmit)="submitEditReply(c.id, r.id)">
                 <label>
-                  <textarea formControlName="text" maxlength="1000" rows="2" class="expanding-textarea" (input)="autoResize($event)"></textarea>
+                  <textarea class="form-control" formControlName="text" maxlength="1000" rows="2" (input)="autoResize($event)"></textarea>
                 </label>
                 <div class="modal-actions" style="margin-top:0.5rem;">
                   <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>

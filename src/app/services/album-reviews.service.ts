@@ -54,6 +54,7 @@ export class AlbumReviewsService {
     return topLevel.map(comment => ({
       id: comment.id,
       author: comment.username,
+      userId: comment.userId,
       text: comment.text,
       createdAt: comment.createdDate,
       likes: 0,
@@ -64,6 +65,7 @@ export class AlbumReviewsService {
         .map(reply => ({
           id: reply.id,
           author: reply.username,
+          userId: reply.userId,
           text: reply.text,
           createdAt: reply.createdDate,
           likes: 0,
@@ -89,6 +91,7 @@ export class AlbumReviewsService {
       map(dto => ({
         id: dto.id,
         author: dto.username,
+        userId: dto.userId,
         text: dto.text,
         createdAt: dto.createdDate,
         likes: 0,
@@ -112,6 +115,7 @@ export class AlbumReviewsService {
       map(dto => ({
         id: dto.id,
         author: dto.username,
+        userId: dto.userId,
         text: dto.text,
         createdAt: dto.createdDate,
         likes: 0,
@@ -138,6 +142,7 @@ export class AlbumReviewsService {
       map(dto => ({
         id: dto.id,
         author: dto.username,
+        userId: dto.userId,
         text: dto.text,
         createdAt: dto.createdDate,
         likes: 0,
