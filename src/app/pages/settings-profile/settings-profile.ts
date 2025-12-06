@@ -143,13 +143,6 @@ export class SettingsProfile implements AfterViewInit {
   // DestroyRef for cleanup
   private destroyRef = inject(DestroyRef);
 
-  // Merge releaseYear (and optionally cover) from catalog into favorites
-  private enrichFavoriteAlbumsFromCatalog(albums: Album[]): void {
-    // Disabled: /v1/Search/albums requires a query and returns 400 without it.
-    // Use detail enrichment instead (getAlbumById).
-    return;
-  }
-
   private toYear(raw: unknown): number | undefined {
     if (typeof raw === 'number') return raw;
     if (typeof raw === 'string') {
@@ -207,11 +200,29 @@ export class SettingsProfile implements AfterViewInit {
     });
   }
 
+  private currentUserKey = 'me';
+
+  private storageKey(kind: 'profile' | 'bg') {
+    return `crescendo:${kind}:filename:${this.currentUserKey}`;
+  }
+  private persistFileName(kind: 'profile' | 'bg', name: string) {
+    try { localStorage.setItem(this.storageKey(kind), JSON.stringify({ name, t: Date.now() })); } catch { /* ignore */ }
+  }
+  private readPersistedFileName(kind: 'profile' | 'bg'): string {
+    try {
+      const raw = localStorage.getItem(this.storageKey(kind));
+      const obj = raw ? JSON.parse(raw) as { name?: string } : null;
+      return obj?.name ?? '';
+    } catch { return ''; }
+  }
+
   constructor(private router: Router) {
     // Load profile and favorites
     this.#profileService.getProfile().pipe(take(1)).subscribe({
       next: (p: any) => {
         console.log('profile response', p);
+        // derive a stable local-storage key per user
+        this.currentUserKey = String(p?.id ?? p?.userId ?? p?.username ?? 'me');
         const bio = p.bio ?? '';
         this.bioForm.patchValue({ bio }, { emitEvent: false });
         this.bioForm.markAsPristine();
@@ -236,6 +247,9 @@ export class SettingsProfile implements AfterViewInit {
         const albums = (p.favoriteAlbums ?? []).map((al: any) => this.normalizeAlbumFromApi(al));
         this.favoriteAlbums.set(albums);
         console.log('favoriteAlbums (from profile):', this.favoriteAlbums());
+
+        this.profilePicFileName.set(this.readPersistedFileName('profile')); // restore persisted file name
+        this.selectedFileName.set(this.readPersistedFileName('bg'));       // restore bg file name
       },
       error: (err) => console.error('Failed to load profile', err)
     });
@@ -416,7 +430,7 @@ export class SettingsProfile implements AfterViewInit {
 
     const validType = /^image\/(png|jpe?g|webp)$/i.test(file.type);
     const validSize = file.size <= 3 * 1024 * 1024; // 3MB
-    this.profilePicFileName.set(file.name);
+    this.profilePicFileName.set(file.name); // show immediately
 
     if (!validType || !validSize) {
       input.value = '';
@@ -453,6 +467,7 @@ export class SettingsProfile implements AfterViewInit {
           // cache-bust
           this.profilePictureUrl.set(`${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`);
         });
+        this.persistFileName('profile', file.name); // persist after success
       },
       error: (err) => {
         console.error('Profile upload/confirm failed', err);
@@ -463,6 +478,7 @@ export class SettingsProfile implements AfterViewInit {
           );
           this.profilePictureUrl.set(url);
         });
+        // optional: revert persisted name on error
       }
     });
 
@@ -497,6 +513,7 @@ export class SettingsProfile implements AfterViewInit {
     ).subscribe({
       next: () => {
         this.#profileService.getProfile().pipe(take(1)).subscribe();
+        this.persistFileName('bg', file.name); // persist background file name
       },
       error: (err) => {
         console.error('Background upload/confirm failed', err);
@@ -644,6 +661,20 @@ export class SettingsProfile implements AfterViewInit {
   ngOnDestroy() {
     const prev = this.localBlobUrl();
     if (prev) URL.revokeObjectURL(prev);
+  }
+
+  // Hide results when search inputs lose focus
+  onAlbumSearchBlur(): void {
+    setTimeout(() => {
+      this._albumResultsRaw.set([]);
+      this.loadingAlbumSearch.set(false);
+    }, 150);
+  }
+
+  onArtistSearchBlur(): void {
+    setTimeout(() => {
+      this._artistResultsRaw.set([]);
+    }, 150);
   }
 }
 

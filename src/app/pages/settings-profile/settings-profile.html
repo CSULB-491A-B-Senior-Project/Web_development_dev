@@ -73,7 +73,7 @@
     </form>
 
     <!-- SELECT MUSIC -->
-    <h1>Select music</h1>
+    <h1>Favorite Song</h1>
     <p>Choose a favorite song to feature on your profile.</p>
 
     <ng-container *ngIf="favoriteSong() as song; else songSearchBlock">
@@ -140,10 +140,13 @@
 
       <form [formGroup]="albumSearchForm" class="search-container">
         <input
-          class="form-control"
           type="text"
-          formControlName="query"
-          placeholder="Search for albums to add..." />
+          class="form-control"
+          [formControl]="albumSearchForm.controls.query"
+          (blur)="onAlbumSearchBlur()"
+          placeholder="Search albums"
+        />
+
         <ul class="search-results" *ngIf="albumSearchQuery() && albumResults().length > 0">
           <li class="result-item" *ngFor="let album of albumResults(); trackBy: trackByAlbum">
             <img ngOptimizedImage [ngSrc]="album.albumCover || placeholderAlbum" class="item-image" width="50" height="50" [alt]="album.name || 'Album cover'" />
