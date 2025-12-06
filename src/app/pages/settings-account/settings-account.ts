@@ -6,12 +6,18 @@ import { RouterLink, Router } from '@angular/router';
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
 import { ApiService } from '../../api.service';
+import { SidebarComponent } from '../../ui/sidebar/sidebar';
 
 @Component({
   selector: 'app-settings-account',
   templateUrl: './settings-account.html',
   styleUrls: ['./settings-account.scss'],
-  imports: [RouterLink, ReactiveFormsModule, CommonModule],
+  imports: [
+    CommonModule,
+    // RouterLink,
+    ReactiveFormsModule,
+    SidebarComponent
+  ],
   standalone: true,
 })
 export class SettingsAccount implements OnInit {
