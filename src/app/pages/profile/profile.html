@@ -13,11 +13,11 @@
         <div class="avatar-img img-skeleton"></div>
       </ng-template>
 
-      <div class="chip">music</div>
+      <div class="chip">@{{ user()?.username }}</div>
     </div>
 
     <div class="meta">
-      <h1 class="username">{{ user()?.username }}</h1>
+      <h1 class="username">{{ user()?.firstName }} {{ user()?.lastName }}</h1>
 
       <div class="actions">
         <button routerLink="/settings-profile">Edit Profile</button>

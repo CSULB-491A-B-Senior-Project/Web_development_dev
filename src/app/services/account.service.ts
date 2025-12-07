@@ -20,4 +20,7 @@ export class AccountService {
             currentPassword: oldPassword,
             newPassword: newPassword });
     }
+    favoriteArtists(): Observable<void> {
+        return this.api.get<void>('/Users/me/favorite-artists/');
+    }
 }

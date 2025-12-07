@@ -30,15 +30,19 @@ export class ProfileComponent implements OnInit {
 
   user = signal<UserAccount | null>(null);
   favoriteAlbums = signal<Album[]>([]);
+  favoriteArtists = signal<string[]>([]);
   recentAlbums = signal<Album[]>([]);
 
-  avatarUrl = signal<string>('https://picsum.photos/seed/card-111/500/500/'); // leave empty to show circle placeholder
 
   constructor(private accountService: AccountService) {}
 
   ngOnInit(): void {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
       this.user.set(account);
+      console.log('User account loaded:', account);
+    });
+    this.accountService.favoriteArtists().subscribe(() => {
+      
     });
   }
 
@@ -69,5 +73,4 @@ export class ProfileComponent implements OnInit {
   albums = signal<Album[]>([...this.originalAlbums]);
 
   trackById = (_: number, it: Album) => it.albumId;
-  favoriteArtists = signal<string[]>(['artist1', 'artist2', 'artist3', 'artist4', 'artist5']);
 }
