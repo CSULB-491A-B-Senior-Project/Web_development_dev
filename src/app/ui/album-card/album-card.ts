@@ -14,8 +14,8 @@ export class AlbumCard {
   title = input.required<string>();
   artist = input.required<string>();
   genres = input<string[] | undefined>(undefined);
-  dateLabel = input<string>('');
-  imageUrl = input<string>('/assets/placeholder.png');
+  releaseYear = input<string>('');
+  albumCover = input<string>('/assets/placeholder.png');
 
   private readonly placeholder = '/assets/placeholder.png'; // match the default above
   usePlaceholder(ev: Event): void {

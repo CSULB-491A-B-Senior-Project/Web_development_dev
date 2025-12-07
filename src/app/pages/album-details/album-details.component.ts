@@ -7,6 +7,7 @@ import { AlbumReviewsService } from '../../services/album-reviews.service';
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
 import { ProfileService } from '../../services/profile.service';
+import { Artist } from '../../models/playlist.models';
 
 // Local types
 type Reaction = 'like' | null;
@@ -51,8 +52,9 @@ export class AlbumDetailsComponent {
   // Album header fields
   title = 'Album Name';
   year: number | null = null;
-  private albumArtists = signal<string>('Artist Names');
+  // private albumArtists = signal<string>('Artist Names');
   coverUrl = '';
+  albumArtists = signal<Artist[]>([]);
 
   // Favorite toggle
   isFavorited = signal(false);
@@ -200,24 +202,44 @@ export class AlbumDetailsComponent {
     this.api.getAlbumById(id).pipe(take(1)).subscribe({
       next: (album) => {
         const a = album as Record<string, unknown>;
+        console.log('Loaded album data:', a);
 
         // Title
         this.title = this.readString(a, 'title') || 'Unknown Album';
 
         // Artists
-        const artistNames =
-          this.readString(a, 'artistNames') ||
-          (Array.isArray(a?.['artists'])
-            ? (a['artists'] as unknown[])
-              .map(v => (typeof v === 'string'
-                ? v
-                : (v && typeof v === 'object' && typeof (v as { name?: string }).name === 'string')
-                  ? (v as { name: string }).name
-                  : ''))
-              .filter(Boolean)
-              .join(', ')
-            : '');
-        this.albumArtists.set(artistNames || 'Unknown Artist');
+        const rawArtists = this.readUnknown(a, 'artists');
+
+        if (Array.isArray(rawArtists)) {
+          const artists = rawArtists
+            .map(art => {
+              if (art && typeof art === 'object') {
+                const obj = art as Record<string, unknown>;
+                return {
+                  id: this.readString(obj, 'id'),
+                  artistName: this.readString(obj, 'name') || this.readString(obj, 'artistName'),
+                } as Artist;
+              }
+              return null;
+            })
+            .filter((x): x is Artist => !!x);
+          
+          this.albumArtists.set(artists);
+        }
+
+        // const artistNames =
+        //   this.readString(a, 'artistNames') ||
+        //   (Array.isArray(a?.['artists'])
+        //     ? (a['artists'] as unknown[])
+        //       .map(v => (typeof v === 'string'
+        //         ? v
+        //         : (v && typeof v === 'object' && typeof (v as { name?: string }).name === 'string')
+        //           ? (v as { name: string }).name
+        //           : ''))
+        //       .filter(Boolean)
+        //       .join(', ')
+        //     : '');
+        // this.albumArtists.set(artistNames || 'Unknown Artist');
 
         // Year
         const rawYear = a?.['year'];
@@ -506,12 +528,12 @@ export class AlbumDetailsComponent {
 
   // ================ Template Helpers ================
 
-  splitArtists(): string[] {
-    return (this.albumArtists() || '')
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-  }
+  // splitArtists(): string[] {
+  //   return (this.albumArtists() || '')
+  //     .split(',')
+  //     .map(s => s.trim())
+  //     .filter(Boolean);
+  // }
 
   slugify(text: string): string {
     return text
