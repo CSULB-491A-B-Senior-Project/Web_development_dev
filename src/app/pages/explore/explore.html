@@ -10,7 +10,7 @@
     <button (click)="loadFeed()">Retry</button>
   </div>
   
-  <div class="card-container">
+  <div class="card-container" *ngIf="!loading() && !error()">
     <div class="welcome-txt">
       <h1>
         Welcome,

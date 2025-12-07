@@ -170,14 +170,6 @@
             </button>
 
             <button type="button"
-                    class="reply-button dislike"
-                    (click)="toggleDislike(c.id)"
-                    [attr.aria-pressed]="c.userReaction === 'dislike'">
-              <i class="fa-solid fa-thumbs-down"></i>
-              <span class="count">{{ c.dislikes }}</span>
-            </button>
-
-            <button type="button"
                     class="reply-button"
                     (click)="openReply(c.id)"
                     [attr.aria-expanded]="replyTargetId() === c.id">
@@ -225,14 +217,6 @@
                         [attr.aria-pressed]="r.userReaction === 'like'">
                   <i class="fa-solid fa-thumbs-up"></i>
                   <span class="count">{{ r.likes }}</span>
-                </button>
-
-                <button type="button"
-                        class="reply-button dislike"
-                        (click)="toggleDislike(r.id)"
-                        [attr.aria-pressed]="r.userReaction === 'dislike'">
-                  <i class="fa-solid fa-thumbs-down"></i>
-                  <span class="count">{{ r.dislikes }}</span>
                 </button>
 
                 @if (r.author === username() && editTargetId() !== r.id) {
