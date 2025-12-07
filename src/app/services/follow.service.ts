@@ -10,27 +10,27 @@ export class FollowService {
     // ARTIST
     // POST - FOLLOW ARTIST
     followArtist(artistId: string): Observable<void> {
-        return this.api.post<void>('/UserFollows/artist/${artistId}', {});
+        return this.api.post<void>(`/UserFollows/artist/${artistId}`, {});
     }
     // DELETE - UNFOLLOW ARTIST
     unfollowArtist(artistId: string): Observable<void> {
-        return this.api.delete<void>('/UserFollows/artist/${artistId}');
+        return this.api.delete<void>(`/UserFollows/artist/${artistId}`);
     }
     // GET - LIST OF ARTISTS THE USER FOLLOWS
     getUserArtistFollowList(userId: string): Observable<any[]> {
-        return this.api.get<any[]>('/UserFollows/artist/following/${userId}');
+        return this.api.get<any[]>(`/UserFollows/artist/following/${userId}`);
     }
     // GET - LIST OF USERS FOLLOWING THE ARTIST
     getArtistFollowList(artistId: string): Observable<any[]> {
-        return this.api.get<any[]>('/UserFollows/artist/followers/${artistId}');
+        return this.api.get<any[]>(`/UserFollows/artist/followers/${artistId}`);
     }
     // GET - TOTAL NUMBER OF FOLLOWERS FOR AN ARTIST
     getArtistFollowCount(artistId: string): Observable<number> {
-        return this.api.get<number>('/UserFollows/artist/${artistId}/count');
+        return this.api.get<number>(`/UserFollows/artist/${artistId}/count`);
     }
     // GET - CHECK IF THE CURRENT USER FOLLOWS THE ARTIST
     isFollowingArtist(artistId: string): Observable<boolean> {
-        return this.api.get<boolean>('/UserFollows/artist/${artistId}/is-following');
+        return this.api.get<boolean>(`/UserFollows/artist/${artistId}/status`);
     }
 
     // USERS

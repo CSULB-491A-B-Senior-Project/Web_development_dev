@@ -1,11 +1,12 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FollowService } from '../../services/follow.service';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { AlbumCard } from '../../ui/album-card/album-card';
 import { ArtistDetails, Album, Artist as ArtistModel } from '../../models/playlist.models';
 import { ArtistService } from '../../services/artist.service';
+import { FollowService } from '../../services/follow.service';
+
 
 @Component({
     selector: 'app-artist',
