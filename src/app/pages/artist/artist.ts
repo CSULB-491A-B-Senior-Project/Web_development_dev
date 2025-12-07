@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AlbumCard } from '../../ui/album-card/album-card';
+import { FollowService } from '../../services/follow.service';
 
 // ARTIST TYPE
 type artist = {
