@@ -71,15 +71,18 @@
 }
 
 .title-line {
-    justify-content: space-between;
-    margin-top: .25rem;
+  justify-content: space-between;
+  margin-top: .25rem;
 
-    .title {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1.2;
-    }
+  .title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 /* genre chips */

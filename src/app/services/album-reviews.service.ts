@@ -4,7 +4,7 @@ import { of, Observable } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
-type Reaction = 'like' | 'dislike' | null;
+type Reaction = 'like' | null;
 interface CommentDto {
   id: string;
   albumId: string;
@@ -58,7 +58,6 @@ export class AlbumReviewsService {
       text: comment.text,
       createdAt: comment.createdDate,
       likes: 0,
-      dislikes: 0,
       userReaction: null,
       replies: comments
         .filter(c => c.parentCommentId === comment.id)
@@ -69,7 +68,6 @@ export class AlbumReviewsService {
           text: reply.text,
           createdAt: reply.createdDate,
           likes: 0,
-          dislikes: 0,
           userReaction: null
         }))
     }));
@@ -95,7 +93,6 @@ export class AlbumReviewsService {
         text: dto.text,
         createdAt: dto.createdDate,
         likes: 0,
-        dislikes: 0,
         userReaction: null,
         replies: []
       }))
@@ -119,7 +116,6 @@ export class AlbumReviewsService {
         text: dto.text,
         createdAt: dto.createdDate,
         likes: 0,
-        dislikes: 0,
         userReaction: null,
         replies: []
       }))
@@ -146,7 +142,6 @@ export class AlbumReviewsService {
         text: dto.text,
         createdAt: dto.createdDate,
         likes: 0,
-        dislikes: 0,
         userReaction: null
       }))
     );
@@ -161,38 +156,65 @@ export class AlbumReviewsService {
   }
 
   /**
-   * POST /v1/CommentLikes/{commentId}/like
-   * DELETE /v1/CommentLikes/{commentId}/like
+   * POST /v1/CommentLikes/{commentId}
+   * Adds a like to a comment from the authenticated user
+   * Idempotent - can call multiple times without creating duplicates
    */
-  reactToComment(
-    commentId: string,
-    reaction: Reaction
-  ): Observable<any> {
-    if (reaction === 'like') {
-      return this.#http.post<void>(
-        `${this.#apiUrl}/v1/CommentLikes/${commentId}/like`,
-        {}
-      );
-    }
-
-    if (reaction === null) {
-      // Remove like
-      return this.#http.delete<void>(
-        `${this.#apiUrl}/v1/CommentLikes/${commentId}/like`
-      );
-    }
-
-    // 'dislike' - not supported
-    console.warn('Dislike not supported by API');
-    return of(null);
+  likeComment(commentId: string): Observable<void> {
+    return this.#http.post<void>(
+      `${this.#apiUrl}/v1/CommentLikes/${commentId}`,
+      {}
+    );
   }
 
   /**
-   * GET /v1/CommentLikes/{commentId}
-   * Gets like count for a comment
+   * DELETE /v1/CommentLikes/{commentId}
+   * Removes a like from a comment by the authenticated user
+   * Idempotent - no error if like doesn't exist
    */
-  getCommentLikes(commentId: string): Observable<any> {
-    return this.#http.get<any>(`${this.#apiUrl}/v1/CommentLikes/${commentId}`);
+  unlikeComment(commentId: string): Observable<void> {
+    return this.#http.delete<void>(
+      `${this.#apiUrl}/v1/CommentLikes/${commentId}`
+    );
+  }
+
+  /**
+   * GET /v1/CommentLikes/{commentId}/count
+   * Gets the total number of likes for a specific comment
+   * Does not require authentication
+   */
+  getCommentLikeCount(commentId: string): Observable<{ commentId: string; likeCount: number }> {
+    return this.#http.get<{ commentId: string; likeCount: number }>(
+      `${this.#apiUrl}/v1/CommentLikes/${commentId}/count`
+    );
+  }
+
+  /**
+   * GET /v1/CommentLikes/{commentId}/status
+   * Checks if the authenticated user has liked a specific comment
+   * Requires authentication
+   */
+  getCommentLikeStatus(commentId: string): Observable<{ commentId: string; hasLiked: boolean }> {
+    return this.#http.get<{ commentId: string; hasLiked: boolean }>(
+      `${this.#apiUrl}/v1/CommentLikes/${commentId}/status`
+    );
+  }
+
+  /**
+   * GET /v1/CommentLikes/{commentId}/users
+   * Gets all users who have liked a specific comment
+   * Does not require authentication
+   */
+  getCommentLikeUsers(commentId: string): Observable<Array<{
+    userId: string;
+    username: string;
+    likedAt: string;
+  }>> {
+    return this.#http.get<Array<{
+      userId: string;
+      username: string;
+      likedAt: string;
+    }>>(`${this.#apiUrl}/v1/CommentLikes/${commentId}/users`);
   }
 
   /**
