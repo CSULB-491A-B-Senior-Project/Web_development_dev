@@ -15,26 +15,9 @@ import { ArtistService } from '../../services/artist.service';
 })
 export class Artist {
 
-    // ALBUM DATA
-    private readonly originalAlbums: Album[] = [
-    {
-        id: '1',
-        title: 'Album D',
-        artist: { id: '999', artistName: 'Artist Name' },
-        releaseYear: 2025,
-        albumCover: 'https://picsum.photos/seed/card-1/600/600'
-    },
-    {
-        id: '2',
-        title: 'Album C',
-        artist: { id: '999', artistName: 'Artist Name' },
-        releaseYear: 2025,
-        albumCover: 'https://picsum.photos/seed/card-2/600/600'
-    }
-    ];
-
     artist = signal<ArtistDetails | null>(null);
     albums = signal<Album[]>([]);
+    followed = signal<boolean>(false);
 
     trackById = (_: number, it: Album) => it.id;
 
