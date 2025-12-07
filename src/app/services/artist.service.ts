@@ -9,16 +9,17 @@ import { ApiService } from '../api.service';
 export class ArtistService {
     constructor(private api: ApiService) {}
 
-    // GET /v1/Artists
+    // GET ARTIST
     getArtists(): Observable<ArtistDetails[]> {
         return this.api.get<ArtistDetails[]>('/Artists');
     }
 
-    // GET /v1/Artists/{id}
+    // GET ARTIST WITH ID
     getArtist(id: string): Observable<ArtistDetails> {
         return this.api.get<ArtistDetails>(`/Artists/${id}`);
     }
 
+    // GET ARTIST ALBUMS
     getArtistAlbums(id: string): Observable<Album[]> {
         return this.api.get<any[]>(`/Artists/${id}/Albums`);
     }
