@@ -95,7 +95,7 @@ export class Artist {
     toggleFollow(): void {
         const artistId = this.route.snapshot.paramMap.get('id');
         if (!artistId) return;
-
+        
         if (this.followed()) {
             this.followService.unfollowArtist(artistId).subscribe({
                 next: () => {
@@ -116,7 +116,7 @@ export class Artist {
                     console.error('Error following artist:', err);
                 }
             });
-        }
+        }   
     }
     
     // SORT BY TITLE
