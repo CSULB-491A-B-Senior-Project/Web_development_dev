@@ -1,11 +1,14 @@
 <div class="banner">
-  <img src="https://picsum.photos/seed/card-15/3000/300/" />
+  <img [src]="user()?.backgroundImageUrl || 'https://picsum.photos/seed/card-15/3000/300/'" />
 </div>
 
 <main class="page">
   <section class="profile">
     <div class="avatar-wrap">
-      <img *ngIf="avatarUrl(); else avatarSkeleton" class="avatar-img" [src]="avatarUrl()" alt="profile avatar" />
+      <img
+        [src]="user()?.profileImageUrl || 'assets/profile.png'"
+        class="avatar-img"
+        alt="profile avatar" />
       <ng-template #avatarSkeleton>
         <div class="avatar-img img-skeleton"></div>
       </ng-template>
@@ -14,7 +17,7 @@
     </div>
 
     <div class="meta">
-      <h1 class="username">{{ username() }}</h1>
+      <h1 class="username">{{ user()?.username }}</h1>
 
       <div class="actions">
         <button routerLink="/settings-profile">Edit Profile</button>

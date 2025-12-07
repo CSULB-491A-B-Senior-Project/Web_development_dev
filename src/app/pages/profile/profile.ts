@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, signal, OnInit } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AlbumCard } from '../../ui/album-card/album-card';
+
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
 
@@ -27,13 +28,17 @@ export class ProfileComponent implements OnInit {
   albumsCount = signal(0);
   followingCount = signal(0);
 
+  user = signal<UserAccount | null>(null);
+  favoriteAlbums = signal<Album[]>([]);
+  recentAlbums = signal<Album[]>([]);
+
   avatarUrl = signal<string>('https://picsum.photos/seed/card-111/500/500/'); // leave empty to show circle placeholder
 
   constructor(private accountService: AccountService) {}
 
   ngOnInit(): void {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
-      this.username.set(account.username);
+      this.user.set(account);
     });
   }
 
