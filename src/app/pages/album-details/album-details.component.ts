@@ -4,6 +4,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { take } from 'rxjs';
 import { AlbumReviewsService } from '../../services/album-reviews.service';
+import { AccountService } from '../../services/account.service';
+import { UserAccount } from '../../models/account.models';
+import { ProfileService } from '../../services/profile.service';
 
 // Local types
 type Reaction = 'like' | 'dislike' | null;
@@ -11,6 +14,7 @@ type Reaction = 'like' | 'dislike' | null;
 interface Reply {
   id: string;
   author: string;
+  userId: string;
   text: string;
   createdAt: string;
   likes: number;
@@ -21,6 +25,7 @@ interface Reply {
 interface CommentItem {
   id: string;
   author: string;
+  userId: string;
   text: string;
   createdAt: string;
   likes: number;
@@ -28,6 +33,7 @@ interface CommentItem {
   userReaction: Reaction;
   replies: Reply[];
   rating?: number;
+  userRating?: number;
 }
 
 interface TrackItem {
@@ -53,8 +59,12 @@ export class AlbumDetailsComponent {
   // Favorite toggle
   isFavorited = signal(false);
 
-  // Current user placeholder
-  username = 'username';
+  // Profile service for favorites
+  private readonly profileService = inject(ProfileService);
+
+  // Current user from account service
+  private readonly accountService = inject(AccountService);
+  username = signal<string>('');
 
   // Tracklist and comments
   tracks = signal<TrackItem[]>([]);
@@ -63,11 +73,13 @@ export class AlbumDetailsComponent {
 
   // Ratings
   stars = Array.from({ length: 5 });
+  albumRatingsData = signal<{ averageRating: number; totalRatings: number }>({
+    averageRating: 0,
+    totalRatings: 0
+  });
   averageRating = computed(() => {
-    const rated = this.comments().filter(c => typeof c.rating === 'number' && (c.rating ?? 0) > 0);
-    if (!rated.length) return 0;
-    const sum = rated.reduce((s, c) => s + (c.rating ?? 0), 0);
-    return Math.round((sum / rated.length) * 10) / 10;
+    const rating = this.albumRatingsData().averageRating;
+    return rating ? Math.round(rating * 10) / 10 : 0;
   });
 
   // Forms
@@ -94,7 +106,7 @@ export class AlbumDetailsComponent {
   userRating = signal<number>(0);
   editRating = signal<number>(0);
 
-  userReviewIndex = computed(() => this.comments().findIndex(c => c.author === this.username));
+  userReviewIndex = computed(() => this.comments().findIndex(c => c.author === this.username()));
 
   // Backend wiring
   private readonly api = inject(AlbumReviewsService);
@@ -103,6 +115,8 @@ export class AlbumDetailsComponent {
   albumId = signal<string>('');
   loading = signal(false);
   error = signal<string | null>(null);
+  userId = signal<string>('');
+  userAlbumRating = signal<number>(0);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -113,12 +127,76 @@ export class AlbumDetailsComponent {
       return;
     }
 
+    // Load current user
+    this.accountService.getAccount().subscribe({
+      next: (account: UserAccount) => {
+        this.username.set(account.username);
+        this.userId.set(account.id);
+        this.loadUserRating(id, account.id);
+      },
+      error: (err) => {
+        console.error('Failed to load account:', err);
+      }
+    });
+
     this.loadAlbum(id);
     this.loadComments(id);
     this.loadTracks(id);
+    this.loadAlbumRatings(id);
+    this.checkIfFavorited(id);
   }
 
   // ================ Album Loading ================
+
+  private checkIfFavorited(albumId: string): void {
+    this.profileService.getFavoriteAlbums().pipe(take(1)).subscribe({
+      next: (albums) => {
+        const isFav = albums.some((album: any) => {
+          // Try different possible ID properties
+          const aid = album.albumId;
+          return aid === albumId;
+        });
+        this.isFavorited.set(isFav);
+      },
+      error: (err) => {
+        console.error('Failed to check if album is favorited:', err);
+        this.isFavorited.set(false); // Default to not favorited on error
+      }
+    });
+  }
+
+  toggleFavorite(): void {
+    const albumId = this.albumId();
+    if (!albumId) return;
+
+    const wasFavorited = this.isFavorited();
+    // Optimistic update
+    this.isFavorited.set(!wasFavorited);
+
+    if (wasFavorited) {
+      // Remove from favorites
+      this.profileService.removeFavoriteAlbum(albumId).pipe(take(1)).subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.error('Failed to remove from favorites:', err);
+          // Revert on error
+          this.isFavorited.set(wasFavorited);
+        }
+      });
+    } else {
+      // Add to favorites
+      this.profileService.addFavoriteAlbum(albumId).pipe(take(1)).subscribe({
+        next: () => {
+        },
+        error: (err) => {
+          console.error('Failed to add to favorites:', err);
+          // Revert on error
+          this.isFavorited.set(wasFavorited);
+        }
+      });
+    }
+  }
 
   private loadAlbum(id: string): void {
     this.api.getAlbumById(id).pipe(take(1)).subscribe({
@@ -154,8 +232,7 @@ export class AlbumDetailsComponent {
         this.year = Number.isFinite(parsedYear as number) ? (parsedYear as number) : null;
 
         // Cover
-        const cover =
-          this.readString(a, 'coverArt');
+        const cover = this.readString(a, 'coverArt');
         this.coverUrl = cover;
 
         // Tracks embedded in album payload
@@ -174,7 +251,6 @@ export class AlbumDetailsComponent {
   private loadTracks(id: string): void {
     // Check if getAlbumTracks exists on the service
     if (typeof this.api.getAlbumTracks !== 'function') {
-      console.log('getAlbumTracks not available on service');
       return;
     }
 
@@ -192,18 +268,17 @@ export class AlbumDetailsComponent {
   }
 
   private mapTracksFromAlbumObject(a: Record<string, unknown>): TrackItem[] {
-    const raw =
-      (Array.isArray(a['tracks']) && a['tracks']);
+    const raw = (Array.isArray(a['tracks']) && a['tracks']);
     if (!Array.isArray(raw)) return [];
     return raw.map((t, idx) => this.mapTrackDto(t, idx));
   }
 
   private mapTrackDto(raw: unknown, idx: number): TrackItem {
-    const id =
-      this.readString(raw, 'id')
-      String(idx + 1);
+    const id = this.readString(raw, 'id') || String(idx + 1);
     const title =
-      this.readString(raw, 'name');
+      this.readString(raw, 'name') ||
+      this.readString(raw, 'title') ||
+      `Track ${idx + 1}`;
     const durationSec = this.readNumber(raw, 'duration', NaN);
     const durationStr =
       Number.isFinite(durationSec) ? this.formatSeconds(durationSec) :
@@ -225,7 +300,6 @@ export class AlbumDetailsComponent {
     this.loading.set(true);
     this.api.getComments(id, 1, 50).pipe(take(1)).subscribe({
       next: (res: unknown) => {
-        // Handle both {items: []} and direct array
         const itemsUnknown = this.readUnknown(res, 'items');
         const list: unknown[] = Array.isArray(itemsUnknown)
           ? itemsUnknown
@@ -233,6 +307,14 @@ export class AlbumDetailsComponent {
 
         const mapped = list.map(dto => this.mapCommentDtoToItem(dto));
         this.comments.set(mapped);
+
+        // After we have the comments, hydrate their like counts
+        mapped.forEach(c => {
+          this.loadCommentLikeCount(c.id);
+          // If replies can have likes, you can also loop:
+          c.replies.forEach(r => this.loadCommentLikeCount(r.id));
+        });
+        this.loadRatingsForComments(id);
         this.loading.set(false);
       },
       error: (err) => {
@@ -243,14 +325,143 @@ export class AlbumDetailsComponent {
     });
   }
 
+
+  private loadCommentLikeCount(targetId: string): void {
+    this.api.getCommentLikes(targetId).pipe(take(1)).subscribe({
+      next: (likeData: any) => {
+        const likeCount: number =
+          Number(likeData.likeCount ?? likeData.count ?? 0);
+
+        const userIds: string[] = Array.isArray(likeData.userIds)
+          ? likeData.userIds
+          : [];
+
+        const userHasLiked =
+          !!this.userId && userIds.includes(this.userId());
+
+        this.comments.update(list =>
+          list.map(c => {
+            // top-level comment
+            if (c.id === targetId) {
+              return {
+                ...c,
+                likes: likeCount,
+                userReaction: userHasLiked ? 'like' as Reaction : null,
+              };
+            }
+
+            // replies
+            if (c.replies?.length) {
+              const replies = c.replies.map(r =>
+                r.id === targetId
+                  ? {
+                    ...r,
+                    likes: likeCount,
+                    userReaction: userHasLiked ? 'like' as Reaction : null,
+                  }
+                  : r
+              );
+
+              if (replies !== c.replies) {
+                return { ...c, replies };
+              }
+            }
+
+            return c;
+          })
+        );
+      },
+      error: (err) => {
+        console.warn('Failed to load like count for', targetId, err);
+      }
+    });
+  }
+
+  private loadRatingsForComments(albumId: string): void {
+    this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
+      next: (ratings: any[]) => {
+        // Create a map of userId -> ratingValue
+        const ratingsMap = new Map<string, number>();
+        ratings.forEach(r => {
+          if (r.userId && r.ratingValue) {
+            ratingsMap.set(r.userId, r.ratingValue);
+          }
+        });
+        // Update comments with their associated ratings
+        this.comments.update(list =>
+          list.map(c => {
+            const rating = ratingsMap.get(c.userId);
+            return {
+              ...c,
+              userRating: rating || undefined
+            };
+          })
+        );
+      },
+      error: (err) => {
+        console.warn('Failed to load ratings for comments:', err);
+      }
+    });
+  }
+
+  private loadAlbumRatings(albumId: string): void {
+    this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
+      next: (ratings: any[]) => {
+        // Calculate average from the array of ratings
+        if (Array.isArray(ratings) && ratings.length > 0) {
+          const ratingValues = ratings
+            .map(r => r.ratingValue)
+            .filter(v => typeof v === 'number' && v > 0);
+
+          if (ratingValues.length > 0) {
+            const sum = ratingValues.reduce((acc, val) => acc + val, 0);
+            const average = sum / ratingValues.length;
+            this.albumRatingsData.set({
+              averageRating: average,
+              totalRatings: ratingValues.length
+            });
+          } else {
+            this.albumRatingsData.set({ averageRating: 0, totalRatings: 0 });
+          }
+        } else {
+          console.log('No ratings found');
+          this.albumRatingsData.set({ averageRating: 0, totalRatings: 0 });
+        }
+      },
+      error: (err) => {
+        console.warn('Failed to load album ratings:', err);
+        this.albumRatingsData.set({ averageRating: 0, totalRatings: 0 });
+      }
+    });
+  }
+
+
+  private loadUserRating(albumId: string, userId: string): void {
+    this.api.getUserRating(albumId, userId).pipe(take(1)).subscribe({
+      next: (rating) => {
+        this.userAlbumRating.set(rating.ratingValue);
+        this.commentRating.set(rating.ratingValue); // Pre-fill modal
+      },
+      error: (err) => {
+        // 404 means user hasn't rated yet - this is normal
+        this.userAlbumRating.set(0);
+      }
+    });
+  }
+
   private mapCommentDtoToItem(dto: unknown): CommentItem {
     const id = this.readString(dto, 'id') || this.cryptoId();
     const authorRaw = this.readUnknown(dto, 'author');
     const author =
       typeof authorRaw === 'string'
         ? authorRaw
-        : (this.readString(authorRaw, 'username') ||
-          'username');
+        : (this.readString(authorRaw, 'username') || 'username');
+    const userId =
+      this.readString(dto, 'userId') ||
+      this.readString(dto, 'user_id') ||
+      this.readString(dto, 'authorId') ||
+      this.readString(dto, 'author_id') ||
+      '';
 
     const text = this.readString(dto, 'text');
     const createdAt = this.readString(dto, 'createdAt', new Date().toISOString());
@@ -263,6 +474,7 @@ export class AlbumDetailsComponent {
     return {
       id,
       author,
+      userId,
       text,
       createdAt,
       likes,
@@ -281,11 +493,17 @@ export class AlbumDetailsComponent {
       const author =
         typeof authorRaw === 'string'
           ? authorRaw
-          : (this.readString(authorRaw, 'username') ||
-            'username');
+          : (this.readString(authorRaw, 'username') || 'username');
+      const userId =
+        this.readString(r, 'userId') ||
+        this.readString(r, 'user_id') ||
+        this.readString(r, 'authorId') ||
+        this.readString(r, 'author_id') ||
+        '';
       return {
         id,
         author,
+        userId,
         text: this.readString(r, 'text'),
         createdAt: this.readString(r, 'createdAt', new Date().toISOString()),
         likes: this.readNumber(r, 'likes', 0),
@@ -339,7 +557,8 @@ export class AlbumDetailsComponent {
       this.confirmOverwrite.set(false);
     } else {
       this.commentForm.patchValue({ text: '' });
-      this.commentRating.set(0);
+      // Use the user's existing album rating if they have one
+      this.commentRating.set(this.userAlbumRating());
       this.confirmOverwrite.set(false);
     }
     this.showCommentModal.set(true);
@@ -350,7 +569,7 @@ export class AlbumDetailsComponent {
     if (!comment) return;
     this.editingId.set(commentId);
     this.commentForm.patchValue({ text: comment.text ?? '' });
-    this.commentRating.set(comment.rating ?? 0);
+    this.commentRating.set(comment.rating ?? this.userAlbumRating());
     this.confirmOverwrite.set(false);
     this.showCommentModal.set(true);
   }
@@ -386,43 +605,45 @@ export class AlbumDetailsComponent {
 
     const raw = this.commentForm.get('text')?.value ?? '';
     const text = String(raw).trim() || '';
-    const ratingToAttach = this.commentRating() || undefined;
+    const ratingToSubmit = this.commentRating() || undefined;
 
-    // Local upsert
-    this.comments.update(prev => {
-      const editingIdNow = this.editingId();
-      if (editingIdNow) {
-        const cleared = prev.map(c => (c.author === this.username ? { ...c, rating: undefined } : c));
-        return cleared.map(c => c.id === editingIdNow ? { ...c, text, rating: ratingToAttach, createdAt: new Date().toISOString() } : c);
-      }
-      const cleared = prev.map(c => (c.author === this.username ? { ...c, rating: undefined } : c));
-      const existingIndex = cleared.findIndex(c => c.author === this.username);
-      if (existingIndex !== -1) {
-        const updated = cleared.slice();
-        updated[existingIndex] = { ...updated[existingIndex], text, createdAt: new Date().toISOString(), rating: ratingToAttach };
-        return updated;
-      }
-      return [...cleared, {
-        id: this.cryptoId(),
-        author: this.username,
-        text,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        dislikes: 0,
-        userReaction: null,
-        replies: [],
-        rating: ratingToAttach,
-      }];
-    });
+    // STEP 1: Save rating separately (if provided)
+    if (ratingToSubmit) {
+      this.api.createOrUpdateRating(this.albumId(), ratingToSubmit)
+        .pipe(take(1))
+        .subscribe({
+          next: () => {
+            this.userAlbumRating.set(ratingToSubmit);
+            // Reload album ratings to update average
+            this.loadAlbumRatings(this.albumId());
+            // Reload comments to update the visual display of ratings next to comments
+            this.loadComments(this.albumId());
+          },
+          error: (err) => {
+            console.error('Failed to save rating:', err);
+            this.error.set('Failed to save rating');
+          }
+        });
+    }
 
-    // Persist
+    // STEP 2: If no text provided and not editing, just close modal (rating was saved above)
+    if (!text && !this.editingId()) {
+      this.closeCommentModal();
+      return;
+    }
+
+    // STEP 3: Save comment separately (without rating attached to comment)
     const id = this.albumId();
     const editingIdNow = this.editingId();
-    if (id) {
+    if (id && text) {
       (editingIdNow
-        ? this.api.updateComment(editingIdNow, { text, rating: ratingToAttach ?? null })
-        : this.api.createComment(id, { text, rating: ratingToAttach ?? null })
+        ? this.api.updateComment(editingIdNow, { text })
+        : this.api.createComment(id, { text })
       ).pipe(take(1)).subscribe({
+        next: () => {
+          // Reload comments to get server state (which will include user's rating visually)
+          this.loadComments(id);
+        },
         error: (err) => {
           console.error('Failed to save comment:', err);
           this.error.set('Failed to save comment');
@@ -436,7 +657,6 @@ export class AlbumDetailsComponent {
     this.confirmOverwrite.set(false);
     this.editingId.set(null);
     this.showCommentModal.set(false);
-    if (ratingToAttach) this.userRating.set(ratingToAttach);
   }
 
   // ================ Inline Edit + Replies ================
@@ -460,17 +680,13 @@ export class AlbumDetailsComponent {
     const text = String(raw).trim();
     if (!text) return;
 
-    const ratingToAttach = this.editRating() || undefined;
-
-    this.comments.update(prev =>
-      prev.map(c =>
-        c.id === commentId
-          ? { ...c, text, rating: ratingToAttach ?? c.rating, createdAt: new Date().toISOString() }
-          : c,
-      ),
-    );
-
-    this.api.updateComment(commentId, { text, rating: ratingToAttach ?? null }).pipe(take(1)).subscribe({
+    // Inline edit should NOT update rating - only comment text
+    // Rating is updated separately via the modal
+    this.api.updateComment(commentId, { text }).pipe(take(1)).subscribe({
+      next: () => {
+        // Reload comments to get updated state
+        this.loadComments(this.albumId());
+      },
       error: (err) => {
         console.error('Failed to update comment:', err);
         this.error.set('Failed to update comment');
@@ -481,7 +697,7 @@ export class AlbumDetailsComponent {
   }
 
   startEditReply(reply: Reply): void {
-    if (reply.author !== this.username) return;
+    if (reply.author !== this.username()) return;
     this.editForm.patchValue({ text: reply.text ?? '' });
     this.editTargetId.set(reply.id);
   }
@@ -498,7 +714,11 @@ export class AlbumDetailsComponent {
     this.comments.update(list =>
       list.map(c => {
         if (c.id === parentId && c.replies) {
-          const replies = c.replies.map(r => r.id === replyId ? { ...r, text, createdAt: new Date().toISOString() } : r);
+          const replies = c.replies.map(r =>
+            r.id === replyId
+              ? { ...r, text, createdAt: new Date().toISOString() }
+              : r
+          );
           return { ...c, replies };
         }
         return c;
@@ -525,6 +745,8 @@ export class AlbumDetailsComponent {
     if (!text) return;
 
     const tempId = this.cryptoId();
+    const currentUsername = this.username();
+    const currentUserId = this.userId();
     this.comments.update(list =>
       list.map(c =>
         c.id === parentId
@@ -532,14 +754,23 @@ export class AlbumDetailsComponent {
             ...c,
             replies: [
               ...(c.replies ?? []),
-              { id: tempId, author: this.username, text, createdAt: new Date().toISOString(), likes: 0, dislikes: 0, userReaction: null },
+              {
+                id: tempId,
+                author: currentUsername,
+                userId: currentUserId,
+                text,
+                createdAt: new Date().toISOString(),
+                likes: 0,
+                dislikes: 0,
+                userReaction: null
+              },
             ],
           }
           : c,
       ),
     );
 
-    this.api.addReply(parentId, { text }).pipe(take(1)).subscribe({
+    this.api.addReply(parentId, { text, albumId: this.albumId() }).pipe(take(1)).subscribe({
       next: (serverReply: unknown) => {
         this.comments.update(list =>
           list.map(c => {
@@ -554,6 +785,7 @@ export class AlbumDetailsComponent {
                 : (this.readString(this.readUnknown(serverReply, 'author'), 'displayName') ||
                   this.readString(this.readUnknown(serverReply, 'author'), 'username') ||
                   'username'),
+              userId: this.readString(serverReply, 'userId', currentUserId),
               text: this.readString(serverReply, 'text', text),
               createdAt: this.readString(serverReply, 'createdAt', new Date().toISOString()),
               likes: this.readNumber(serverReply, 'likes', 0),
@@ -576,6 +808,16 @@ export class AlbumDetailsComponent {
   // ================ Reactions ================
 
   toggleLike(targetId: string): void {
+    // Find if it's a comment or reply and get current state
+    let currentReaction: Reaction = null;
+    this.comments().forEach(c => {
+      if (c.id === targetId) currentReaction = c.userReaction;
+      c.replies?.forEach(r => {
+        if (r.id === targetId) currentReaction = r.userReaction;
+      });
+    });
+
+    // Optimistically update UI
     this.comments.update(list =>
       list.map(c => {
         if (c.id === targetId) return this.applyReaction(c, 'like');
@@ -586,30 +828,43 @@ export class AlbumDetailsComponent {
         return c;
       }),
     );
-    this.persistReaction(targetId, 'like');
-  }
 
-  toggleDislike(targetId: string): void {
-    this.comments.update(list =>
-      list.map(c => {
-        if (c.id === targetId) return this.applyReaction(c, 'dislike');
-        if (c.replies) {
-          const replies = c.replies.map(r => (r.id === targetId ? this.applyReaction(r, 'dislike') : r));
-          if (replies !== c.replies) return { ...c, replies };
-        }
-        return c;
-      }),
-    );
-    this.persistReaction(targetId, 'dislike');
-  }
+    // Determine what API call to make
+    const newReaction: Reaction = currentReaction === 'like' ? null : 'like';
 
-  private persistReaction(targetId: string, reaction: Reaction): void {
-    this.api.reactToComment(targetId, reaction).pipe(take(1)).subscribe({
+    // Persist to backend
+    this.api.reactToComment(targetId, newReaction).pipe(take(1)).subscribe({
+      next: () => {
+        // Reload the like count for this specific comment
+        this.loadCommentLikeCount(targetId);
+      },
       error: (err) => {
         console.error('Failed to update reaction:', err);
         this.error.set('Failed to update reaction');
+        // Revert the optimistic update
+        this.comments.update(list =>
+          list.map(c => {
+            if (c.id === targetId) {
+              return { ...c, userReaction: currentReaction };
+            }
+            if (c.replies) {
+              const replies = c.replies.map(r =>
+                r.id === targetId ? { ...r, userReaction: currentReaction } : r
+              );
+              if (replies !== c.replies) return { ...c, replies };
+            }
+            return c;
+          })
+        );
       },
     });
+  }
+
+  toggleDislike(targetId: string): void {
+    // Dislike is not supported by the API, but we keep the UI button
+    // Just show a message or do nothing
+    console.warn('Dislike not supported by API');
+    // Optionally you could show a toast/message to the user
   }
 
   private applyReaction<T extends { likes: number; dislikes: number; userReaction: Reaction }>(
@@ -648,6 +903,7 @@ export class AlbumDetailsComponent {
     }
     return { ...item, likes, dislikes, userReaction: next };
   }
+
 
   // ================ Utilities ================
 
