@@ -9,7 +9,7 @@ import { UserAccount } from '../../models/account.models';
 import { ProfileService } from '../../services/profile.service';
 
 // Local types
-type Reaction = 'like' | 'dislike' | null;
+type Reaction = 'like' | null;
 
 interface Reply {
   id: string;
@@ -18,7 +18,6 @@ interface Reply {
   text: string;
   createdAt: string;
   likes: number;
-  dislikes: number;
   userReaction: Reaction;
 }
 
@@ -29,7 +28,6 @@ interface CommentItem {
   text: string;
   createdAt: string;
   likes: number;
-  dislikes: number;
   userReaction: Reaction;
   replies: Reply[];
   rating?: number;
@@ -327,49 +325,45 @@ export class AlbumDetailsComponent {
 
 
   private loadCommentLikeCount(targetId: string): void {
-    this.api.getCommentLikes(targetId).pipe(take(1)).subscribe({
-      next: (likeData: any) => {
-        const likeCount: number =
-          Number(likeData.likeCount ?? likeData.count ?? 0);
-
-        const userIds: string[] = Array.isArray(likeData.userIds)
-          ? likeData.userIds
-          : [];
-
-        const userHasLiked =
-          !!this.userId && userIds.includes(this.userId());
-
-        this.comments.update(list =>
-          list.map(c => {
-            // top-level comment
-            if (c.id === targetId) {
-              return {
-                ...c,
-                likes: likeCount,
-                userReaction: userHasLiked ? 'like' as Reaction : null,
-              };
-            }
-
-            // replies
-            if (c.replies?.length) {
-              const replies = c.replies.map(r =>
-                r.id === targetId
-                  ? {
-                    ...r,
+    this.api.getCommentLikeCount(targetId).pipe(take(1)).subscribe({
+      next: (countData: any) => {
+        const likeCount: number = Number(countData.likeCount ?? 0);
+        this.api.getCommentLikeStatus(targetId).pipe(take(1)).subscribe({
+          next: (statusData: any) => {
+            const userHasLiked = !!statusData.hasLiked;
+            this.comments.update(list =>
+              list.map(c => {
+                // top-level comment
+                if (c.id === targetId) {
+                  return {
+                    ...c,
                     likes: likeCount,
                     userReaction: userHasLiked ? 'like' as Reaction : null,
+                  };
+                }
+                // replies
+                if (c.replies?.length) {
+                  const replies = c.replies.map(r =>
+                    r.id === targetId
+                      ? {
+                        ...r,
+                        likes: likeCount,
+                        userReaction: userHasLiked ? 'like' as Reaction : null,
+                      }
+                      : r
+                  );
+                  if (replies !== c.replies) {
+                    return { ...c, replies };
                   }
-                  : r
-              );
-
-              if (replies !== c.replies) {
-                return { ...c, replies };
-              }
-            }
-
-            return c;
-          })
-        );
+                }
+                return c;
+              })
+            );
+          },
+          error: (err) => {
+            console.warn('Failed to load like status for', targetId, err);
+          }
+        });
       },
       error: (err) => {
         console.warn('Failed to load like count for', targetId, err);
@@ -466,7 +460,6 @@ export class AlbumDetailsComponent {
     const text = this.readString(dto, 'text');
     const createdAt = this.readString(dto, 'createdAt', new Date().toISOString());
     const likes = this.readNumber(dto, 'likes', 0);
-    const dislikes = this.readNumber(dto, 'dislikes', 0);
     const userReaction = this.readReaction(dto, 'userReaction');
     const replies = this.mapReplies(this.readUnknown(dto, 'replies'));
     const ratingVal = this.readNumber(dto, 'rating', NaN);
@@ -478,7 +471,6 @@ export class AlbumDetailsComponent {
       text,
       createdAt,
       likes,
-      dislikes,
       userReaction,
       replies,
       rating: Number.isFinite(ratingVal) ? ratingVal : undefined,
@@ -507,7 +499,6 @@ export class AlbumDetailsComponent {
         text: this.readString(r, 'text'),
         createdAt: this.readString(r, 'createdAt', new Date().toISOString()),
         likes: this.readNumber(r, 'likes', 0),
-        dislikes: this.readNumber(r, 'dislikes', 0),
         userReaction: this.readReaction(r, 'userReaction'),
       };
     });
@@ -761,7 +752,6 @@ export class AlbumDetailsComponent {
                 text,
                 createdAt: new Date().toISOString(),
                 likes: 0,
-                dislikes: 0,
                 userReaction: null
               },
             ],
@@ -789,7 +779,6 @@ export class AlbumDetailsComponent {
               text: this.readString(serverReply, 'text', text),
               createdAt: this.readString(serverReply, 'createdAt', new Date().toISOString()),
               likes: this.readNumber(serverReply, 'likes', 0),
-              dislikes: this.readNumber(serverReply, 'dislikes', 0),
               userReaction: this.readReaction(serverReply, 'userReaction'),
             };
             return { ...c, replies: next };
@@ -832,15 +821,19 @@ export class AlbumDetailsComponent {
     // Determine what API call to make
     const newReaction: Reaction = currentReaction === 'like' ? null : 'like';
 
-    // Persist to backend
-    this.api.reactToComment(targetId, newReaction).pipe(take(1)).subscribe({
+    // Persist to backend using new POST/DELETE endpoints
+    const apiCall = newReaction === 'like'
+      ? this.api.likeComment(targetId)  // POST
+      : this.api.unlikeComment(targetId); // DELETE
+
+    apiCall.pipe(take(1)).subscribe({
       next: () => {
         // Reload the like count for this specific comment
         this.loadCommentLikeCount(targetId);
       },
       error: (err) => {
-        console.error('Failed to update reaction:', err);
-        this.error.set('Failed to update reaction');
+        console.error('Failed to update like:', err);
+        this.error.set('Failed to update like');
         // Revert the optimistic update
         this.comments.update(list =>
           list.map(c => {
@@ -860,49 +853,32 @@ export class AlbumDetailsComponent {
     });
   }
 
-  toggleDislike(targetId: string): void {
-    // Dislike is not supported by the API, but we keep the UI button
-    // Just show a message or do nothing
-    console.warn('Dislike not supported by API');
-    // Optionally you could show a toast/message to the user
-  }
 
-  private applyReaction<T extends { likes: number; dislikes: number; userReaction: Reaction }>(
+
+  private applyReaction<T extends { likes: number; userReaction: Reaction }>(
     item: T,
-    action: 'like' | 'dislike',
+    action: 'like',
   ): T {
     const current: Reaction = item.userReaction ?? null;
     let likes = item.likes ?? 0;
-    let dislikes = item.dislikes ?? 0;
     let next: Reaction = current;
 
     if (action === 'like') {
       if (current === 'like') {
+        // Unlike - remove the like
         likes = Math.max(0, likes - 1);
         next = null;
-      } else if (current === 'dislike') {
-        dislikes = Math.max(0, dislikes - 1);
+      } else {
+        // Add like
         likes += 1;
         next = 'like';
-      } else {
-        likes += 1;
-        next = 'like';
-      }
-    } else {
-      if (current === 'dislike') {
-        dislikes = Math.max(0, dislikes - 1);
-        next = null;
-      } else if (current === 'like') {
-        likes = Math.max(0, likes - 1);
-        dislikes += 1;
-        next = 'dislike';
-      } else {
-        dislikes += 1;
-        next = 'dislike';
       }
     }
-    return { ...item, likes, dislikes, userReaction: next };
+
+    return { ...item, likes, userReaction: next };
   }
+
+
 
 
   // ================ Utilities ================
@@ -930,7 +906,7 @@ export class AlbumDetailsComponent {
 
   private readReaction(obj: unknown, key: string): Reaction {
     const v = this.readUnknown(obj, key);
-    return v === 'like' || v === 'dislike' ? v : null;
+    return v === 'like' ? v : null;
   }
 
   private cryptoId(): string {
