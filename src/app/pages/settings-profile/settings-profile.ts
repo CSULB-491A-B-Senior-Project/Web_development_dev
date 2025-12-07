@@ -15,6 +15,8 @@ import { Artist, Album, Song } from '../../models/music.models';
 import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ApiService } from '../../api.service';
 import { environment } from '../../../environments/environment';
+import { SidebarComponent } from '../../ui/sidebar/sidebar';
+import { ProfilePictureStore } from '../../ui/navbar/profile-picture.store';
 
 @Component({
   selector: 'app-settings-profile',
@@ -23,12 +25,13 @@ import { environment } from '../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    RouterLink,
+    // RouterLink,
     ReactiveFormsModule,
     NgOptimizedImage,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
+    SidebarComponent
   ],
 })
 export class SettingsProfile implements AfterViewInit {
@@ -79,6 +82,21 @@ export class SettingsProfile implements AfterViewInit {
     const base = this.apiBase || window.location.origin;
     if (v.startsWith('/')) return `${base}${v}`;
     return `${base}/${v}`;
+  }
+
+  // Derive a display filename from a URL or path
+  private deriveFileNameFromUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    try {
+      // strip query/hash, take last path segment
+      const u = new URL(url, window.location.origin);
+      const last = u.pathname.split('/').filter(Boolean).pop() || '';
+      return decodeURIComponent(last);
+    } catch {
+      const clean = (url || '').split(/[?#]/)[0];
+      const last = clean.split('/').filter(Boolean).pop() || '';
+      try { return decodeURIComponent(last); } catch { return last; }
+    }
   }
 
   // Helper to extract a background image URL from profile payload
@@ -166,12 +184,17 @@ export class SettingsProfile implements AfterViewInit {
   private toYear(raw: unknown): number | undefined {
     if (typeof raw === 'number') return raw;
     if (typeof raw === 'string') {
-      const d = new Date(raw);
-      if (!Number.isNaN(d.getTime())) return d.getFullYear();
-      const n = Number.parseInt(raw, 10);
+      const s = raw.trim();
+      // Prefer explicit year token to avoid timezone shifts
+      const m = s.match(/\b(19|20)\d{2}\b/);
+      if (m) return Number.parseInt(m[0], 10);
+
+      const d = new Date(s);
+      if (!Number.isNaN(d.getTime())) return d.getUTCFullYear(); // use UTC to avoid local time rollover
+      const n = Number.parseInt(s, 10);
       return Number.isNaN(n) ? undefined : n;
     }
-    if (raw instanceof Date) return raw.getFullYear();
+    if (raw instanceof Date) return raw.getUTCFullYear();
     return undefined;
   }
 
@@ -236,7 +259,7 @@ export class SettingsProfile implements AfterViewInit {
     } catch { return ''; }
   }
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private pictureStore: ProfilePictureStore) {
     // Load profile and favorites
     this.#profileService.getProfile().pipe(take(1)).subscribe({
       next: (p: any) => {
@@ -251,10 +274,22 @@ export class SettingsProfile implements AfterViewInit {
         const url = this.resolveImageUrl(
           p.profilePictureUrl ?? p.profileImageUrl ?? p.avatarUrl ?? p.picture ?? p.imageUrl ?? p.profilePicture
         );
+        // this.profilePictureUrl.set(url);
+        // // Derive profile picture filename from URL
+        // this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
+        // const busted = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
         this.profilePictureUrl.set(url);
+        this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
+        console.log("Pushing url to store ->", url);
+
+        // Update shared store so Navbar sees it
+        this.pictureStore.profilePictureUrl.set(url);
 
         // Set current background image URL if present
-        this.backgroundImageUrl.set(this.extractBackgroundUrl(p));
+        const bgUrl = this.extractBackgroundUrl(p);
+        this.backgroundImageUrl.set(bgUrl);
+        // Derive background filename from URL
+        this.selectedFileName.set(this.deriveFileNameFromUrl(bgUrl));
 
         this.favoriteSong.set(p.favoriteSong ?? null);
 
@@ -271,8 +306,9 @@ export class SettingsProfile implements AfterViewInit {
         this.favoriteAlbums.set(albums);
         console.log('favoriteAlbums (from profile):', this.favoriteAlbums());
 
-        this.profilePicFileName.set(this.readPersistedFileName('profile')); // restore persisted file name
-        this.selectedFileName.set(this.readPersistedFileName('bg'));       // restore bg file name
+        // REMOVE localStorage restoration; filenames come from server URLs
+        // this.profilePicFileName.set(this.readPersistedFileName('profile'));
+        // this.selectedFileName.set(this.readPersistedFileName('bg'));
       },
       error: (err) => console.error('Failed to load profile', err)
     });
@@ -453,7 +489,8 @@ export class SettingsProfile implements AfterViewInit {
 
     const validType = /^image\/(png|jpe?g|webp)$/i.test(file.type);
     const validSize = file.size <= 3 * 1024 * 1024; // 3MB
-    this.profilePicFileName.set(file.name); // show immediately
+    // Show selected name immediately for UX
+    this.profilePicFileName.set(file.name);
 
     if (!validType || !validSize) {
       input.value = '';
@@ -488,9 +525,13 @@ export class SettingsProfile implements AfterViewInit {
             pAny.profilePictureUrl ?? pAny.profileImageUrl ?? pAny.avatarUrl ?? pAny.picture ?? pAny.imageUrl ?? pAny.profilePicture
           );
           // cache-bust
-          this.profilePictureUrl.set(`${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`);
+          const busted = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
+          this.profilePictureUrl.set(busted);
+          // Derive and set filename from the persisted server URL
+          this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
         });
-        this.persistFileName('profile', file.name); // persist after success
+        // REMOVE localStorage persistence
+        // this.persistFileName('profile', file.name);
       },
       error: (err) => {
         console.error('Profile upload/confirm failed', err);
@@ -500,8 +541,9 @@ export class SettingsProfile implements AfterViewInit {
             pAny.profilePictureUrl ?? pAny.profileImageUrl ?? pAny.avatarUrl ?? pAny.picture ?? pAny.imageUrl ?? pAny.profilePicture
           );
           this.profilePictureUrl.set(url);
+          // Derive filename from current server URL on error fallback
+          this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
         });
-        // optional: revert persisted name on error
       }
     });
 
@@ -511,6 +553,7 @@ export class SettingsProfile implements AfterViewInit {
   onFileSelected(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
+    // Show selected name immediately for UX
     this.selectedFileName.set(file.name);
 
     const validType = /^image\/(png|jpe?g|webp)$/i.test(file.type);
@@ -537,12 +580,17 @@ export class SettingsProfile implements AfterViewInit {
       next: () => {
         // Refresh profile and update background image URL after confirm
         this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
-          this.backgroundImageUrl.set(this.extractBackgroundUrl(p as any));
+          const bgUrl = this.extractBackgroundUrl(p as any);
+          this.backgroundImageUrl.set(bgUrl);
+          // Derive and set filename from the persisted server URL
+          this.selectedFileName.set(this.deriveFileNameFromUrl(bgUrl));
         });
-        this.persistFileName('bg', file.name); // persist background file name
+        // REMOVE localStorage persistence
+        // this.persistFileName('bg', file.name);
       },
       error: (err) => {
         console.error('Background upload/confirm failed', err);
+        // On error, keep previously shown name or clear based on your preference
       }
     });
   }
