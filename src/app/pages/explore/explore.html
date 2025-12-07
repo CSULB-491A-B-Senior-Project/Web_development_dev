@@ -10,7 +10,7 @@
     <button (click)="loadFeed()">Retry</button>
   </div>
   
-  <div class="card-container">
+  <div class="card-container" *ngIf="!loading() && !error()">
     <div class="welcome-txt">
       <h1>
         Welcome,
@@ -28,6 +28,7 @@
                         [isArtist]="it.isArtist"
                         [favorites]="it.favorites"
                         [rating]="it.rating"
+                        [averageRating]="it.averageRating"
                         [viewLink]="['/albums', it.id]"
                         [postType]="it.postType"
                         [postContent]="it.postContent">
