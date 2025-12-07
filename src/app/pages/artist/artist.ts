@@ -5,6 +5,8 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { AlbumCard } from '../../ui/album-card/album-card';
 import { ArtistDetails, Album, Artist as ArtistModel } from '../../models/playlist.models';
 import { ArtistService } from '../../services/artist.service';
+import { FollowService } from '../../services/follow.service';
+
 
 @Component({
     selector: 'app-artist',
@@ -23,12 +25,14 @@ export class Artist {
 
     private route = inject(ActivatedRoute);
     private artistService = inject(ArtistService);
+    private followService = inject(FollowService);
 
     constructor() {
         const artistId = this.route.snapshot.paramMap.get('id'); // Example artist ID
         if (artistId) {
             this.loadArtist(artistId);
             this.loadAlbums(artistId);
+            this.isFollowingArtist(artistId);
         }
     }
 
@@ -73,6 +77,32 @@ export class Artist {
                 console.error('Error loading albums data:', err);
             }
         });
+    }
+
+    // LOAD FOLLOW STATE
+    isFollowingArtist(artistId: string): void {
+        this.followService.isFollowingArtist(artistId).subscribe({
+            next: (isFollowing: boolean) => {
+                this.followed.set(isFollowing);
+                console.log('Follow state loaded: ${isFollowing}');
+            },
+            error: (err) => {
+                console.error('Error loading follow state:', err);
+            }
+        });
+    }
+
+    // TOGGLE FOLLOW STATE
+    toggleFollow(): void {
+        const artistId = this.route.snapshot.paramMap.get('id');
+        if (!artistId) return;
+        
+        const call = this.followed()
+            ? this.followService.unfollowArtist(artistId)
+            : this.followService.followArtist(artistId);
+
+        call.subscribe(() => this.loadArtist(artistId));
+        this.followed.set(!this.followed());
     }
     
     // SORT BY TITLE
