@@ -427,11 +427,6 @@
     }
 
     .empty-list-text {
-      &:hover {
-        background-color: #222;
-        border-color: #555;
-      }
-
       .empty-title {
         font-weight: 600;
         color: #cfcfcf;
@@ -793,6 +788,11 @@
       .empty-sub {
         font-size: 0.85rem;
         color: #9a9a9a;
+      }
+
+      .empty-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.3rem;
       }
     }
   }
