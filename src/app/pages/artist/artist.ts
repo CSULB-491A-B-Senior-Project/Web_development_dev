@@ -97,27 +97,12 @@ export class Artist {
         const artistId = this.route.snapshot.paramMap.get('id');
         if (!artistId) return;
         
-        if (this.followed()) {
-            this.followService.unfollowArtist(artistId).subscribe({
-                next: () => {
-                    this.followed.set(false);
-                    console.log('Unfollowed artist: ${artistId}');
-                },
-                error: (err) => {
-                    console.error('Error unfollowing artist:', err);
-                }
-            });
-        } else {
-            this.followService.followArtist(artistId).subscribe({
-                next: () => {
-                    this.followed.set(true);
-                    console.log('Followed artist: ${artistId}');
-                },
-                error: (err) => {
-                    console.error('Error following artist:', err);
-                }
-            });
-        }   
+        const call = this.followed()
+            ? this.followService.unfollowArtist(artistId)
+            : this.followService.followArtist(artistId);
+
+        call.subscribe(() => this.loadArtist(artistId));
+        this.followed.set(!this.followed());
     }
     
     // SORT BY TITLE
