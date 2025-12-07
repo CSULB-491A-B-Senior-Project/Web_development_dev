@@ -4,7 +4,7 @@
 }
 
 .page-wrapper {
-  padding: 16px 15vh 16px 15vh;
+  padding: 16px 15vh 0 15vh;
   flex-direction: column;
 }
 
@@ -26,7 +26,7 @@
     color: var(--txt-secondary);
 
     select {
-        background: var(--border-color);
+      background: var(--border-color);
       border: none;
       color: var(--text);
       padding: 8px 10px;
@@ -53,10 +53,10 @@
       transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
     }
 
-    button.active {
-      background: var(--chip-selected);
-      color: var(--txt-primary);
-    }
+      button.active {
+        background: var(--chip-selected);
+        color: var(--txt-primary);
+      }
   }
 }
 
@@ -75,10 +75,10 @@
     transition: background 0.1s ease-in-out, color 0.1s ease-in-out;
   }
 
-  button.active {
-    background: var(--chip-selected);
-    color: var(--txt-primary);
-  }
+    button.active {
+      background: var(--chip-selected);
+      color: var(--txt-primary);
+    }
 }
 
 .meta-row {
@@ -104,6 +104,36 @@
   }
 }
 
+// Category sections for grid view
+.category-section {
+  margin: 2rem 0 3rem;
+
+  &:last-child {
+    margin-bottom: 1rem;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+      color: var(--txt-primary);
+    }
+
+    .category-count {
+      font-size: 0.9rem;
+      color: var(--txt-secondary);
+    }
+  }
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -114,22 +144,12 @@
   }
 }
 
-@media (max-width: 1200px) {
-  .cards app-explore-card {
-    grid-column: span 4;
-  }
-}
-
-@media (max-width: 900px) {
-  .cards app-explore-card {
-    grid-column: span 6;
-  }
-}
-
-@media (max-width: 600px) {
-  .cards app-explore-card {
-    grid-column: span 12;
-  }
+.user-cards, .post-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-direction: column;
+  margin-bottom: 16px;
 }
 
 .list {
@@ -228,17 +248,17 @@
           text-transform: capitalize;
         }
 
-        .type[data-type='album'] {
-          border-color: #3b82f6;
-        }
+          .type[data-type='album'] {
+            border-color: #3b82f6;
+          }
 
-        .type[data-type='album'] {
-          border-color: #3b82f6;
-        }
+          .type[data-type='album'] {
+            border-color: #3b82f6;
+          }
 
-        .type[data-type='review'] {
-          border-color: #f59e0b;
-        }
+          .type[data-type='review'] {
+            border-color: #f59e0b;
+          }
       }
     }
   }
@@ -253,8 +273,8 @@
   gap: 12px;
 }
 
-.empty img {
-  width: 128px;
-  height: 128px;
-  opacity: 0.3;
-}
+  .empty img {
+    width: 128px;
+    height: 128px;
+    opacity: 0.3;
+  }

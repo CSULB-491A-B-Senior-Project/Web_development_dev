@@ -1,0 +1,29 @@
+<article class="user-card">
+  <a class="user-card-link" [routerLink]="['/users', username]">
+    <div class="avatar-wrapper">
+      <img *ngIf="avatarUrl; else initialsFallback"
+           [src]="avatarUrl"
+           [alt]="displayName || username" />
+      <ng-template #initialsFallback>
+        <div class="avatar-fallback">
+          {{ initials }}
+        </div>
+      </ng-template>
+    </div>
+
+    <div class="user-info">
+      <h3 class="display-name" *ngIf="displayName; else usernameOnly">
+        {{ displayName }}
+      </h3>
+      <ng-template #usernameOnly>
+        <h3 class="display-name">
+          {{ username }}
+        </h3>
+      </ng-template>
+
+      <p class="username">
+        @{{ username }}
+      </p>
+    </div>
+  </a>
+</article>

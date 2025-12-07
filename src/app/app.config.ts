@@ -37,14 +37,20 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/http/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { CookieService } from 'ngx-cookie-service';
+import { apiInterceptor } from './core/api-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor, errorInterceptor])
+      withInterceptors([
+        authInterceptor,
+        errorInterceptor,
+        apiInterceptor,
+      ])
     ),
     CookieService,
   ],
 };
+
