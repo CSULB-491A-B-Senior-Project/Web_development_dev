@@ -44,8 +44,6 @@ export interface FeedResponse {
   providedIn: 'root'
 })
 export class FeedService {
-  private readonly apiUrl = 'https://api.crescendo.chat/v1/Feed';
-
   constructor(private http: HttpClient) {}
 
   getFeed(userId?: string, page: number = 1, pageSize: number = 20): Observable<FeedResponse> {
@@ -53,6 +51,6 @@ export class FeedService {
     if (userId) {
       params.userId = userId;
     }
-    return this.http.get<FeedResponse>(this.apiUrl, { params });
+    return this.http.get<FeedResponse>(`/v1/Feed`, { params });
   }
 }

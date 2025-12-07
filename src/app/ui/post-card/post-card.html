@@ -1,0 +1,44 @@
+<article class="post-card">
+  <a class="post-main" [routerLink]="['/albums', albumId]">
+    <div class="cover-wrapper" *ngIf="albumCover">
+      <img [src]="albumCover" [alt]="albumTitle" />
+    </div>
+
+    <div class="post-content">
+      <header class="post-header">
+        <h3 class="album-title">
+          {{ albumTitle }}
+        </h3>
+        <div class="rating" *ngIf="ratingValue && ratingValue > 0">
+          <span class="stars">
+            <ng-container *ngFor="let s of stars; let i = index">
+              <i class="fa-star"
+                 [class.fa-solid]="i < ratingValue"
+                 [class.fa-regular]="i >= ratingValue"
+                 aria-hidden="true"></i>
+            </ng-container>
+          </span>
+          <span class="rating-value">
+            {{ ratingValue }} / 5
+          </span>
+        </div>
+      </header>
+      <p class="artist-name" *ngIf="artistName">
+        {{ artistName }}
+      </p>
+      <div class="post-meta">
+        <span class="post-type">{{ postTypeLabel }}</span>
+        <span class="dot">•</span>
+        <span class="username">@{{ username }}</span>
+        <span class="dot" *ngIf="createdAt">•</span>
+        <span class="created-at" *ngIf="createdAt">
+          {{ createdAt | date: 'mediumDate' }}
+        </span>
+      </div>
+
+      <p class="comment-text" *ngIf="commentText">
+        {{ commentText }}
+      </p>
+    </div>
+  </a>
+</article>

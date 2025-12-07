@@ -19,24 +19,23 @@ interface CommentDto {
 @Injectable({ providedIn: 'root' })
 export class AlbumReviewsService {
   #http = inject(HttpClient);
-  #apiUrl = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
 
   // Crescendo API: GET /v1/Albums/{id}
   getAlbumById(id: string): Observable<unknown> {
-    return this.#http.get(`${this.#apiUrl}/v1/Albums/${encodeURIComponent(id)}`);
+    return this.#http.get(`/v1/Albums/${encodeURIComponent(id)}`);
   }
 
   // Crescendo API: GET /v1/Tracks/album/{albumId}
   getAlbumTracks(albumId: string): Observable<unknown[]> {
     // Spec returns a list; normalize to array
     return this.#http
-      .get<unknown[] | { items?: unknown[] }>(`${this.#apiUrl}/v1/Tracks/album/${encodeURIComponent(albumId)}`)
+      .get<unknown[] | { items?: unknown[] }>(`/v1/Tracks/album/${encodeURIComponent(albumId)}`)
       .pipe(map(res => Array.isArray(res) ? res : (res.items ?? [])));
   }
 
   getComments(albumId: string, page = 1, pageSize = 50): Observable<any> {
     return this.#http.get<CommentDto[]>(
-      `${this.#apiUrl}/v1/Comments/albumComments/${albumId}`
+      `/v1/Comments/albumComments/${albumId}`
     ).pipe(
       map(comments => {
         return this.buildCommentTree(comments);
@@ -81,7 +80,7 @@ export class AlbumReviewsService {
     albumId: string,
     payload: { text: string }
   ): Observable<any> {
-    return this.#http.post<CommentDto>(`${this.#apiUrl}/v1/Comments`, {
+    return this.#http.post<CommentDto>(`/v1/Comments`, {
       albumId,
       text: payload.text,
       parentCommentId: null
@@ -106,7 +105,7 @@ export class AlbumReviewsService {
     commentId: string,
     payload: { text: string; }
   ): Observable<any> {
-    return this.#http.put<CommentDto>(`${this.#apiUrl}/v1/Comments/${commentId}`, {
+    return this.#http.put<CommentDto>(`/v1/Comments/${commentId}`, {
       text: payload.text
     }).pipe(
       map(dto => ({
@@ -130,7 +129,7 @@ export class AlbumReviewsService {
     parentCommentId: string,
     payload: { text: string; albumId: string }
   ): Observable<any> {
-    return this.#http.post<CommentDto>(`${this.#apiUrl}/v1/Comments`, {
+    return this.#http.post<CommentDto>(`/v1/Comments`, {
       albumId: payload.albumId,
       parentCommentId: parentCommentId,
       text: payload.text
@@ -152,7 +151,7 @@ export class AlbumReviewsService {
    * Loads a single comment
    */
   getCommentById(commentId: string): Observable<CommentDto> {
-    return this.#http.get<CommentDto>(`${this.#apiUrl}/v1/Comments/${commentId}`);
+    return this.#http.get<CommentDto>(`/v1/Comments/${commentId}`);
   }
 
   /**
@@ -162,7 +161,7 @@ export class AlbumReviewsService {
    */
   likeComment(commentId: string): Observable<void> {
     return this.#http.post<void>(
-      `${this.#apiUrl}/v1/CommentLikes/${commentId}`,
+      `/v1/CommentLikes/${commentId}`,
       {}
     );
   }
@@ -174,7 +173,7 @@ export class AlbumReviewsService {
    */
   unlikeComment(commentId: string): Observable<void> {
     return this.#http.delete<void>(
-      `${this.#apiUrl}/v1/CommentLikes/${commentId}`
+      `/v1/CommentLikes/${commentId}`
     );
   }
 
@@ -185,7 +184,7 @@ export class AlbumReviewsService {
    */
   getCommentLikeCount(commentId: string): Observable<{ commentId: string; likeCount: number }> {
     return this.#http.get<{ commentId: string; likeCount: number }>(
-      `${this.#apiUrl}/v1/CommentLikes/${commentId}/count`
+      `/v1/CommentLikes/${commentId}/count`
     );
   }
 
@@ -196,7 +195,7 @@ export class AlbumReviewsService {
    */
   getCommentLikeStatus(commentId: string): Observable<{ commentId: string; hasLiked: boolean }> {
     return this.#http.get<{ commentId: string; hasLiked: boolean }>(
-      `${this.#apiUrl}/v1/CommentLikes/${commentId}/status`
+      `/v1/CommentLikes/${commentId}/status`
     );
   }
 
@@ -214,7 +213,7 @@ export class AlbumReviewsService {
       userId: string;
       username: string;
       likedAt: string;
-    }>>(`${this.#apiUrl}/v1/CommentLikes/${commentId}/users`);
+    }>>(`/v1/CommentLikes/${commentId}/users`);
   }
 
   /**
@@ -225,7 +224,7 @@ export class AlbumReviewsService {
     albumId: string,
     ratingValue: number
   ): Observable<any> {
-    return this.#http.post<any>(`${this.#apiUrl}/v1/Ratings`, {
+    return this.#http.post<any>(`/v1/Ratings`, {
       albumId,
       ratingValue
     });
@@ -237,7 +236,7 @@ export class AlbumReviewsService {
    */
   getAlbumRatings(albumId: string): Observable<any[]> {
     return this.#http.get<any[]>(
-      `${this.#apiUrl}/v1/Ratings/albumRating/${albumId}`
+      `/v1/Ratings/albumRating/${albumId}`
     );
   }
 
@@ -247,7 +246,7 @@ export class AlbumReviewsService {
    */
   getUserRating(albumId: string, userId: string): Observable<any> {
     return this.#http.get<any>(
-      `${this.#apiUrl}/v1/Ratings/albumRating/${albumId}/user/${userId}`
+      `/v1/Ratings/albumRating/${albumId}/user/${userId}`
     );
   }
 }
