@@ -23,4 +23,5 @@ export class AccountService {
     favoriteArtists(): Observable<void> {
         return this.api.get<void>('/Users/me/favorite-artists/');
     }
+    
 }
