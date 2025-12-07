@@ -16,6 +16,11 @@
         </svg>
         <span>{{ postTypeLabel() }}</span>
       </div>
+       <span class="rating-stars" *ngIf="rating() > 0">
+         <ng-container *ngFor="let star of [1,2,3,4,5]; let i = index">
+           <i *ngIf="i < rating()" class="fa-solid fa-star"></i>
+         </ng-container>
+       </span>
     </div>
     <span class="date" *ngIf="dateLabel()">{{ dateLabel() }}</span>
   </div>
@@ -49,12 +54,12 @@
       <span>{{ formattedFavorites() }} favorites</span>
     </span>
 
-    <span class="item" *ngIf="rating() > 0">
+    <span class="item" *ngIf="averageRating() > 0">
       <!-- star -->
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 2l3 6 6.7 1-4.8 4.7 1.2 6.6L12 17l-6.1 3.3 1.2-6.6L2.3 9 9 8z" />
       </svg>
-      <span>{{ rating() }}</span>
+      <span>{{ formattedAverageRating() }}</span>
     </span>
 
     <a class="view-more" [routerLink]="viewLink()">View more</a>

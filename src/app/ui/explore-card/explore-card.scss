@@ -23,25 +23,35 @@
 }
 
 .header {
-    justify-content: space-between;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 28px;
+
+  .username-follow {
+    display: flex;
     align-items: center;
-    min-height: 28px;
+    align-content: center;
+    gap: 16px;
 
-    .username-follow {
-        display: flex;
-        align-items: center;
-        align-content: center;
-        gap: 16px;
-
-        .username {
-            opacity: .9;
-        }
+    .username {
+      opacity: .9;
     }
 
-    .date {
-        color: var(--txt-primary);
-        white-space: nowrap;
+    .rating-stars {
+      display: inline-flex;
+      gap: 2px;
+
+      i {
+        color: var(--primary);
+        font-size: 1em;
+      }
     }
+  }
+
+  .date {
+    color: var(--txt-primary);
+    white-space: nowrap;
+  }
 }
 
 .thumb {

@@ -7,6 +7,9 @@ import { UserAccount } from '../../models/account.models';
 import { Router, RouterLink } from '@angular/router';
 import { ListCreateComponent } from '../list-create/list-create';
 import { PlaylistCreatorService } from '../../services/playlist.service';
+import { AlbumReviewsService } from '../../services/album-reviews.service';
+import { forkJoin } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 type Item = {
   id: string;
@@ -18,6 +21,7 @@ type Item = {
   isArtist: boolean;
   favorites: number;
   rating: number;
+  averageRating: number;
   postType: 'comment_post' | 'rating_post' | 'album_post';
   postContent?: string;
 };
@@ -42,7 +46,7 @@ export class Explore implements OnInit {
   @ViewChild('listCreateOverlay') listCreateOverlay!: ListCreateComponent;
 
 
-constructor(private feedService: FeedService, private accountService: AccountService, private playlistCreatorService: PlaylistCreatorService) { }
+constructor(private feedService: FeedService, private accountService: AccountService, private playlistCreatorService: PlaylistCreatorService, private albumReviewsService: AlbumReviewsService) { }
   ngOnInit() {
     this.loadFeed();
     this.accountService.getAccount().subscribe((account: UserAccount) => {
@@ -80,6 +84,7 @@ constructor(private feedService: FeedService, private accountService: AccountSer
         this.items.set(mappedItems);
         this.currentPage.set(page);
         this.hasMore.set(response.data.length === response.pageSize);
+        this.loadAverageRatings(mappedItems);
         this.loading.set(false);
       },
       error: (err: any) => {
@@ -105,6 +110,7 @@ constructor(private feedService: FeedService, private accountService: AccountSer
         this.items.update(current => [...current, ...mappedItems]);
         this.currentPage.set(nextPage);
         this.hasMore.set(response.data.length === response.pageSize);
+        this.loadAverageRatings(mappedItems);
         this.loadingMore.set(false);
       },
       error: (err: any) => {
@@ -113,10 +119,56 @@ constructor(private feedService: FeedService, private accountService: AccountSer
       }
     });
   }
+  private loadAverageRatings(items: Item[]): void {
+    // Get unique album IDs
+    const albumIds = [...new Set(items.map(item => item.id))];
+
+    // Fetch ratings for each album
+    const ratingRequests = albumIds.map(albumId =>
+      this.albumReviewsService.getAlbumRatings(albumId).pipe(take(1))
+    );
+
+    forkJoin(ratingRequests).subscribe({
+      next: (ratingsArrays: any[][]) => {
+        // Create a map of albumId -> averageRating
+        const ratingsMap = new Map<string, number>();
+
+        albumIds.forEach((albumId, index) => {
+          const ratings = ratingsArrays[index];
+          if (Array.isArray(ratings) && ratings.length > 0) {
+            const ratingValues = ratings
+              .map(r => r.ratingValue)
+              .filter(v => typeof v === 'number' && v > 0);
+
+            if (ratingValues.length > 0) {
+              const sum = ratingValues.reduce((acc, val) => acc + val, 0);
+              const average = sum / ratingValues.length;
+              ratingsMap.set(albumId, average);
+            }
+          }
+        });
+
+        // Update items with average ratings
+        this.items.update(currentItems =>
+          currentItems.map(item => {
+            if (ratingsMap.has(item.id)) {
+              return {
+                ...item,
+                averageRating: ratingsMap.get(item.id) ?? 0
+              };
+            }
+            return item;
+          })
+        );
+      },
+      error: (err) => {
+        console.error('Failed to load average ratings:', err);
+      }
+    });
+  }
 
   private mapPostToItem(post: FeedPost): Item {
-    // Calculate average rating from ratingCount and individual ratings
-    const avgRating = post.rating ?? 0;
+    const userRating = post.rating ?? 0;
     const dateLabel = this.formatDate(post.createdAt);
     const isArtist = post.user == null || post.type == 'album_post';
     return {
@@ -128,7 +180,8 @@ constructor(private feedService: FeedService, private accountService: AccountSer
       imageUrl: post.album.coverArt,
       isArtist,
       favorites: post.commentCount,
-      rating: avgRating,
+      rating: userRating,
+      averageRating: 0,
       postType: post.type
     };
   }

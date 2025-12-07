@@ -167,7 +167,7 @@
   @extend %btn-reset;
   padding: 0.25rem;
   border-radius: 50%;
-  transition: transform 100ms ease;
+  transition: background-color .15s ease, transform .15s ease, color .15s ease;
 
   .fa-heart {
     font-size: 24px;
@@ -175,8 +175,17 @@
     transition: color 200ms ease;
   }
 
+  &:hover {
+    animation: heartBeat .3s ease;
+  }
+
   &:active {
-    transform: scale(1.1);
+    transform: scale(.85);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #b78cff;
+    outline-offset: 2px;
   }
 
   @extend %focus-ring;
@@ -393,7 +402,7 @@
     .username {
       @extend %interactive-link;
       display: inline-block;
-      font-weight: 600;
+        font-weight: 600;
     }
 
     .user-rating-stars {
