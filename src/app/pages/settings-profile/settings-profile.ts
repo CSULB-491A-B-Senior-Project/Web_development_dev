@@ -16,6 +16,7 @@ import { CdkDropList, CdkDrag, CdkDragHandle, CdkDragDrop, moveItemInArray } fro
 import { ApiService } from '../../api.service';
 import { environment } from '../../../environments/environment';
 import { SidebarComponent } from '../../ui/sidebar/sidebar';
+import { ProfilePictureStore } from '../../ui/navbar/profile-picture.store';
 
 @Component({
   selector: 'app-settings-profile',
@@ -258,7 +259,7 @@ export class SettingsProfile implements AfterViewInit {
     } catch { return ''; }
   }
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private pictureStore: ProfilePictureStore) {
     // Load profile and favorites
     this.#profileService.getProfile().pipe(take(1)).subscribe({
       next: (p: any) => {
@@ -273,9 +274,16 @@ export class SettingsProfile implements AfterViewInit {
         const url = this.resolveImageUrl(
           p.profilePictureUrl ?? p.profileImageUrl ?? p.avatarUrl ?? p.picture ?? p.imageUrl ?? p.profilePicture
         );
+        // this.profilePictureUrl.set(url);
+        // // Derive profile picture filename from URL
+        // this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
+        // const busted = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
         this.profilePictureUrl.set(url);
-        // Derive profile picture filename from URL
         this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
+        console.log("Pushing url to store ->", url);
+
+        // Update shared store so Navbar sees it
+        this.pictureStore.profilePictureUrl.set(url);
 
         // Set current background image URL if present
         const bgUrl = this.extractBackgroundUrl(p);
