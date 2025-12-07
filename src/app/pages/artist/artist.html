@@ -2,10 +2,10 @@
   <div class="artist-container">
     <!--ARTIST HEADER-->
     <div class="artist-header">
-      <img src="././assets/profile.png" alt="artist avatar">
+      <img [src]="artist()?.profileUrl || 'assets/profile.png'" alt="artist avatar">
       <div class="artist-info">
-        <h1 class="name">{{ artist_1.name }}</h1>
-        <p><span style="color: var(--btn-primary);">{{ artist_1.followers }}</span> of followers</p>
+        <h1 class="name">{{ artist()?.name }}</h1>
+        <p><span style="color: var(--btn-primary);">{{ artist()?.followerCount }}</span> of followers</p>
       </div>
       <button>Follow</button>
     </div>
@@ -24,18 +24,22 @@
     <div class="artist-body">
       <!--ARTIST BIO-->
       <div class="bio-container">
-        <p>{{ artist_1.bio }}</p>
+        <p>{{ artist()?.details }}</p>
       </div>
       <div class="album-container">
         <!--ALBUM GRID-->
         <div class="album-grid">
           <!--ALBUM CARD TEMPLATE-->
-          <app-album-card *ngFor="let it of albums(); trackBy: trackById"
+          <a 
+            *ngFor="let it of albums(); trackBy: trackById"
+            [routerLink]="['/albums', it.id]">
+            <app-album-card
                           [title]="it.title"
-                          [artist]="it.artist"
-                          [dateLabel]="it.dateLabel"
-                          [imageUrl]="it.imageUrl">
-          </app-album-card>
+                          [artist]="it.artist.artistName"
+                          [releaseYear]="it.releaseYear.toString()"
+                          [albumCover]="it.albumCover">
+            </app-album-card>
+          </a>
         </div>
     </div>
 </div>

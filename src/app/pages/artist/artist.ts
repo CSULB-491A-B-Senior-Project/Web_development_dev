@@ -1,82 +1,79 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+
 import { AlbumCard } from '../../ui/album-card/album-card';
+import { ArtistDetails, Album, Artist as ArtistModel } from '../../models/playlist.models';
+import { ArtistService } from '../../services/artist.service';
 
-// ARTIST TYPE
-type artist = {
-    artistId: string;
-    name: string;
-    followers: number;
-    albums: string[];
-    bio: string;
-    profileUrl: string;
-};
-
-// ALBUM TYPE
-type Album = {
-    albumId: string;
-    title: string;
-    artist: string;
-    dateLabel: string;
-    imageUrl: string;
-};
 @Component({
     selector: 'app-artist',
+    standalone: true,
     templateUrl: './artist.html',
     styleUrls: ['./artist.scss'],
-    imports: [AlbumCard, CommonModule]
+    imports: [AlbumCard, CommonModule, RouterModule],
 })
 export class Artist {
-    // ARTIST DATA
-    artist_1 = {
-        artistId: '999',
-        name: 'Artist Name',
-        followers: 9999,
-        albums: ['Album 1', 'Album 2', 'Album 3'],
-        bio: 'This is a sample biography of the artist. It provides some background information and interesting facts about the artist\'s career and achievements. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-        profileUrl: 'https://picsum.photos/seed/artist-profile/600/600'
-    };
-    // ALBUM DATA
-    private readonly originalAlbums: Album[] = [
-    {
-        albumId: '1',
-        title: 'Album D',
-        artist: 'Artist A',
-        dateLabel: 'Oct. 15, 2025',
-        imageUrl: 'https://picsum.photos/seed/card-1/600/600'
-    },
-    {
-        albumId: '2',
-        title: 'Album C',
-        artist: 'Artist A',
-        dateLabel: 'Oct. 11, 2025',
-        imageUrl: 'https://picsum.photos/seed/card-2/600/600'
-    },
-    {
-        albumId: '3',
-        title: 'Album A',
-        artist: 'Artist A',
-        dateLabel: 'Oct. 13, 2025',
-        imageUrl: 'https://picsum.photos/seed/card-3/600/600'
-    },
-    {
-        albumId: '4',
-        title: 'Album E',
-        artist: 'Artist A',
-        dateLabel: 'Oct. 12, 2025',
-        imageUrl: 'https://picsum.photos/seed/card-4/600/600'
-    },
-    {
-        albumId: '5',
-        title: 'Album B',
-        artist: 'Artist A',
-        dateLabel: 'Oct. 14, 2025',
-        imageUrl: 'https://picsum.photos/seed/card-5/600/600'
-    },
-    ];
-    albums = signal<Album[]>([...this.originalAlbums]);
 
-    trackById = (_: number, it: Album) => it.albumId;
+    artist = signal<ArtistDetails | null>(null);
+    albums = signal<Album[]>([]);
+    followed = signal<boolean>(false);
+
+    trackById = (_: number, it: Album) => it.id;
+
+    private route = inject(ActivatedRoute);
+    private artistService = inject(ArtistService);
+
+    constructor() {
+        const artistId = this.route.snapshot.paramMap.get('id'); // Example artist ID
+        if (artistId) {
+            this.loadArtist(artistId);
+            this.loadAlbums(artistId);
+        }
+    }
+
+    // LOAD ARTIST DATA
+    loadArtist(artistId: string): void {
+        this.artistService.getArtist(artistId).subscribe({
+            next: (data: ArtistDetails) => {
+                this.artist.set(data);
+                console.log('Artist data loaded:', data);
+            },
+            error: (err) => {
+                console.error('Error loading artist data:', err);
+            }
+        });
+    }
+
+    // LOAD ALBUM DATA
+    loadAlbums(artistId: string): void {
+        this.artistService.getArtistAlbums(artistId).subscribe({
+            next: (list: any[]) => {
+                console.log('Albums data loaded:', list);
+                this.albums.set(
+                    list.map(dto => {
+                        const first = dto.artists?.[0];
+
+                        const artist: ArtistModel = {
+                            id: first?.id ?? artistId,
+                            artistName: first?.name ?? this.artist()?.name ?? 'Unknown Artist'
+                        };
+                        
+                        return {
+                            id: dto.id,
+                            title: dto.title,
+                            releaseYear: new Date(dto.releaseDate).getFullYear(),
+                            artist,
+                            albumCover: dto.coverArt ?? '/assets/placeholder.png'
+                        } as Album;
+                    })
+                );
+            },
+            error: (err) => {
+                console.error('Error loading albums data:', err);
+            }
+        });
+    }
     
     // SORT BY TITLE
     sortByTitleAsc() {
@@ -90,12 +87,12 @@ export class Artist {
     // SORT BY DATE
     sortByDateAsc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(a.dateLabel).getTime() - new Date(b.dateLabel).getTime());
+        (a, b) => new Date(a.releaseYear).getTime() - new Date(b.releaseYear).getTime());
         this.albums.set(sorted);
     }
     sortByDateDesc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(b.dateLabel).getTime() - new Date(a.dateLabel).getTime());
+        (a, b) => new Date(b.releaseYear).getTime() - new Date(a.releaseYear).getTime());
         this.albums.set(sorted);
     }
 }
