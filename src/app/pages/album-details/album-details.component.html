@@ -22,9 +22,16 @@
               </button>
             </div>
             <h3 class="artist-names">
-              @for (name of splitArtists(); track name; let last = $last) {
+              <!-- @for (name of splitArtists(); track name; let last = $last) {
               <a class="artist-link" [routerLink]="['/artists', slugify(name)]">{{ name }}</a>@if (!last) {<span class="sep">, </span>}
+              } -->
+              @for (artist of albumArtists(); track artist.id; let last = $last) {
+                <a class="artist-link" [routerLink]="['/artist', artist.id]">
+                  {{ artist.artistName }}
+                </a>
+                @if (!last) { <span class="sep">, </span> }
               }
+
             </h3>
             <div class="album-meta">
               <!-- Average (read-only) star rating for the album -->

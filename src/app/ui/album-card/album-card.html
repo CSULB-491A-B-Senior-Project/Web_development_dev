@@ -1,6 +1,6 @@
 <div class="card">
   <div class="thumb">
-    <img [src]="imageUrl()"
+    <img [src]="albumCover()"
           [alt]="title()"
           (error)="usePlaceholder($event)" />
   </div>
@@ -11,7 +11,7 @@
   </div>
 
   <div class="row meta">
-    <span class="date" *ngIf="dateLabel()">{{ dateLabel() }}</span>
+    <span class="date" *ngIf="releaseYear()">{{ releaseYear() }}</span>
   </div>
 </div>
 
