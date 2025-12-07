@@ -9,7 +9,7 @@ import { AuthResponse, LoginRequest, RegisterRequest, RefreshTokenRequest } from
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = 'http://localhost:5050/v1';
+  private readonly baseUrl = 'http://api.crescendo.chat/v1';
   private readonly ACCESS_TOKEN_COOKIE_NAME = 'access_token';
   private readonly REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
   private tokenSubject!: BehaviorSubject<string | null>;
