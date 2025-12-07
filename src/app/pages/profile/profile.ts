@@ -5,6 +5,7 @@ import { AlbumCard } from '../../ui/album-card/album-card';
 
 import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
+import { FollowService } from '../../services/follow.service';
 
 // ALBUM TYPE
 type Album = {
@@ -34,12 +35,20 @@ export class ProfileComponent implements OnInit {
   recentAlbums = signal<Album[]>([]);
 
 
-  constructor(private accountService: AccountService) {}
+  constructor(
+    private accountService: AccountService,
+    private followService: FollowService
+  ) {}
 
   ngOnInit(): void {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
       this.user.set(account);
       console.log('User account loaded:', account);
+    });
+    const userId = this.user()?.id ?? '';
+    // GET FOLLOWING COUNT
+    this.followService.getUserFollowCount(userId).subscribe((count) => {
+      this.followingCount.set(count);
     });
     this.accountService.favoriteArtists().subscribe(() => {
       

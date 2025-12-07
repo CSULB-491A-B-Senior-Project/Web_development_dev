@@ -34,4 +34,7 @@ export class FollowService {
     }
 
     // USERS
+    getUserFollowCount(userId: string): Observable<number> {
+        return this.api.get<number>(`/UserFollows/${userId}/following/count`);
+    }
 }

@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
@@ -11,7 +10,6 @@ export interface UserProfile {
   favoriteSong: Song | null;
   favoriteArtists: Artist[];
   favoriteAlbums: Album[];
-  // The Crescendo Users/me schema may include fields like username, email, etc.
   username?: string;
   email?: string;
   firstName?: string;
@@ -20,8 +18,8 @@ export interface UserProfile {
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  #http = inject(HttpClient);
-  #apiUrl = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
+  // #http = inject(HttpClient);
+  // #apiUrl = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
   #mock = (environment as unknown as { useMocks?: boolean }).useMocks === true;
 
   constructor (
@@ -57,34 +55,34 @@ export class ProfileService {
   // Crescendo API: GET /v1/Users/me
   getProfile(): Observable<UserProfile> {
     if (this.#mock) return of(this.#mockProfile());
-    return this.#http.get<UserProfile>(`${this.#apiUrl}/v1/Users/me`);
+    return this.api.get<UserProfile>(`/Users/me`);
   }
 
   // Crescendo API: PUT /v1/Users/me
   updateProfile(payload: Partial<UserProfile>): Observable<void> {
     if (this.#mock) return of(void 0);
     const { bio, username, email, firstName, lastName } = payload;
-    return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me`, { bio, username, email, firstName, lastName });
+    return this.api.put<void>(`/Users/me`, { bio, username, email, firstName, lastName });
   }
 
   updateBio(bio: string): Observable<void> {
     if (this.#mock) return of(void 0);
-    return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/bio`, { bio });
+    return this.api.put<void>(`/Users/me/bio`, { bio });
   }
 
   updateFavoriteSong(songId: string | null): Observable<void> {
   if (this.#mock) return of(void 0);
-  return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/favorite-song`, { favoriteSongId: songId });
+  return this.api.put<void>(`/Users/me/favorite-song`, { favoriteSongId: songId });
 }
 
   getFavoriteArtists(): Observable<Artist[]> {
     if (this.#mock) return of(this.#mockProfile().favoriteArtists ?? []);
-    return this.#http.get<Artist[]>(`${this.#apiUrl}/v1/Users/me/favorite-artists`);
+    return this.api.get<Artist[]>(`/Users/me/favorite-artists`);
   }
 
   updateFavoriteArtistRanks(rankedArtists: { artistId: string; rank: number }[]): Observable<void> {
     if (this.#mock) return of(void 0);
-    return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/favorite-artists`, { artists: rankedArtists });
+    return this.api.put<void>(`/Users/me/favorite-artists`, { artists: rankedArtists });
   }
 
   getFavoriteAlbums(): Observable<Album[]> {
@@ -94,12 +92,12 @@ export class ProfileService {
 
   addFavoriteAlbum(albumId: string): Observable<void> {
     if (this.#mock) return of(void 0);
-    return this.#http.post<void>(`${this.#apiUrl}/v1/Users/me/favorite-albums`, { albumId });
+    return this.api.post<void>(`/Users/me/favorite-albums`, { albumId });
   }
 
   removeFavoriteAlbum(albumId: string): Observable<void> {
     if (this.#mock) return of(void 0);
-    return this.#http.delete<void>(`${this.#apiUrl}/v1/Users/me/favorite-albums/${albumId}`);
+    return this.api.delete<void>(`/Users/me/favorite-albums/${albumId}`);
   }
 
   // uploadProfilePicture(): Observable<{ url: string }> {
@@ -114,6 +112,6 @@ export class ProfileService {
 
   confirmUpload(filePath: string, type: 'profile' | 'bg'): Observable<{ url?: string } | void> {
     if (this.#mock) return of(void 0);
-    return this.#http.post<{ url?: string }>(`${this.#apiUrl}/v1/Users/confirm-upload`, { filePath, type });
+    return this.api.post<{ url?: string }>(`/Users/confirm-upload`, { filePath, type });
   }
 }
