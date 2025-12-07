@@ -2,7 +2,7 @@
   <div class="artist-container">
     <!--ARTIST HEADER-->
     <div class="artist-header">
-      <img [src]="artist()?.profileUrl || 'assets/profile.png'" alt="artist avatar">
+      <img [src]="artist()?.imageUrl || 'assets/profile.png'" alt="artist avatar">
       <div class="artist-info">
         <h1 class="name">{{ artist()?.name }}</h1>
         <p><span style="color: var(--btn-primary);">{{ artist()?.followerCount }}</span> of followers</p>
@@ -26,11 +26,6 @@
     </div>
     <!--ARTIST BODY-->
     <div class="artist-body">
-      <!--ARTIST BIO-->
-      <div class="bio-container">
-        <p>{{ artist()?.details }}</p>
-      </div>
-      <div class="album-container">
         <!--ALBUM GRID-->
         <div class="album-grid">
           <!--ALBUM CARD TEMPLATE-->
