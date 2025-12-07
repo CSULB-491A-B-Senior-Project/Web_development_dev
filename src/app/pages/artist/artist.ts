@@ -24,12 +24,14 @@ export class Artist {
 
     private route = inject(ActivatedRoute);
     private artistService = inject(ArtistService);
+    private followService = inject(FollowService);
 
     constructor() {
         const artistId = this.route.snapshot.paramMap.get('id'); // Example artist ID
         if (artistId) {
             this.loadArtist(artistId);
             this.loadAlbums(artistId);
+            this.isFollowingArtist(artistId);
         }
     }
 
@@ -74,6 +76,47 @@ export class Artist {
                 console.error('Error loading albums data:', err);
             }
         });
+    }
+
+    // LOAD FOLLOW STATE
+    isFollowingArtist(artistId: string): void {
+        this.followService.isFollowingArtist(artistId).subscribe({
+            next: (isFollowing: boolean) => {
+                this.followed.set(isFollowing);
+                console.log('Follow state loaded: ${isFollowing}');
+            },
+            error: (err) => {
+                console.error('Error loading follow state:', err);
+            }
+        });
+    }
+
+    // TOGGLE FOLLOW STATE
+    toggleFollow(): void {
+        const artistId = this.route.snapshot.paramMap.get('id');
+        if (!artistId) return;
+
+        if (this.followed()) {
+            this.followService.unfollowArtist(artistId).subscribe({
+                next: () => {
+                    this.followed.set(false);
+                    console.log('Unfollowed artist: ${artistId}');
+                },
+                error: (err) => {
+                    console.error('Error unfollowing artist:', err);
+                }
+            });
+        } else {
+            this.followService.followArtist(artistId).subscribe({
+                next: () => {
+                    this.followed.set(true);
+                    console.log('Followed artist: ${artistId}');
+                },
+                error: (err) => {
+                    console.error('Error following artist:', err);
+                }
+            });
+        }
     }
     
     // SORT BY TITLE

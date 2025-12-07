@@ -7,7 +7,11 @@
         <h1 class="name">{{ artist()?.name }}</h1>
         <p><span style="color: var(--btn-primary);">{{ artist()?.followerCount }}</span> of followers</p>
       </div>
-      <button>Follow</button>
+      <button
+        (click)="toggleFollow()"
+        [class.following]="followed()">
+        {{ followed() ? 'Following' : 'Follow' }}
+      </button>
     </div>
 
     <!--SORT MENU-->
