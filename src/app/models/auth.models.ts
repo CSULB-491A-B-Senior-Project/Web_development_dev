@@ -16,9 +16,15 @@ export interface LoginRequest {
 }
 
 export interface AuthResponse {
-  token: string;
-  user?: User;
-  message?: string;
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number; // seconds until access token expires (1800 = 30 minutes)
+  username: string;
+  email: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
 }
 
 export interface User {

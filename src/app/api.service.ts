@@ -3,14 +3,15 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CookieService } from 'ngx-cookie-service';
-import { AuthResponse, LoginRequest, RegisterRequest } from './models/auth.models';
+import { AuthResponse, LoginRequest, RegisterRequest, RefreshTokenRequest } from './models/auth.models';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = 'https://api.crescendo.chat/v1';
-  private readonly TOKEN_COOKIE_NAME = 'jwt_token';
+  private readonly baseUrl = 'http://api.crescendo.chat/v1';
+  private readonly ACCESS_TOKEN_COOKIE_NAME = 'access_token';
+  private readonly REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
   private tokenSubject!: BehaviorSubject<string | null>;
   public token$!: Observable<string | null>;
 
@@ -19,40 +20,61 @@ export class ApiService {
     private cookieService: CookieService
   ) {
     // Initialize token subject AFTER cookieService is injected
-    this.tokenSubject = new BehaviorSubject<string | null>(this.getStoredToken());
+    this.tokenSubject = new BehaviorSubject<string | null>(this.getStoredAccessToken());
     this.token$ = this.tokenSubject.asObservable();
   }
 
   /**
-   * Get the stored JWT token from cookies
+   * Get the stored access token from cookies
    */
-  private getStoredToken(): string | null {
-    return this.cookieService.get(this.TOKEN_COOKIE_NAME) || null;
+  private getStoredAccessToken(): string | null {
+    return this.cookieService.get(this.ACCESS_TOKEN_COOKIE_NAME) || null;
   }
 
   /**
-   * Store JWT token in cookies
-   * Cookie expires in 7 days by default
+   * Get the stored refresh token from cookies
    */
-  private storeToken(token: string): void {
-    const expiryDays = 7;
+  public getStoredRefreshToken(): string | null {
+    return this.cookieService.get(this.REFRESH_TOKEN_COOKIE_NAME) || null;
+  }
+
+  /**
+   * Store access and refresh tokens in cookies
+   * Access token expires in 30 minutes, refresh token in 7 days
+   */
+  private storeTokens(accessToken: string, refreshToken: string): void {
+    const accessTokenExpiryMinutes = 30 / (24 * 60); // 30 minutes in days
+    const refreshTokenExpiryDays = 7;
+
     this.cookieService.set(
-      this.TOKEN_COOKIE_NAME,
-      token,
-      expiryDays,
+      this.ACCESS_TOKEN_COOKIE_NAME,
+      accessToken,
+      accessTokenExpiryMinutes,
       '/',
       undefined,
       false, // secure - set to true in production (HTTPS only)
-      'Lax' // SameSite policy - Lax is good for development
+      'Lax' // SameSite policy
     );
-    this.tokenSubject.next(token);
+
+    this.cookieService.set(
+      this.REFRESH_TOKEN_COOKIE_NAME,
+      refreshToken,
+      refreshTokenExpiryDays,
+      '/',
+      undefined,
+      false, // secure - set to true in production (HTTPS only)
+      'Lax' // SameSite policy
+    );
+
+    this.tokenSubject.next(accessToken);
   }
 
   /**
-   * Remove JWT token from cookies
+   * Remove access and refresh tokens from cookies
    */
-  private removeToken(): void {
-    this.cookieService.delete(this.TOKEN_COOKIE_NAME, '/');
+  private removeTokens(): void {
+    this.cookieService.delete(this.ACCESS_TOKEN_COOKIE_NAME, '/');
+    this.cookieService.delete(this.REFRESH_TOKEN_COOKIE_NAME, '/');
     this.tokenSubject.next(null);
   }
 
@@ -61,6 +83,52 @@ export class ApiService {
    */
   public getToken(): string | null {
     return this.tokenSubject.value;
+  }
+
+    /**
+   * Refresh access token using refresh token
+   */
+  public refreshToken(): Observable<AuthResponse> {
+    const refreshToken = this.getStoredRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const request: RefreshTokenRequest = { refreshToken };
+    return this.http.post<AuthResponse>(
+      `${this.baseUrl}/Auth/refresh`,
+      request
+    ).pipe(
+      tap(response => {
+        if (response.accessToken && response.refreshToken) {
+          this.storeTokens(response.accessToken, response.refreshToken);
+        }
+      })
+    );
+  }
+
+  /**
+   * Revoke refresh token (logout)
+   */
+  public revokeToken(): Observable<void> {
+    const refreshToken = this.getStoredRefreshToken();
+    if (!refreshToken) {
+      this.removeTokens();
+      return new Observable(observer => {
+        observer.next();
+        observer.complete();
+      });
+    }
+
+    const request: RefreshTokenRequest = { refreshToken };
+    return this.http.post<void>(
+      `${this.baseUrl}/Auth/revoke`,
+      request
+    ).pipe(
+      tap(() => {
+        this.removeTokens();
+      })
+    );
   }
 
   /**
@@ -96,8 +164,8 @@ export class ApiService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       tap(response => {
-        if (response.token) {
-          this.storeToken(response.token);
+        if (response.accessToken && response.refreshToken) {
+          this.storeTokens(response.accessToken, response.refreshToken);
         }
       })
     );
@@ -113,8 +181,8 @@ export class ApiService {
       { headers: this.getAuthHeaders() }
     ).pipe(
       tap(response => {
-        if (response.token) {
-          this.storeToken(response.token);
+        if (response.accessToken && response.refreshToken) {
+          this.storeTokens(response.accessToken, response.refreshToken);
         }
       })
     );
@@ -124,8 +192,15 @@ export class ApiService {
    * Logout user
    */
   public logout(): void {
-    this.removeToken();
+    this.revokeToken().subscribe({
+      next: () => {},
+      error: () => {
+        // Remove tokens even if revoke fails
+        this.removeTokens();
+      }
+    });
   }
+
 
   /**
    * Generic GET request with authentication
