@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
+import { ApiService } from '../api.service';
 
 export interface UserProfile {
   bio?: string;
@@ -23,6 +24,10 @@ export class ProfileService {
   #apiUrl = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
   #mock = (environment as unknown as { useMocks?: boolean }).useMocks === true;
 
+  constructor (
+    private api: ApiService
+  ) {}
+  
   // Mock source
   #mockProfile(): UserProfile {
     return {
@@ -83,8 +88,8 @@ export class ProfileService {
   }
 
   getFavoriteAlbums(): Observable<Album[]> {
-    if (this.#mock) return of(this.#mockProfile().favoriteAlbums ?? []);
-    return this.#http.get<Album[]>(`${this.#apiUrl}/v1/Users/me/favorite-albums`);
+    // if (this.#mock) return of(this.#mockProfile().favoriteAlbums ?? []);
+    return this.api.get<Album[]>(`/Users/me/favorite-albums`);
   }
 
   addFavoriteAlbum(albumId: string): Observable<void> {
