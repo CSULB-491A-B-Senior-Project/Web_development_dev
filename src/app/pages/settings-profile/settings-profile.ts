@@ -457,45 +457,41 @@ export class SettingsProfile implements AfterViewInit {
 const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   debounceTime(300),
   distinctUntilChanged(),
-
   tap(raw => {
-  if (typeof raw === 'string') {
-    this.songSearchQuery.set(raw.trim());
-  }
-}),
-
+    if (typeof raw === 'string') {
+      this.songSearchQuery.set(raw.trim());
+    }
+    // Set loading to true when a new search starts
+    this.loadingSongSearch.set(true);
+    this.songSearchError.set(null);
+  }),
   switchMap(raw => {
     const term = (raw ?? '').toString().trim();
     if (!term) {
-      this.songResults.set([]); // clear list
+      this.songResults.set([]);
+      this.loadingSongSearch.set(false);
       return of<Song[]>([]);
     }
-
-    // ⭐ This MUST call MusicSearchService
+    // Call the MusicSearchService
     return this.#musicSearchService.searchSongs(term).pipe(
       take(1),
       catchError(err => {
         console.error("Favorite Song Search Failed:", err);
         this.songSearchError.set("Search failed");
+        this.loadingSongSearch.set(false);
         return of<Song[]>([]);
       })
     );
   })
 ).subscribe({
   next: songs => {
-    // ⭐⭐ THIS IS THE LINE THAT MAKES THE UI ACTUALLY UPDATE ⭐⭐
-    // this.songResults.set(songs);
-
-    // this.loadingSongSearch.set(false);
-   
     const normalized = songs.map(s => this.normalizeTrackFromApi(s));
     this.songResults.set(normalized);
-    this.loadingSongSearch.set(false);
+    this.loadingSongSearch.set(false); // Set loading to false when results arrive
     console.log("QUERY:", this.songSearchQuery());
     console.log("RESULTS:", this.songResults());
     console.log("VISIBLE:", this.songSearchQuery() && this.songResults().length > 0);
     console.log("WHAT SETTINGS-PROFILE RECEIVED:", songs, Array.isArray(songs));
-
   },
   error: err => {
     console.error("Unhandled Favorite Song Search error:", err);
