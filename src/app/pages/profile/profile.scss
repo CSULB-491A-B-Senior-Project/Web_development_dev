@@ -29,6 +29,18 @@
     order: 3;
   }
 }
+@media (min-width: 981px) {
+  .sidebar {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .albums {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+
 
 /* Profile header */
 .profile {
@@ -128,9 +140,23 @@
 }
 
 /* Sidebar */
+.sidebar {
+  align-self: start;
+  padding: 16px;
+  border-radius: 8px;
+  min-height: 300px;
+  background: var(--input-color);
+}
+
 .sidebar h2 {
   margin: 0 0 8px 0;
   font-size: 24px;
+}
+
+.bio {
+  p {
+    color: var(--primary);
+  }
 }
 
 .fav-artists {
