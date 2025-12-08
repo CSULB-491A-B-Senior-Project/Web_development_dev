@@ -5,8 +5,10 @@ import { environment } from '../../environments/environment';
 import { ApiService } from '../api.service';
 
 export interface UserProfile {
+  id: string;
   bio?: string;
   profilePictureUrl?: string;
+  backgroundImageUrl?: string;
   favoriteSong: Song | null;
   favoriteArtists: Artist[];
   favoriteAlbums: Album[];
@@ -29,8 +31,10 @@ export class ProfileService {
   // Mock source
   #mockProfile(): UserProfile {
     return {
+      id: 'user-123',
       bio: 'This is my current bio. I love discovering new music and sharing my favorite tracks.',
       profilePictureUrl: 'https://picsum.photos/seed/card-1/600/600',
+      backgroundImageUrl: 'https://picsum.photos/seed/background-1/1200/600',
       favoriteSong: {
         id: 's1',
         name: 'The Less I Know The Better',

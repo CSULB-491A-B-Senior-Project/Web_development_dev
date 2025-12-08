@@ -6,7 +6,7 @@
   <section class="profile">
     <div class="avatar-wrap">
       <img
-        [src]="user()?.profileImageUrl || 'assets/profile.png'"
+        [src]="user()?.profilePictureUrl || 'assets/profile.png'"
         class="avatar-img"
         alt="profile avatar" />
       <ng-template #avatarSkeleton>
@@ -49,22 +49,22 @@
   <section class="albums">
     <h2>Favorite Albums</h2>
     <div class="album-grid">
-      <app-album-card *ngFor="let it of albums(); trackBy: trackById"
+      <!-- <app-album-card *ngFor="let it of albums(); trackBy: trackById"
                       [title]="it.title"
                       [artist]="it.artist"
                       [releaseYear]="it.dateLabel"
                       [albumCover]="it.imageUrl">
-      </app-album-card>
+      </app-album-card> -->
     </div>
 
     <h2>Recent Albums</h2>
     <div class="album-grid recent">
-      <app-album-card *ngFor="let it of albums(); trackBy: trackById"
+      <!-- <app-album-card *ngFor="let it of albums(); trackBy: trackById"
                       [title]="it.title"
                       [artist]="it.artist"
                       [releaseYear]="it.dateLabel"
                       [albumCover]="it.imageUrl">
-      </app-album-card>
+      </app-album-card> -->
     </div>
   </section>
 </main>

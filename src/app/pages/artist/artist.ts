@@ -23,18 +23,35 @@ export class Artist {
 
     trackById = (_: number, it: Album) => it.id;
 
-    private route = inject(ActivatedRoute);
-    private artistService = inject(ArtistService);
-    private followService = inject(FollowService);
+    constructor(
+        private artistService: ArtistService,
+        private followService: FollowService,
+        private route: ActivatedRoute
+    ) {}
 
-    constructor() {
-        const artistId = this.route.snapshot.paramMap.get('id'); // Example artist ID
-        if (artistId) {
-            this.loadArtist(artistId);
-            this.loadAlbums(artistId);
-            this.isFollowingArtist(artistId);
-        }
+    ngOnInit(): void {
+        this.route.paramMap.subscribe(params => {
+            const artistId = params.get('id');
+
+            if (artistId) {
+                this.loadArtist(artistId);
+                this.loadAlbums(artistId);
+                this.isFollowingArtist(artistId);
+            }
+        });
     }
+
+    // constructor(
+    //     private artistService: ArtistService, 
+    //     private followService: FollowService, 
+    //     private route: ActivatedRoute ) { 
+    //     const artistId = this.route.snapshot.paramMap.get('id'); 
+    //     if (artistId) { 
+    //         this.loadArtist(artistId); 
+    //         this.loadAlbums(artistId); 
+    //         this.isFollowingArtist(artistId); 
+    //     } 
+    // }
 
     // LOAD ARTIST DATA
     loadArtist(artistId: string): void {
