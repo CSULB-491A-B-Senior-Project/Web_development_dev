@@ -32,23 +32,9 @@
     <div class="right-controls">
       <select [(ngModel)]="sortValue">
         <option value="relevance">Relevance</option>
-        <option value="recent">Recent</option>
-        <option value="popular">Most liked</option>
-        <option value="rating">Highest rated</option>
+        <option value="alpha">Alphabetical</option>
+        <option value="date">Date (Newest)</option>
       </select>
-
-      <div class="view-toggle" role="tablist" aria-label="View toggle">
-        <button [class.active]="view() === 'grid'"
-                (click)="setView('grid')"
-                [attr.aria-pressed]="view() === 'grid'">
-          Grid
-        </button>
-        <button [class.active]="view() === 'list'"
-                (click)="setView('list')"
-                [attr.aria-pressed]="view() === 'list'">
-          List
-        </button>
-      </div>
     </div>
   </header>
 
@@ -191,13 +177,6 @@
       </div>-->
     </div>
   </div>
-
-  <!-- LIST VIEW (simple text list) -->
-  <ul *ngIf="view() === 'list' && !loading()" class="list">
-    <li *ngFor="let it of items(); trackBy: trackById" class="row">
-      <span>{{ it.title || it.username }}</span>
-    </li>
-  </ul>
 
   <!-- Empty state -->
   <div class="empty" *ngIf="!loading() && resultCount() === 0 && query()">
