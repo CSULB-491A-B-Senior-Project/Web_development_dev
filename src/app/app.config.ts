@@ -38,34 +38,20 @@ import { authInterceptor } from './core/http/auth.interceptor';
 import { errorInterceptor } from './core/http/error.interceptor';
 import { CookieService } from 'ngx-cookie-service';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { apiInterceptor } from './core/api-interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor, errorInterceptor])
+      withInterceptors([
+        authInterceptor,
+        errorInterceptor,
+        apiInterceptor,
+      ])
     ),
     importProvidersFrom(DragDropModule),
     CookieService,
   ],
 };
-
-// import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-// import { provideRouter } from '@angular/router';
-// import { routes } from './app.routes';
-// import { provideHttpClient, withInterceptors } from '@angular/common/http';
-// import { authInterceptor } from './core/http/auth.interceptor';
-// import { errorInterceptor } from './core/http/error.interceptor';
-// import { CookieService } from 'ngx-cookie-service';
-
-// export const appConfig: ApplicationConfig = {
-//   providers: [
-//     provideZoneChangeDetection({ eventCoalescing: true }),
-//     provideRouter(routes),
-//     provideHttpClient(
-//       withInterceptors([authInterceptor, errorInterceptor])
-//     ),
-//     CookieService,
-//   ],
-// };

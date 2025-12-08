@@ -1,0 +1,27 @@
+<div class="settings-sidebar">
+  <a class="logo" routerLink="/explore">
+    <img [src]="'/assets/crescendo-logo-no-text.png'" alt="Crescendo logo" />
+  </a>
+
+  <h1 class="title">Settings</h1>
+
+  <nav class="nav">
+    <a
+      routerLink="/settings-profile"
+      class="nav-link"
+      [class.active]="activeSection() === 'profile'">
+      Edit Profile
+    </a>
+
+    <a
+      routerLink="/settings-account"
+      class="nav-link"
+      [class.active]="activeSection() === 'account'">
+      Account
+    </a>
+  </nav>
+
+  @if (showLogout()) {
+    <button class="logout" (click)="logout.emit()">Logout</button>
+  }
+</div>

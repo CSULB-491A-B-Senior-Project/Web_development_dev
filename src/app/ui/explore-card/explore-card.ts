@@ -19,6 +19,7 @@ export class ExploreCard {
   isArtist = input<boolean>(false);
   favorites = input<number>(0);
   rating = input<number>(0);
+  averageRating = input<number>(0);
   viewLink = input<any[] | string>(['/explore']);
   postType = input<'comment_post' | 'rating_post' | 'album_post'>('album_post');
   postContent = input<string | undefined>(undefined);
@@ -36,6 +37,11 @@ export class ExploreCard {
     if (n < 1_000) return `${n}`;
     if (n < 1_000_000) return `${Math.round(n / 100) / 10}k`;
     return `${Math.round(n / 100_000) / 10}M`;
+  });
+
+  formattedAverageRating = computed(() => {
+    const rating = this.averageRating();
+    return rating > 0 ? rating.toFixed(1) : '0.0';
   });
 
   // show up to 3 chips, then "+N more"

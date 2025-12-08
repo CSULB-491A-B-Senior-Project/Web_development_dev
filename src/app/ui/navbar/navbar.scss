@@ -47,7 +47,16 @@
 
     img {
       height: 48px;
-      width: auto;
+      width: 48px; // ensure fixed box to avoid layout shift
+      aspect-ratio: 1;
+      border-radius: 50%; // circular avatar
+      object-fit: cover;  // fill the circle without distortion
+      background-color: #1a1a1a; // placeholder background
+      border: 2px solid #2a2a2a; // subtle frame
+      transition: opacity 120ms ease-in-out, transform 120ms ease-in-out;
+
+      // Avoid flicker: start hidden until the image has dimensions
+      opacity: 1;
     }
   }
 

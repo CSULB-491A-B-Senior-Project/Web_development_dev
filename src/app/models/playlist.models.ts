@@ -1,5 +1,16 @@
 export interface Artist {
+  id: string;
   artistName: string;
+}
+
+export interface ArtistDetails {
+  id: string;
+  name: string;
+  followerCount: number;
+  imageUrl: string;
+  albums: string[];
+  details: string;
+  profileUrl: string;
 }
 
 export interface Track {
