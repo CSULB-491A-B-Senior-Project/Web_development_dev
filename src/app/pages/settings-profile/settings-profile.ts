@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, ElementRef, AfterViewInit, inject, signal, viewChild, computed, DestroyRef } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, switchMap, tap, catchError, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, switchMap, tap, catchError, map, finalize } from 'rxjs/operators';
 import { of, from, forkJoin } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -25,7 +25,6 @@ import { ProfilePictureStore } from '../../ui/navbar/profile-picture.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    // RouterLink,
     ReactiveFormsModule,
     NgOptimizedImage,
     CdkDropList,
@@ -35,7 +34,6 @@ import { ProfilePictureStore } from '../../ui/navbar/profile-picture.store';
   ],
 })
 export class SettingsProfile implements AfterViewInit {
-  // Injectors and services
   #nfb = inject(NonNullableFormBuilder);
   #profileService = inject(ProfileService);
   #searchService = inject(SearchService);
@@ -45,14 +43,11 @@ export class SettingsProfile implements AfterViewInit {
   #http = inject(HttpClient);
   #apiService = inject(ApiService);
 
-  // API base
   private apiBase = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
 
-  // Placeholders (use dedicated album/artist placeholders)
-  readonly placeholderArtist = '/assets/default-artist.png';
-  readonly placeholderAlbum = '/assets/default-album.png';
+  readonly placeholderArtist = '/assets/default-profile.png';
+  readonly placeholderAlbum = '/assets/placeholder.png';
 
-  // Signals
   profilePictureUrl = signal<string>('/assets/default-profile.png');
   profilePicFileName = signal<string>('');
   private localBlobUrl = signal<string | null>(null);
@@ -61,19 +56,15 @@ export class SettingsProfile implements AfterViewInit {
   favoriteArtists = signal<Artist[]>([]);
   favoriteAlbums = signal<Album[]>([]);
   favoriteSong = signal<Song | null>(null);
+  artistRanks = signal<{ artistId: string; rank: number }[]>([]);
 
-  // Track locally unhearted albums so they remain visible but appear "removed"
   unheartedAlbumIds = signal<Set<string>>(new Set());
-
-  // Background image URL (resolved absolute URL)
   backgroundImageUrl = signal<string | null>(null);
 
-  // Helpers
   isAlbumUnhearted(album: Album): boolean {
     return this.unheartedAlbumIds().has(album.id);
   }
 
-  // Resolve absolute URL for profile images (supports absolute, blob:, data:, and relative paths)
   private resolveImageUrl(raw?: unknown): string {
     const placeholder = '/assets/default-profile.png';
     const v = (raw ?? '').toString().trim();
@@ -84,11 +75,9 @@ export class SettingsProfile implements AfterViewInit {
     return `${base}/${v}`;
   }
 
-  // Derive a display filename from a URL or path
   private deriveFileNameFromUrl(url: string | null | undefined): string {
     if (!url) return '';
     try {
-      // strip query/hash, take last path segment
       const u = new URL(url, window.location.origin);
       const last = u.pathname.split('/').filter(Boolean).pop() || '';
       return decodeURIComponent(last);
@@ -99,7 +88,6 @@ export class SettingsProfile implements AfterViewInit {
     }
   }
 
-  // Helper to extract a background image URL from profile payload
   private extractBackgroundUrl(p: Record<string, unknown> | null | undefined): string | null {
     const src = p ?? {};
     const raw =
@@ -116,15 +104,14 @@ export class SettingsProfile implements AfterViewInit {
     return v ? this.resolveImageUrl(v) : null;
   }
 
-  // Normalizes various backend album shapes into the Album interface used by the template
   private normalizeAlbumFromApi(a: unknown): Album {
     const src = a as Record<string, unknown>;
     const id = (src['albumId'] as string) ?? (src['id'] as string) ?? '';
     const name = (src['albumName'] as string) ?? (src['title'] as string) ?? (src['name'] as string) ?? '';
 
     const artistName =
-      (typeof src['artistName'] === 'string' ? src['artistName'] as string : undefined) ??
-      (typeof src['username'] === 'string' ? src['username'] as string : undefined) ??
+      (typeof src['artistName'] === 'string' ? (src['artistName'] as string) : undefined) ??
+      (typeof src['username'] === 'string' ? (src['username'] as string) : undefined) ??
       '';
 
     const coverRaw = src['albumImageUrl'] ?? src['imageUrl'] ?? src['coverArt'] ?? src['albumCover'] ?? '';
@@ -143,7 +130,26 @@ export class SettingsProfile implements AfterViewInit {
     return { id, name, albumCover: albumCover || this.placeholderAlbum, artist: { artistName }, releaseYear: year } as Album;
   }
 
-  // Search results
+  private normalizeTrackFromApi(raw: any): Song {
+  return {
+    id: raw.id,
+    name: raw.name,
+    artistName: raw.artistName ?? raw.artistNames ?? 'Unknown Artist',
+    albumCoverUrl: raw.albumCoverUrl ?? raw.albumCover ?? this.placeholderAlbum,
+    durationMs: typeof raw.duration === 'number' ? raw.duration * 1000 : undefined,
+    trackNumber: raw.trackNumber,
+    previewUrl: raw.previewUrl,
+    raw
+  };
+}
+
+  private msToMinSec(ms: number): string {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
   songResults = signal<Song[]>([]);
   private _artistResultsRaw = signal<Artist[]>([]);
   private _albumResultsRaw = signal<Album[]>([]);
@@ -152,16 +158,21 @@ export class SettingsProfile implements AfterViewInit {
     const favoriteIds = new Set(this.favoriteArtists().map(a => a.id));
     return this._artistResultsRaw().filter(a => !favoriteIds.has(a.id));
   });
+
   albumResults = computed(() => {
     const favoriteIds = new Set(this.favoriteAlbums().map(a => a.id));
     return this._albumResultsRaw().filter(a => !favoriteIds.has(a.id));
   });
 
+  trackSearchForm = this.#nfb.group({ query: '' as string });
+  trackSearchQuery = signal('');
+  private _trackResultsRaw = signal<Song[]>([]);
+  trackResults = computed(() => this._trackResultsRaw());
+
   songSearchQuery = signal('');
   artistSearchQuery = signal('');
   albumSearchQuery = signal('');
 
-  // Forms
   bioForm = this.#nfb.group({
     bio: ['', [Validators.maxLength(150)]]
   });
@@ -169,28 +180,24 @@ export class SettingsProfile implements AfterViewInit {
   artistSearchForm = this.#nfb.group({ query: '' });
   albumSearchForm = this.#nfb.group({ query: '' });
 
-  // ViewChild
   bioTextarea = viewChild.required<ElementRef<HTMLTextAreaElement>>('bioTextarea');
 
-  // Loading / errors
   loadingSongSearch = signal(false);
   loadingAlbumSearch = signal(false);
   songSearchError = signal<string | null>(null);
   albumSearchError = signal<string | null>(null);
 
-  // DestroyRef for cleanup
   private destroyRef = inject(DestroyRef);
 
   private toYear(raw: unknown): number | undefined {
     if (typeof raw === 'number') return raw;
     if (typeof raw === 'string') {
       const s = raw.trim();
-      // Prefer explicit year token to avoid timezone shifts
       const m = s.match(/\b(19|20)\d{2}\b/);
       if (m) return Number.parseInt(m[0], 10);
 
       const d = new Date(s);
-      if (!Number.isNaN(d.getTime())) return d.getUTCFullYear(); // use UTC to avoid local time rollover
+      if (!Number.isNaN(d.getTime())) return d.getUTCFullYear();
       const n = Number.parseInt(s, 10);
       return Number.isNaN(n) ? undefined : n;
     }
@@ -215,7 +222,6 @@ export class SettingsProfile implements AfterViewInit {
 
       const merged = albums.map(a => {
         const d = byId.get(a.id);
-        // Fallback: try matching by name+artist if IDs differ
         const match = d ?? detailsList.find((x: any) =>
           (x?.albumName ?? x?.name)?.toString().toLowerCase() === (a.name ?? '').toLowerCase() &&
           (x?.artistName ?? x?.artist?.artistName ?? '').toString().toLowerCase() === (a.artist?.artistName ?? '').toLowerCase()
@@ -245,55 +251,28 @@ export class SettingsProfile implements AfterViewInit {
 
   private currentUserKey = 'me';
 
-  private storageKey(kind: 'profile' | 'bg') {
-    return `crescendo:${kind}:filename:${this.currentUserKey}`;
-  }
-  private persistFileName(kind: 'profile' | 'bg', name: string) {
-    try { localStorage.setItem(this.storageKey(kind), JSON.stringify({ name, t: Date.now() })); } catch { /* ignore */ }
-  }
-  private readPersistedFileName(kind: 'profile' | 'bg'): string {
-    try {
-      const raw = localStorage.getItem(this.storageKey(kind));
-      const obj = raw ? JSON.parse(raw) as { name?: string } : null;
-      return obj?.name ?? '';
-    } catch { return ''; }
-  }
-
   constructor(private router: Router, private pictureStore: ProfilePictureStore) {
-    // Load profile and favorites
+    // Load profile
     this.#profileService.getProfile().pipe(take(1)).subscribe({
       next: (p: any) => {
-        console.log('profile response', p);
-        // derive a stable local-storage key per user
         this.currentUserKey = String(p?.id ?? p?.userId ?? p?.username ?? 'me');
         const bio = p.bio ?? '';
         this.bioForm.patchValue({ bio }, { emitEvent: false });
         this.bioForm.markAsPristine();
 
-        // Map backend fields defensively and resolve absolute URL
         const url = this.resolveImageUrl(
           p.profilePictureUrl ?? p.profileImageUrl ?? p.avatarUrl ?? p.picture ?? p.imageUrl ?? p.profilePicture
         );
-        // this.profilePictureUrl.set(url);
-        // // Derive profile picture filename from URL
-        // this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
-        // const busted = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
         this.profilePictureUrl.set(url);
         this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
-        console.log("Pushing url to store ->", url);
-
-        // Update shared store so Navbar sees it
         this.pictureStore.profilePictureUrl.set(url);
 
-        // Set current background image URL if present
         const bgUrl = this.extractBackgroundUrl(p);
         this.backgroundImageUrl.set(bgUrl);
-        // Derive background filename from URL
         this.selectedFileName.set(this.deriveFileNameFromUrl(bgUrl));
 
         this.favoriteSong.set(p.favoriteSong ?? null);
 
-        // Normalize favorite artists
         const artists = (p.favoriteArtists ?? []).map((a: any) => ({
           id: a.id,
           artistName: a.artistName ?? a.name ?? '',
@@ -301,19 +280,12 @@ export class SettingsProfile implements AfterViewInit {
         } as Artist));
         this.favoriteArtists.set(artists);
 
-        // Normalize favorite albums using helper
         const albums = (p.favoriteAlbums ?? []).map((al: any) => this.normalizeAlbumFromApi(al));
         this.favoriteAlbums.set(albums);
-        console.log('favoriteAlbums (from profile):', this.favoriteAlbums());
-
-        // REMOVE localStorage restoration; filenames come from server URLs
-        // this.profilePicFileName.set(this.readPersistedFileName('profile'));
-        // this.selectedFileName.set(this.readPersistedFileName('bg'));
       },
       error: (err) => console.error('Failed to load profile', err)
     });
 
-    // Load favorite artists (fallback / refresh)
     this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe({
       next: (artists) => {
         if (artists && artists.length) {
@@ -321,47 +293,80 @@ export class SettingsProfile implements AfterViewInit {
             id: a.id,
             artistName: a.artistName ?? '',
             artistImage: a.artistImage ?? this.placeholderArtist
-          })));
+          } as Artist)));
         }
       },
       error: (err) => console.error('Failed to load favorite artists', err)
     });
 
-    // Load favorite albums (do not overwrite if empty), then enrich from catalog
     this.#profileService.getFavoriteAlbums().pipe(take(1)).subscribe({
       next: (albums) => {
         if (albums && albums.length) {
           const normalized = (albums as unknown[]).map(a => this.normalizeAlbumFromApi(a));
           this.favoriteAlbums.set(normalized);
-
-          // Only use detail enrichment to populate year/cover
           this.enrichFavoriteAlbumsViaDetails(normalized);
-        } else {
-          console.log('getFavoriteAlbums returned empty, keeping existing favoriteAlbums');
         }
       },
       error: (err) => console.error('Failed to load favorite albums', err)
     });
 
-    // SONG search pipeline
-    const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(v => { this.songSearchQuery.set(v); this.loadingSongSearch.set(!!v?.toString().trim()); this.songSearchError.set(null); }),
-      switchMap(term => {
-        const t = (term ?? '').toString().trim();
-        return t ? this.#musicSearchService.searchSongs(t).pipe(take(1)) : of<Song[]>([]);
-      })
-    ).subscribe({
-      next: res => { this.songResults.set(res); this.loadingSongSearch.set(false); },
-      error: () => { this.songResults.set([]); this.songSearchError.set('Search failed'); this.loadingSongSearch.set(false); }
-    });
+    // ------------------------------
+// FAVORITE SONG SEARCH
+// ------------------------------
+const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
+  debounceTime(300),
+  distinctUntilChanged(),
 
-    // ALBUM search pipeline using SearchService
+  tap(raw => {
+  if (typeof raw === 'string') {
+    this.songSearchQuery.set(raw.trim());
+  }
+}),
+
+  switchMap(raw => {
+    const term = (raw ?? '').toString().trim();
+    if (!term) {
+      this.songResults.set([]); // clear list
+      return of<Song[]>([]);
+    }
+
+    // ⭐ This MUST call MusicSearchService
+    return this.#musicSearchService.searchSongs(term).pipe(
+      take(1),
+      catchError(err => {
+        console.error("Favorite Song Search Failed:", err);
+        this.songSearchError.set("Search failed");
+        return of<Song[]>([]);
+      })
+    );
+  })
+).subscribe({
+  next: songs => {
+    // ⭐⭐ THIS IS THE LINE THAT MAKES THE UI ACTUALLY UPDATE ⭐⭐
+    // this.songResults.set(songs);
+
+    // this.loadingSongSearch.set(false);
+   
+    const normalized = songs.map(s => this.normalizeTrackFromApi(s));
+    this.songResults.set(normalized);
+    this.loadingSongSearch.set(false);
+    console.log("QUERY:", this.songSearchQuery());
+    console.log("RESULTS:", this.songResults());
+    console.log("VISIBLE:", this.songSearchQuery() && this.songResults().length > 0);
+    console.log("WHAT SETTINGS-PROFILE RECEIVED:", songs, Array.isArray(songs));
+
+  },
+  error: err => {
+    console.error("Unhandled Favorite Song Search error:", err);
+    this.loadingSongSearch.set(false);
+  }
+});
+
+    // ALBUM SEARCH, ARTIST SEARCH, TRACK SEARCH
     const albumSub = this.albumSearchForm.controls.query.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      tap(v => { this.albumSearchQuery.set(v); this.loadingAlbumSearch.set(!!v?.toString().trim()); this.albumSearchError.set(null); }),
+      tap(v => { this.albumSearchQuery.set(v ?? ''); this.loadingAlbumSearch.set(!!(v ?? '').toString().trim()); this.albumSearchError.set(null); }),
       switchMap(raw => {
         const term = (raw ?? '').toString().trim();
         return term
@@ -376,7 +381,7 @@ export class SettingsProfile implements AfterViewInit {
             id: it.id,
             albumName: it.title,
             albumImageUrl: it.imageUrl,
-            artistName: it.username, // comes from transformAlbums
+            artistName: it.username,
             releaseDate: it.dateLabel
           }));
         this._albumResultsRaw.set(albums);
@@ -389,11 +394,10 @@ export class SettingsProfile implements AfterViewInit {
       }
     });
 
-    // ARTIST search pipeline using SearchService
     const artistSub = this.artistSearchForm.controls.query.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      tap(v => { this.artistSearchQuery.set(v); }),
+      tap(v => { this.artistSearchQuery.set(v ?? ''); }),
       switchMap(raw => {
         const term = (raw ?? '').toString().trim();
         return term
@@ -404,7 +408,7 @@ export class SettingsProfile implements AfterViewInit {
       next: res => {
         const artists = (res.items || []).filter((it: SearchItem) => it.type === 'artist').map((it: SearchItem) => ({
           id: it.id,
-          artistName: it.title || it.username || it.username,
+          artistName: it.title || it.username,
           artistImage: it.imageUrl || this.placeholderArtist
         } as Artist));
         this._artistResultsRaw.set(artists);
@@ -414,27 +418,34 @@ export class SettingsProfile implements AfterViewInit {
       }
     });
 
-    // Cleanup on destroy
-    this.destroyRef.onDestroy(() => {
-      songSub.unsubscribe();
-      albumSub.unsubscribe();
-      artistSub.unsubscribe();
-    });
+    const trackSub = this.trackSearchForm.controls.query.valueChanges.pipe(
+  debounceTime(300),
+  distinctUntilChanged(),
 
-    this.#searchService.search({ query: 'crazy', tab: 'albums', page: 1, pageSize: 1 }).pipe(take(1))
-      .subscribe(r => {
-        const it = (r as any)?.items?.find((x: any) => x.type === 'album');
-        console.log('search item sample', it);
-        const mapped = this.normalizeAlbumFromApi({
-          id: it?.id,
-          albumName: it?.title,
-          albumImageUrl: it?.coverArt,
-          artistNames: it?.artistNames,
-          releaseDate: it?.releaseDate
-        });
-        console.log('normalized sample', mapped);
+  tap(raw => {
+    this.trackSearchQuery.set((raw ?? '').toString().trim());
+  }),
+
+  switchMap(raw => {
+    const term = (raw ?? '').toString().trim();
+    if (!term) return of<Song[]>([]);
+
+    // ⭐ THE FIX — call the RIGHT service
+    return this.#musicSearchService.searchSongs(term);
+  })
+).subscribe({
+  next: songs => this._trackResultsRaw.set(songs),
+  error: err => console.error("Track search error:", err)
+});
+
+
+      this.destroyRef.onDestroy(() => {
+        songSub.unsubscribe();
+        albumSub.unsubscribe();
+        artistSub.unsubscribe();
+        trackSub.unsubscribe();
       });
-  }
+    }
 
   ngAfterViewInit(): void {
     setTimeout(() => this.autoResizeBio(), 0);
@@ -451,10 +462,6 @@ export class SettingsProfile implements AfterViewInit {
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }
-
-  // -------------------------
-  // Upload helpers and flows
-  // -------------------------
 
   private requestSignedUrl(fileName: string, contentType: string, type: 'profile' | 'bg') {
     const url = `${this.apiBase}/v1/Bucket/signed-url`;
@@ -488,8 +495,7 @@ export class SettingsProfile implements AfterViewInit {
     }
 
     const validType = /^image\/(png|jpe?g|webp)$/i.test(file.type);
-    const validSize = file.size <= 3 * 1024 * 1024; // 3MB
-    // Show selected name immediately for UX
+    const validSize = file.size <= 3 * 1024 * 1024;
     this.profilePicFileName.set(file.name);
 
     if (!validType || !validSize) {
@@ -524,14 +530,11 @@ export class SettingsProfile implements AfterViewInit {
           const url = this.resolveImageUrl(
             pAny.profilePictureUrl ?? pAny.profileImageUrl ?? pAny.avatarUrl ?? pAny.picture ?? pAny.imageUrl ?? pAny.profilePicture
           );
-          // cache-bust
           const busted = `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
           this.profilePictureUrl.set(busted);
-          // Derive and set filename from the persisted server URL
           this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
+          this.pictureStore.profilePictureUrl.set(busted);
         });
-        // REMOVE localStorage persistence
-        // this.persistFileName('profile', file.name);
       },
       error: (err) => {
         console.error('Profile upload/confirm failed', err);
@@ -541,8 +544,8 @@ export class SettingsProfile implements AfterViewInit {
             pAny.profilePictureUrl ?? pAny.profileImageUrl ?? pAny.avatarUrl ?? pAny.picture ?? pAny.imageUrl ?? pAny.profilePicture
           );
           this.profilePictureUrl.set(url);
-          // Derive filename from current server URL on error fallback
           this.profilePicFileName.set(this.deriveFileNameFromUrl(url));
+          this.pictureStore.profilePictureUrl.set(url);
         });
       }
     });
@@ -553,14 +556,11 @@ export class SettingsProfile implements AfterViewInit {
   onFileSelected(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    // Show selected name immediately for UX
     this.selectedFileName.set(file.name);
 
     const validType = /^image\/(png|jpe?g|webp)$/i.test(file.type);
-    const validSize = file.size <= 5 * 1024 * 1024; // 5MB
-    if (!validType || !validSize) {
-      return;
-    }
+    const validSize = file.size <= 5 * 1024 * 1024;
+    if (!validType || !validSize) return;
 
     this.requestSignedUrl(file.name, file.type || 'application/octet-stream', 'bg').pipe(
       switchMap(res => {
@@ -578,33 +578,21 @@ export class SettingsProfile implements AfterViewInit {
       take(1)
     ).subscribe({
       next: () => {
-        // Refresh profile and update background image URL after confirm
         this.#profileService.getProfile().pipe(take(1)).subscribe(p => {
           const bgUrl = this.extractBackgroundUrl(p as any);
           this.backgroundImageUrl.set(bgUrl);
-          // Derive and set filename from the persisted server URL
           this.selectedFileName.set(this.deriveFileNameFromUrl(bgUrl));
         });
-        // REMOVE localStorage persistence
-        // this.persistFileName('bg', file.name);
       },
-      error: (err) => {
-        console.error('Background upload/confirm failed', err);
-        // On error, keep previously shown name or clear based on your preference
-      }
+      error: (err) => console.error('Background upload failed', err)
     });
   }
 
-  // Open the current background image in a new tab
   viewBackground(): void {
     const url = this.backgroundImageUrl();
     if (!url) return;
     window.open(url, '_blank');
   }
-
-  // -------------------------
-  // Profile and favorites flows
-  // -------------------------
 
   onBioSubmit(): void {
     if (this.bioForm.invalid) return;
@@ -615,20 +603,39 @@ export class SettingsProfile implements AfterViewInit {
     });
   }
 
+  onSearchListClick(e: MouseEvent): void {
+    console.log('[SettingsProfile] list clicked', e.target);
+  }
+
   selectSong(song: Song): void {
+    // if (!song?.id) return;
+
     const prev = this.favoriteSong();
-    this.favoriteSong.set(song);
+
     this.#profileService.updateFavoriteSong(song.id).pipe(take(1)).subscribe({
-      next: () => { /* success */ },
+      next: () => {
+        this.favoriteSong.set(song); // normalized already
+        this.songSearchForm.controls.query.setValue('');
+        this.songResults.set([]);
+      },
       error: () => this.favoriteSong.set(prev)
     });
+  }
+
+
+  // Keep track selection consistent (delegates to selectSong)
+  selectTrack(t: Song): void {
+    if (!t?.id) return;
+    this.selectSong(t);
   }
 
   clearFavoriteSong(): void {
     const prev = this.favoriteSong();
     this.favoriteSong.set(null);
+
+    // Send null to clear (only id/null is needed)
     this.#profileService.updateFavoriteSong(null).pipe(take(1)).subscribe({
-      next: () => { /* cleared */ },
+      next: () => {},
       error: () => this.favoriteSong.set(prev)
     });
   }
@@ -680,7 +687,6 @@ export class SettingsProfile implements AfterViewInit {
       next: () => {
         const serverUpdated = this.favoriteAlbums().filter(a => a.id !== album.id);
         this.favoriteAlbums.set(serverUpdated);
-        // ...do not clear album search results here; CSS will hide/show based on focus...
       },
       error: () => {
         this.unheartedAlbumIds.update(prev => {
@@ -690,33 +696,12 @@ export class SettingsProfile implements AfterViewInit {
         });
       }
     });
-
-    const q = (this.albumSearchForm.controls.query.value ?? '').toString().trim();
-    // if (q) {
-    //   this.#searchService.search({ query: q, tab: 'albums', page: 1, pageSize: 20 }).pipe(take(1)).subscribe(res => {
-    //     const results: any[] =
-    //       Array.isArray(res?.items) ? res.items.filter((it: SearchItem) => it.type === 'album') :
-    //       [];
-
-    //     const albums = results.map((it: any) => this.normalizeAlbumFromApi({
-    //       id: it.id ?? it.albumId,
-    //       albumName: it.title ?? it.albumName ?? it.name,
-    //       albumImageUrl: it.imageUrl ?? it.albumImageUrl ?? it.coverArt ?? it.albumCover,
-    //       // Use artistNames from the album search endpoint
-    //       artistNames: typeof it.artistNames === 'string' ? it.artistNames : '',
-    //       releaseDate: it.releaseYear ?? it.year ?? it.releaseDate ?? it.dateLabel
-    //     }));
-    //     this._albumResultsRaw.set(albums);
-    //   });
-    // }
   }
 
-  // Getter for template
   get topTenFavoriteArtistsListArr(): Artist[] {
     return this.favoriteArtists().slice(0, 10);
   }
 
-  // trackBy helpers
   trackByArtist(index: number, artist: Artist | null) {
     return artist?.id ?? index;
   }
@@ -725,6 +710,9 @@ export class SettingsProfile implements AfterViewInit {
   }
   trackBySong(index: number, song: Song | null) {
     return song?.id ?? index;
+  }
+  trackByTrack(index: number, track: Song | { id?: string } | null) {
+    return track?.id ?? index;
   }
 
   dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
@@ -735,9 +723,30 @@ export class SettingsProfile implements AfterViewInit {
     this.favoriteArtists.set(updated);
 
     const ranked = updated.slice(0, 10).map((a, idx) => ({ artistId: a.id, rank: idx + 1 }));
+    this.artistRanks.set(ranked);
     this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
       error: () => this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(a ?? []))
     });
+  }
+
+  // selectTrack(t: Song): void {
+  //   if (!t?.id) return;
+
+  //   const prev = this.favoriteSong();
+  //   this.favoriteSong.set(t);
+
+  //   this.#profileService.updateFavoriteSong(t.id).pipe(take(1)).subscribe({
+  //     next: () => {},
+  //     error: () => this.favoriteSong.set(prev)
+  //   });
+
+  //   this.trackSearchForm.controls.query.setValue('');
+  //   this._trackResultsRaw.set([]);
+  // }
+
+  getArtistRank(artistId: string, fallback: number): number {
+    const rank = this.artistRanks().find(r => r.artistId === artistId)?.rank;
+    return rank ?? fallback;
   }
 
   ngOnDestroy() {
@@ -745,5 +754,3 @@ export class SettingsProfile implements AfterViewInit {
     if (prev) URL.revokeObjectURL(prev);
   }
 }
-
-
