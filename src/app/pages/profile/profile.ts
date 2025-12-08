@@ -8,7 +8,7 @@ import { FollowService } from '../../services/follow.service';
 import { PlaylistResponse, PlaylistService } from '../../services/playlist.service';
 
 import { UserAccount } from '../../models/account.models';
-import { Artist, Album } from '../../models/playlist.models';
+import { Artist, Album, FavoriteSong } from '../../models/playlist.models';
 import { MyAlbumCard } from "../../ui/my-album-card/my-album-card";
 
 @Component({
@@ -22,7 +22,7 @@ import { MyAlbumCard } from "../../ui/my-album-card/my-album-card";
 export class ProfileComponent implements OnInit {
 
   user = signal<UserAccount | null>(null);
-  favoriteSong = signal<string>("");
+  favoriteSong = signal<FavoriteSong | null>(null);
   favoriteArtists = signal<Artist[] | null>(null);
   favoriteAlbums = signal<Album[] | null>(null);
   myAlbums = signal<PlaylistResponse[] | null>(null);
@@ -126,6 +126,7 @@ export class ProfileComponent implements OnInit {
 
     this.accountService.getFavoriteSong(songId).subscribe({
       next: (song) => {
+        this.favoriteSong.set(song);
         console.log('Favorite song loaded:', song);
       },
       error: (error) => {

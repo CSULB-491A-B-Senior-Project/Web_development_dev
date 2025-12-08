@@ -43,3 +43,10 @@ export interface myAlbum {
   description: string;
   userId: string;
 }
+
+export interface FavoriteSong {
+  albumId: string;
+  albumTitle: "Die On This Hill"
+  id: string;
+  name: string;
+}
