@@ -24,6 +24,7 @@ type Item = {
   averageRating: number;
   postType: 'comment_post' | 'rating_post' | 'album_post';
   postContent?: string;
+  artistId?: string;
 };
 
 @Component({
@@ -42,11 +43,15 @@ export class Explore implements OnInit {
   hasMore = signal(true);
   username: string = '';
 
-
   @ViewChild('listCreateOverlay') listCreateOverlay!: ListCreateComponent;
 
 
-constructor(private feedService: FeedService, private accountService: AccountService, private playlistCreatorService: PlaylistCreatorService, private albumReviewsService: AlbumReviewsService) { }
+  constructor(
+    private feedService: FeedService,
+    private accountService: AccountService,
+    private playlistCreatorService: PlaylistCreatorService,
+    private albumReviewsService: AlbumReviewsService,
+  ) { }
   ngOnInit() {
     this.loadFeed();
     this.accountService.getAccount().subscribe((account: UserAccount) => {
@@ -182,7 +187,7 @@ constructor(private feedService: FeedService, private accountService: AccountSer
       favorites: post.commentCount,
       rating: userRating,
       averageRating: 0,
-      postType: post.type
+      postType: post.type,
     };
   }
 
