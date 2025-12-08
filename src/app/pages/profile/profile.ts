@@ -44,12 +44,16 @@ export class ProfileComponent implements OnInit {
     this.accountService.getAccount().subscribe((account:UserAccount) => {
       this.user.set(account);
       console.log('User account loaded:', account);
+      const userId = account.id;
+
+      // GET FOLLOWING COUNT
+      this.followService.getUserFollowCount(userId).subscribe((count) => {
+      this.followingCount.set(count.followingCount);
+      console.log('Following count loaded:', count);
+      });
     });
-    const userId = this.user()?.id ?? '';
-    // GET FOLLOWING COUNT
-    this.followService.getUserFollowCount(userId).subscribe((count) => {
-      this.followingCount.set(count);
-    });
+    
+    
     this.accountService.favoriteArtists().subscribe(() => {
       
     });
