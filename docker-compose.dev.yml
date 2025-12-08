@@ -25,6 +25,7 @@ services:
       - "85:85"
     volumes:
       - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf
+      - ./dist/crescendo/browser:/usr/share/nginx/html
     depends_on:
       - frontend-dev
     extra_hosts:
