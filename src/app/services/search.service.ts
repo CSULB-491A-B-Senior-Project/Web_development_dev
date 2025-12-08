@@ -135,8 +135,8 @@ export class SearchService {
       .pipe(
         map((response) => {
           const categories: SearchCategory[] = [];
+          let totalResults = 0;
 
-          // Only show categories for "all" tab or specific tab
           if (tab === 'all') {
             // Show all categories with results
             if (response.albums.count > 0) {
@@ -169,65 +169,58 @@ export class SearchService {
             if (response.posts.count > 0) {
               categories.push({
                 type: 'reviews',
-                label: 'Reviews',
+                label: 'Posts',
                 items: this.transformPosts(response.posts.results),
                 count: response.posts.count,
               });
             }
+
+            totalResults = response.albums.count + response.artists.count +
+              response.users.count + response.posts.count;
           } else {
-            // Show only the selected tab as a single category
+            // Show only the selected tab
             switch (tab) {
               case 'albums':
-                if (response.albums.count > 0) {
-                  categories.push({
-                    type: 'albums',
-                    label: 'Albums',
-                    items: this.transformAlbums(response.albums.results),
-                    count: response.albums.count,
-                  });
-                }
+                categories.push({
+                  type: 'albums',
+                  label: 'Albums',
+                  items: this.transformAlbums(response.albums.results),
+                  count: response.albums.count,
+                });
+                totalResults = response.albums.count;
                 break;
 
               case 'artists':
-                if (response.artists.count > 0) {
-                  categories.push({
-                    type: 'artists',
-                    label: 'Artists',
-                    items: this.transformArtists(response.artists.results),
-                    count: response.artists.count,
-                  });
-                }
+                categories.push({
+                  type: 'artists',
+                  label: 'Artists',
+                  items: this.transformArtists(response.artists.results),
+                  count: response.artists.count,
+                });
+                totalResults = response.artists.count;
                 break;
 
               case 'users':
-                if (response.users.count > 0) {
-                  categories.push({
-                    type: 'users',
-                    label: 'Users',
-                    items: this.transformUsers(response.users.results),
-                    count: response.users.count,
-                  });
-                }
+                categories.push({
+                  type: 'users',
+                  label: 'Users',
+                  items: this.transformUsers(response.users.results),
+                  count: response.users.count,
+                });
+                totalResults = response.users.count;
                 break;
 
               case 'reviews':
-                if (response.posts.count > 0) {
-                  categories.push({
-                    type: 'reviews',
-                    label: 'Reviews',
-                    items: this.transformPosts(response.posts.results),
-                    count: response.posts.count,
-                  });
-                }
+                categories.push({
+                  type: 'reviews',
+                  label: 'Posts',
+                  items: this.transformPosts(response.posts.results),
+                  count: response.posts.count,
+                });
+                totalResults = response.posts.count;
                 break;
             }
           }
-
-          const totalResults =
-            response.albums.count +
-            response.artists.count +
-            response.users.count +
-            response.posts.count;
 
           return {
             categories,
@@ -236,6 +229,7 @@ export class SearchService {
         })
       );
   }
+
 
   search(
     params: SearchParams

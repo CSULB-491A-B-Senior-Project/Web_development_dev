@@ -4,6 +4,7 @@ import {
   effect,
   OnDestroy,
   signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -34,18 +35,22 @@ export class SearchResults implements OnDestroy {
   readonly query = signal('');
   readonly view = signal<'grid' | 'list'>('grid');
   readonly tab = signal<'all' | 'users' | 'albums' | 'reviews' | 'artists'>('all');
-  readonly sort = signal<'relevance' | 'recent' | 'popular' | 'rating'>('relevance');
-
+  readonly sort = signal<'relevance' | 'alpha' | 'date'>('relevance');
   // Pagination
   readonly currentPage = signal(1);
   readonly pageSize = 20;
 
-  // Data state signals
-  readonly categories = signal<SearchCategory[]>([]);
-  readonly items = signal<SearchItem[]>([]);
+  // Raw data state signals (unsorted)
+  private readonly rawCategories = signal<SearchCategory[]>([]);
+  private readonly rawItems = signal<SearchItem[]>([]);
+
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly resultCount = signal(0);
+
+  // Sorted/computed data
+  readonly categories = computed(() => this.sortCategories(this.rawCategories()));
+  readonly items = computed(() => this.sortItems(this.rawItems()));
 
   // Search trigger
   private readonly searchSubject = new Subject<void>();
@@ -61,6 +66,38 @@ export class SearchResults implements OnDestroy {
     this.setupAutoSearch();
   }
 
+  // sort logic
+
+  private sortItems(items: SearchItem[]): SearchItem[] {
+    const sorted = [...items];
+    const sortType = this.sort();
+
+    switch (sortType) {
+      case 'alpha':
+        return sorted.sort((a, b) => a.title.localeCompare(b.title));
+
+      case 'date':
+        return sorted.sort((a, b) => {
+          // For albums, sort by release date (newest first)
+          if (a.dateLabel && b.dateLabel) {
+            return b.dateLabel.localeCompare(a.dateLabel);
+          }
+          return 0;
+        });
+
+      case 'relevance':
+      default:
+        return sorted; // Keep original order from API (relevance)
+    }
+  }
+
+  private sortCategories(categories: SearchCategory[]): SearchCategory[] {
+    return categories.map(cat => ({
+      ...cat,
+      items: this.sortItems(cat.items)
+    }));
+  }
+
   // --- Init / URL sync -------------------------------------------------------
 
   private initializeFromUrl(): void {
@@ -74,7 +111,7 @@ export class SearchResults implements OnDestroy {
       if (params['view'] && ['grid', 'list'].includes(params['view'])) {
         this.view.set(params['view']);
       }
-      if (params['sort'] && ['relevance', 'recent', 'popular', 'rating'].includes(params['sort'])) {
+      if (params['sort'] && ['relevance', 'alpha', 'date'].includes(params['sort'])) {
         this.sort.set(params['sort']);
       }
       if (params['page']) {
@@ -92,8 +129,8 @@ export class SearchResults implements OnDestroy {
 
           if (!q) {
             this.loading.set(false);
-            this.categories.set([]);
-            this.items.set([]);
+            this.rawCategories.set([]);
+            this.rawItems.set([]);
             this.resultCount.set(0);
             return of(null);
           }
@@ -104,7 +141,6 @@ export class SearchResults implements OnDestroy {
           const params: SearchParams = {
             query: q,
             tab: this.tab(),
-            sort: this.sort(),
             page: this.currentPage(),
             pageSize: this.pageSize,
           };
@@ -119,13 +155,13 @@ export class SearchResults implements OnDestroy {
           return;
         }
 
-        this.categories.set(response.categories || []);
+        this.rawCategories.set(response.categories || []);
 
         const allItems = (response.categories || []).flatMap(
           (cat: SearchCategory) => cat.items,
         );
 
-        this.items.set(allItems);
+        this.rawItems.set(allItems);
         this.resultCount.set(response.totalResults || 0);
         this.loading.set(false);
       });
@@ -143,17 +179,16 @@ export class SearchResults implements OnDestroy {
     effect(() => {
       const q = this.query();
       const t = this.tab();
-      const s = this.sort();
       const v = this.view();
       const p = this.currentPage();
 
-      this.updateUrl(q, t, s, v, p);
+      this.updateUrl(q, t, v, p);
 
       if (q.trim()) {
         this.searchSubject.next();
       } else {
-        this.categories.set([]);
-        this.items.set([]);
+        this.rawCategories.set([]);
+        this.rawItems.set([]);
         this.resultCount.set(0);
         this.loading.set(false);
       }
@@ -163,7 +198,6 @@ export class SearchResults implements OnDestroy {
   private updateUrl(
     query: string,
     tab: string,
-    sort: string,
     view: string,
     page: number,
   ): void {
@@ -171,7 +205,6 @@ export class SearchResults implements OnDestroy {
 
     if (query) queryParams['q'] = query;
     if (tab !== 'all') queryParams['tab'] = tab;
-    if (sort !== 'relevance') queryParams['sort'] = sort;
     if (view !== 'grid') queryParams['view'] = view;
     if (page !== 1) queryParams['page'] = page.toString();
 
@@ -209,11 +242,11 @@ export class SearchResults implements OnDestroy {
   hasMorePages = () => this.currentPage() < this.totalPages();
 
   // ngModel bridge
-  get sortValue(): 'relevance' | 'recent' | 'popular' | 'rating' {
+  get sortValue(): 'relevance' | 'alpha' | 'date' {
     return this.sort();
   }
 
-  set sortValue(value: 'relevance' | 'recent' | 'popular' | 'rating') {
+  set sortValue(value: 'relevance' | 'alpha' | 'date') {
     this.sort.set(value);
   }
 
