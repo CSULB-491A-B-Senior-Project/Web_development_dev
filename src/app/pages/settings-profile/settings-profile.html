@@ -97,7 +97,7 @@
     <ng-template #songSearchBlock>
       <form [formGroup]="songSearchForm" class="search-container">
         <input class="form-control" type="text" formControlName="query" placeholder="Search for a song..." />
-        <ul class="search-results" *ngIf="songSearchQuery() && songResults().length > 0" (click)="onSearchListClick($event)">
+        <ul class="search-results" *ngIf="songSearchQuery() && songResults().length > 0">
           <li class="result-item" *ngFor="let s of songResults(); trackBy: trackBySong" (click)="selectSong(s)">
             <img
               ngOptimizedImage

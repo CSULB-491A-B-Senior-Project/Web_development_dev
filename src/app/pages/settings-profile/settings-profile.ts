@@ -3,7 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { Router } from '@angular/router';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, tap, catchError, map, finalize } from 'rxjs/operators';
-import { of, from, forkJoin } from 'rxjs';
+import { of, from, forkJoin, Subject, EMPTY } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { ProfileService } from '../../services/profile.service';
@@ -584,9 +584,27 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     });
     }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => this.autoResizeBio(), 0);
-  }
+    ngAfterViewInit(): void {
+      setTimeout(() => this.autoResizeBio(), 0);
+
+      // Serialize and debounce rank saves
+      this.rankSaves$
+        .pipe(
+          debounceTime(250),
+          map(p => JSON.stringify(p)),         // dedupe identical payloads
+          distinctUntilChanged(),
+          switchMap(json => {
+            const payload = JSON.parse(json) as { artistId: string; rank: number }[];
+            return this.#profileService.updateFavoriteArtistRanks(payload).pipe(
+              catchError(err => {
+                console.error('[SettingsProfile] Rank save failed:', err?.status ?? 0, err?.error ?? err);
+                return EMPTY;
+              })
+            );
+          })
+        )
+        .subscribe();
+    }
 
   onLogout(): void {
     this.#apiService.logout?.();
@@ -745,20 +763,27 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   }
 
   selectSong(song: Song): void {
-    if (!song?.id) return;
-    console.log('[SettingsProfile] selectSong called with:', song);
+  if (!song?.id) return;
+  console.log('[SettingsProfile] selectSong triggered:', song);
 
-    const prev = this.favoriteSong();
+  const prev = this.favoriteSong();
 
-    this.#profileService.updateFavoriteSong(song.id).pipe(take(1)).subscribe({
-      next: () => {
-        this.favoriteSong.set(song); // normalized already
-        this.songSearchForm.controls.query.setValue('');
-        this.songResults.set([]);
-      },
-      error: () => this.favoriteSong.set(prev)
-    });
-  }
+  this.#profileService.updateFavoriteSong(song.id).pipe(take(1)).subscribe({
+    next: () => {
+      const normalized = this.normalizeTrackFromApi(song.raw ?? song);
+      this.favoriteSong.set(normalized);
+
+      this.songSearchForm.controls.query.setValue('');
+      this.songResults.set([]);
+
+      console.log('favoriteSong after set:', this.favoriteSong());
+    },
+    error: (err) => {
+      console.error('Failed to update favorite song', err);
+      this.favoriteSong.set(prev);
+    }
+  });
+}
 
 
   isArtistFavorited(artistId: string): boolean {
@@ -776,57 +801,57 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     });
   }
 
-  addArtistToFavorites(artist: Artist): void {
-    if (!artist?.id) return;
-    if (this.favoriteArtists().some(a => a.id === artist.id)) return;
+  // addArtistToFavorites(artist: Artist): void {
+  //   if (!artist?.id) return;
+  //   if (this.favoriteArtists().some(a => a.id === artist.id)) return;
 
-    const prev = this.favoriteArtists();
+  //   const prev = this.favoriteArtists();
 
-    // Append to the bottom (end of the list)
-    const updated = [...prev, artist];
+  //   // Append to the bottom (end of the list)
+  //   const updated = [...prev, artist];
 
-    // Recompute top 10 ranks from the updated list
-    const top10 = updated.slice(0, 10);
-    const ranked = top10
-      .map((a, idx) => ({
-        artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
-        rank: idx + 1
-      }))
-      .filter(r => !!r.artistId);
+  //   // Recompute top 10 ranks from the updated list
+  //   const top10 = updated.slice(0, 10);
+  //   const ranked = top10
+  //     .map((a, idx) => ({
+  //       artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
+  //       rank: idx + 1
+  //     }))
+  //     .filter(r => !!r.artistId);
 
-    console.log('[SettingsProfile] Ranked favorite artists payload (PUT):', ranked);
+  //   console.log('[SettingsProfile] Ranked favorite artists payload (PUT):', ranked);
 
-    // Optimistic UI
-    this.favoriteArtists.set(updated);
-    this.artistRanks.set(ranked);
+  //   // Optimistic UI
+  //   this.favoriteArtists.set(updated);
+  //   this.artistRanks.set(ranked);
 
-    if (ranked.length === 0) {
-      console.warn('[SettingsProfile] Skipping PUT (no valid artistId values).');
-      return;
-    }
+  //   if (ranked.length === 0) {
+  //     console.warn('[SettingsProfile] Skipping PUT (no valid artistId values).');
+  //     return;
+  //   }
 
-    this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
-      next: () => {},
-      error: (err) => {
-        console.error('Update favorite artist ranks failed:', err?.status ?? 0, err?.error ?? err);
-        this.favoriteArtists.set(prev);
-        this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => {
-          const normalized = (a ?? []).map((x: any) => ({
-            id: x.artistId ?? x.id,
-            artistName: x.artistName ?? x.name ?? '',
-            artistImage: x.artistImageUrl ?? x.artistImage ?? x.imageUrl ?? this.placeholderArtist,
-            rank: x.rank
-          })).filter((z: Artist) => !!z.id);
-          this.favoriteArtists.set(normalized);
-          this.artistRanks.set(
-            normalized
-              .filter(z => typeof z.rank === 'number')
-              .map(z => ({ artistId: z.id, rank: z.rank as number }))
-          );
-        });
-      }
-    });
-  }
+  //   this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
+  //     next: () => {},
+  //     error: (err) => {
+  //       console.error('Update favorite artist ranks failed:', err?.status ?? 0, err?.error ?? err);
+  //       this.favoriteArtists.set(prev);
+  //       this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => {
+  //         const normalized = (a ?? []).map((x: any) => ({
+  //           id: x.artistId ?? x.id,
+  //           artistName: x.artistName ?? x.name ?? '',
+  //           artistImage: x.artistImageUrl ?? x.artistImage ?? x.imageUrl ?? this.placeholderArtist,
+  //           rank: x.rank
+  //         })).filter((z: Artist) => !!z.id);
+  //         this.favoriteArtists.set(normalized);
+  //         this.artistRanks.set(
+  //           normalized
+  //             .filter(z => typeof z.rank === 'number')
+  //             .map(z => ({ artistId: z.id, rank: z.rank as number }))
+  //         );
+  //       });
+  //     }
+  //   });
+  // }
 
   // removeArtistFromFavorites(artist: Artist): void {
   //   const updated = this.favoriteArtists().filter(a => a.id !== artist.id);
@@ -887,46 +912,46 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     return song?.id ?? index;
   }
 
-  dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
-    const current = this.favoriteArtists();
-    if (!current.length) return;
+  // dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
+  //   const current = this.favoriteArtists();
+  //   if (!current.length) return;
 
-    const top = [...current.slice(0, 10)];
-    moveItemInArray(top, event.previousIndex, event.currentIndex);
-    const updated = [...top, ...current.slice(10)];
-    this.favoriteArtists.set(updated);
+  //   const top = [...current.slice(0, 10)];
+  //   moveItemInArray(top, event.previousIndex, event.currentIndex);
+  //   const updated = [...top, ...current.slice(10)];
+  //   this.favoriteArtists.set(updated);
 
-    // Build ranked payload safely
-    const ranked = updated.slice(0, 10)
-      .map((a, idx) => ({
-        artistId: (a as any).artistId ?? a.id,
-        rank: idx + 1
-      }))
-      .filter(r => !!r.artistId);
+  //   // Build ranked payload safely
+  //   const ranked = updated.slice(0, 10)
+  //     .map((a, idx) => ({
+  //       artistId: (a as any).artistId ?? a.id,
+  //       rank: idx + 1
+  //     }))
+  //     .filter(r => !!r.artistId);
 
-    console.log('[SettingsProfile] DnD ranked payload:', ranked);
+  //   console.log('[SettingsProfile] DnD ranked payload:', ranked);
 
-    if (ranked.length === 0) {
-      console.warn('[SettingsProfile] Skipping PUT after DnD (no valid artistId).');
-      return;
-    }
+  //   if (ranked.length === 0) {
+  //     console.warn('[SettingsProfile] Skipping PUT after DnD (no valid artistId).');
+  //     return;
+  //   }
 
-    this.artistRanks.set(ranked);
-    this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
-      error: (err) => {
-        console.error('DnD update failed:', err?.status, err?.error);
-        // Reload from server to restore consistent state
-        this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(
-          (a ?? []).map((x: any) => ({
-            id: x.artistId ?? x.id,
-            artistName: x.artistName ?? x.name ?? '',
-            artistImage: x.artistImageUrl ?? x.artistImage ?? x.imageUrl ?? this.placeholderArtist,
-            rank: x.rank
-          })).filter((z: Artist) => !!z.id)
-        ));
-      }
-    });
-  }
+  //   this.artistRanks.set(ranked);
+  //   this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
+  //     error: (err) => {
+  //       console.error('DnD update failed:', err?.status, err?.error);
+  //       // Reload from server to restore consistent state
+  //       this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(
+  //         (a ?? []).map((x: any) => ({
+  //           id: x.artistId ?? x.id,
+  //           artistName: x.artistName ?? x.name ?? '',
+  //           artistImage: x.artistImageUrl ?? x.artistImage ?? x.imageUrl ?? this.placeholderArtist,
+  //           rank: x.rank
+  //         })).filter((z: Artist) => !!z.id)
+  //       ));
+  //     }
+  //   });
+  // }
 
   // selectTrack(t: Song): void {
   //   if (!t?.id) return;
@@ -1003,6 +1028,48 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
       error: (err) => console.error('[SettingsProfile] Remove favorite artist save failed:', err?.status ?? 0, err?.error ?? err)
     });
+  }
+
+  // Queue rank saves to avoid overlapping PUTs
+  private readonly rankSaves$ = new Subject<{ artistId: string; rank: number }[]>();
+
+  private buildTop10Ranks(list: Artist[]): { artistId: string; rank: number }[] {
+    return list.slice(0, 10)
+      .map((a, idx) => ({
+        artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
+        rank: idx + 1
+      }))
+      .filter(r => !!r.artistId);
+  }
+
+  private enqueueSaveRanks(): void {
+    const ranked = this.buildTop10Ranks(this.favoriteArtists());
+    if (!ranked.length) return;
+    this.artistRanks.set(ranked);
+    this.rankSaves$.next(ranked);
+  }
+
+  addArtistToFavorites(artist: Artist): void {
+    if (!artist?.id) return;
+    if (this.favoriteArtists().some(a => a.id === artist.id)) return;
+
+    const prev = this.favoriteArtists();
+    const updated = [...prev, artist]; // append to bottom
+    this.favoriteArtists.set(updated);
+
+    this.enqueueSaveRanks();
+  }
+
+  dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
+    const current = this.favoriteArtists();
+    if (!current.length) return;
+
+    const top = [...current.slice(0, 10)];
+    moveItemInArray(top, event.previousIndex, event.currentIndex);
+    const updated = [...top, ...current.slice(10)];
+    this.favoriteArtists.set(updated);
+
+    this.enqueueSaveRanks();
   }
 }
 
