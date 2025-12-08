@@ -82,9 +82,9 @@ export class Artist {
     // LOAD FOLLOW STATE
     isFollowingArtist(artistId: string): void {
         this.followService.isFollowingArtist(artistId).subscribe({
-            next: (isFollowing: boolean) => {
-                this.followed.set(isFollowing);
-                console.log('Follow state loaded: ${isFollowing}');
+            next: ({ isFollowing }: { isFollowing: boolean }) => {
+              console.log(`Follow state loaded: ${isFollowing}`);
+              this.followed.set(isFollowing); 
             },
             error: (err) => {
                 console.error('Error loading follow state:', err);
@@ -101,8 +101,15 @@ export class Artist {
             ? this.followService.unfollowArtist(artistId)
             : this.followService.followArtist(artistId);
 
-        call.subscribe(() => this.loadArtist(artistId));
-        this.followed.set(!this.followed());
+        call.subscribe({
+          next: () => {
+            this.followed.update(val => !val);
+            this.loadArtist(artistId);
+          },
+          error: (err) => {
+            console.error('Error toggling follow:', err);
+          }
+        });
     }
     
     // SORT BY TITLE
