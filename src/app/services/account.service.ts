@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { UserAccount } from '../models/account.models';
+
 import { ApiService } from '../api.service';
+
+import { Artist, Album } from '../models/playlist.models';
+import { UserAccount } from '../models/account.models';
 
 @Injectable({
     providedIn: 'root'
@@ -19,5 +22,14 @@ export class AccountService {
         return this.api.put<void>('/Users/me/password', {
             currentPassword: oldPassword,
             newPassword: newPassword });
+    }
+    getFavoriteSong(id: string): Observable<any> {
+        return this.api.get<any>(`/Tracks/${id}`);
+    }
+    favoriteArtists(): Observable<Artist[]> {
+        return this.api.get<Artist[]>('/Users/me/favorite-artists/');
+    }
+    favoriteAlbums(): Observable<Album[]> {
+        return this.api.get<Album[]>('/Users/me/favorite-albums/');
     }
 }

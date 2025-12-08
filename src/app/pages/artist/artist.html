@@ -34,9 +34,9 @@
             [routerLink]="['/albums', it.id]">
             <app-album-card
                           [title]="it.title"
-                          [artist]="it.artist.artistName"
-                          [releaseYear]="it.releaseYear.toString()"
-                          [albumCover]="it.albumCover">
+                          [artist]="it.artist"
+                          [releaseYear]="it.releaseDate.slice(0,4)"
+                          [albumCover]="it.coverArt">
             </app-album-card>
           </a>
         </div>

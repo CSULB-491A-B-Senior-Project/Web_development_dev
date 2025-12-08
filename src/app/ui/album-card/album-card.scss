@@ -48,6 +48,9 @@
     .artist {
       margin-top: .05rem;
       color: var(--txt-primary);
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 

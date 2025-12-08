@@ -21,10 +21,25 @@ export interface Track {
   albumId: string;
 }
 
-export interface Album {
+export interface ArtistAlbum {
   id: string;
   title: string;
-  releaseYear: number;
-  artist: Artist;
-  albumCover: string;
+  artist: string;
+  releaseDate: string;
+  coverArt: string;
+}
+
+export interface Album {
+  albumId: string;
+  albumName: string;
+  artistName: string;
+  createdAt: number;
+  albumImageUrl: string;
+}
+
+export interface myAlbum {
+  id: string;
+  name: string;
+  description: string;
+  userId: string;
 }

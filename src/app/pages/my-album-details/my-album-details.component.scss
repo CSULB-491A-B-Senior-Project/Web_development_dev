@@ -1,0 +1,243 @@
+// ============================================================================
+// MIXINS & PLACEHOLDERS
+// ============================================================================
+
+// Button reset
+%btn-reset {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+// Focus rings
+%focus-ring {
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--txt-primary) 35%, transparent);
+  }
+}
+
+// Visually hidden (accessibility)
+%visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}
+
+// Card base (not used now, but kept as a generic utility)
+%card {
+  background-color: var(--txt-box);
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+// Interactive link
+%interactive-link {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--txt-primary);
+    border-bottom-color: var(--txt-primary);
+  }
+}
+
+// ============================================================================
+// MAIN CONTAINER
+// ============================================================================
+
+.album-review-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
+  margin: 16px auto;
+  padding: 3rem 2rem;
+  color: white;
+  background: var(--other3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  border-radius: 14px;
+
+  // Section dividers
+  .album-header,
+  .tracklist {
+    width: 100%;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+  }
+}
+
+// ============================================================================
+// ALBUM HEADER
+// ============================================================================
+
+.album-header {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.album-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.title-container {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.artist-names {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0.5rem 0 1.5rem;
+  color: var(--primary);
+
+  .artist-link {
+    @extend %interactive-link;
+  }
+
+  .sep {
+    margin: 0 0.25rem;
+  }
+}
+
+// ============================================================================
+// TRACKLIST
+// ============================================================================
+
+.tracklist {
+  h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+
+  ul {
+    background: #0f0f0f;
+    border-radius: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: track;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 48px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  }
+
+  li {
+    counter-increment: track;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    transition: background-color 150ms ease;
+
+    &:nth-child(even) {
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.02),
+        transparent
+      );
+    }
+
+    &:hover {
+      background-color: rgba(208, 176, 255, 0.2);
+
+      .track-name {
+        color: var(--txt-primary);
+        font-weight: 500;
+      }
+
+      .duration {
+        color: white;
+      }
+    }
+
+    &::before {
+      content: counter(track);
+      width: 1.6rem;
+      text-align: right;
+      color: var(--txt-secondary);
+      font-variant-numeric: tabular-nums;
+      user-select: none;
+    }
+
+    .track-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #ddd;
+    }
+
+    .duration {
+      min-width: 3.5ch;
+      text-align: right;
+      color: var(--txt-secondary);
+      font-size: 0.95rem;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  @media (max-width: 768px) {
+    li {
+      grid-template-columns: 1fr auto;
+      padding: 0.5rem 0.75rem;
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// UTILITIES
+// ============================================================================
+
+.visually-hidden {
+  @extend %visually-hidden;
+}
+
+.error {
+  color: #ffb3c1;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}

@@ -4,18 +4,6 @@ import { ApiService } from '../api.service';
 import { Subject } from 'rxjs';
 import {Track, Album} from '../models/playlist.models';
 
-// export interface Artist {
-//   artistName: string;
-// }
-
-// export interface Album {
-//   id: string;
-//   title: string;
-//   releaseYear: number;
-//   artist: Artist;
-//   albumCover: string;
-// }
-
 @Injectable({
   providedIn: 'root'
 })

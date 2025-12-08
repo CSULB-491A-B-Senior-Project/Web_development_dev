@@ -1,0 +1,48 @@
+<div class="page-wrapper">
+  <div class="album-review-container">
+
+    <!-- HEADER — artwork + rating + favorite removed -->
+    <section class="album-header">
+      <div class="album-details">
+        <header>
+          <div class="album-summary">
+
+            <div class="title-container">
+              <h1>{{ title() }}</h1>
+            </div>
+
+            <!-- ARTIST NAMES -->
+            <h3 class="artist-names">{{ user() }}</h3>
+
+          </div>
+        </header>
+      </div>
+    </section>
+
+    <!-- TRACKLIST -->
+    <section class="tracklist">
+      <h3>Tracklist</h3>
+
+      @if (tracks().length) {
+      <ul>
+        @for (t of tracks(); track t.id) {
+        <li>
+          <span class="track-name">{{ t.name }}</span>
+          <span class="duration">{{ t.duration || '0:00' }}</span>
+        </li>
+        }
+      </ul>
+      } @else {
+      <ul>
+        <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
+      </ul>
+      }
+    </section>
+
+  </div>
+</div>

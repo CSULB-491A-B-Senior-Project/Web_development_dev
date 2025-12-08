@@ -8,6 +8,7 @@ import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
 import { ProfileService } from '../../services/profile.service';
 import { Artist } from '../../models/playlist.models';
+import { ApiService } from '../../api.service';
 import { SpotifyPlayerService, PlayerState } from '../../services/spotify-player.service';
 
 // Local types
@@ -60,11 +61,6 @@ export class AlbumDetailsComponent {
   // Favorite toggle
   isFavorited = signal(false);
 
-  // Profile service for favorites
-  private readonly profileService = inject(ProfileService);
-
-  // Current user from account service
-  private readonly accountService = inject(AccountService);
   username = signal<string>('');
 
   // Tracklist and comments
@@ -110,8 +106,6 @@ export class AlbumDetailsComponent {
   userReviewIndex = computed(() => this.comments().findIndex(c => c.author === this.username()));
 
   // Backend wiring
-  private readonly api = inject(AlbumReviewsService);
-  private readonly route = inject(ActivatedRoute);
 
   // Spotify Player Service
   readonly spotifyPlayer = inject(SpotifyPlayerService);
@@ -126,7 +120,13 @@ export class AlbumDetailsComponent {
   userId = signal<string>('');
   userAlbumRating = signal<number>(0);
 
-  constructor() {
+  constructor(
+    private api: ApiService,
+    private route: ActivatedRoute,
+    private accountService: AccountService,
+    private profileService: ProfileService,
+    private albumReviewsService: AlbumReviewsService
+  ) {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.albumId.set(id);
 
@@ -186,7 +186,7 @@ export class AlbumDetailsComponent {
   // ================ Album Loading ================
 
   private checkIfFavorited(albumId: string): void {
-    this.profileService.getFavoriteAlbums().pipe(take(1)).subscribe({
+    this.profileService.getFavoriteAlbums().subscribe({
       next: (albums) => {
         const isFav = albums.some((album: any) => {
           const aid = album.albumId;
@@ -228,7 +228,7 @@ export class AlbumDetailsComponent {
   }
 
   private loadAlbum(id: string): void {
-    this.api.getAlbumById(id).pipe(take(1)).subscribe({
+    this.albumReviewsService.getAlbumById(id).pipe(take(1)).subscribe({
       next: (album) => {
         const a = album as Record<string, unknown>;
         console.log('Loaded album data:', a);
@@ -280,7 +280,7 @@ export class AlbumDetailsComponent {
       return;
     }
 
-    this.api.getAlbumTracks(id).pipe(take(1)).subscribe({
+    this.albumReviewsService.getAlbumTracks(id).pipe(take(1)).subscribe({
       next: (res: unknown) => {
         const list: unknown[] = Array.isArray(res) ? res : [];
         const tracks = list.map((t, idx) => this.mapTrackDto(t, idx));
@@ -341,7 +341,7 @@ export class AlbumDetailsComponent {
 
   private loadComments(id: string): void {
     this.loading.set(true);
-    this.api.getComments(id, 1, 50).pipe(take(1)).subscribe({
+    this.albumReviewsService.getComments(id, 1, 50).pipe(take(1)).subscribe({
       next: (res: unknown) => {
         const itemsUnknown = this.readUnknown(res, 'items');
         const list: unknown[] = Array.isArray(itemsUnknown)
@@ -367,10 +367,10 @@ export class AlbumDetailsComponent {
   }
 
   private loadCommentLikeCount(targetId: string): void {
-    this.api.getCommentLikeCount(targetId).pipe(take(1)).subscribe({
+    this.albumReviewsService.getCommentLikeCount(targetId).pipe(take(1)).subscribe({
       next: (countData: any) => {
         const likeCount: number = Number(countData.likeCount ?? 0);
-        this.api.getCommentLikeStatus(targetId).pipe(take(1)).subscribe({
+        this.albumReviewsService.getCommentLikeStatus(targetId).pipe(take(1)).subscribe({
           next: (statusData: any) => {
             const userHasLiked = !!statusData.hasLiked;
             this.comments.update(list =>
@@ -412,7 +412,7 @@ export class AlbumDetailsComponent {
   }
 
   private loadRatingsForComments(albumId: string): void {
-    this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
+    this.albumReviewsService.getAlbumRatings(albumId).pipe(take(1)).subscribe({
       next: (ratings: any[]) => {
         const ratingsMap = new Map<string, number>();
         ratings.forEach(r => {
@@ -437,7 +437,7 @@ export class AlbumDetailsComponent {
   }
 
   private loadAlbumRatings(albumId: string): void {
-    this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
+    this.albumReviewsService.getAlbumRatings(albumId).pipe(take(1)).subscribe({
       next: (ratings: any[]) => {
         if (Array.isArray(ratings) && ratings.length > 0) {
           const ratingValues = ratings
@@ -467,7 +467,7 @@ export class AlbumDetailsComponent {
   }
 
   private loadUserRating(albumId: string, userId: string): void {
-    this.api.getUserRating(albumId, userId).pipe(take(1)).subscribe({
+    this.albumReviewsService.getUserRating(albumId, userId).pipe(take(1)).subscribe({
       next: (rating) => {
         this.userAlbumRating.set(rating.ratingValue);
         this.commentRating.set(rating.ratingValue);
@@ -626,7 +626,7 @@ export class AlbumDetailsComponent {
     const ratingToSubmit = this.commentRating() || undefined;
 
     if (ratingToSubmit) {
-      this.api.createOrUpdateRating(this.albumId(), ratingToSubmit)
+      this.albumReviewsService.createOrUpdateRating(this.albumId(), ratingToSubmit)
         .pipe(take(1))
         .subscribe({
           next: () => {
@@ -650,8 +650,8 @@ export class AlbumDetailsComponent {
     const editingIdNow = this.editingId();
     if (id && text) {
       (editingIdNow
-        ? this.api.updateComment(editingIdNow, { text })
-        : this.api.createComment(id, { text })
+        ? this.albumReviewsService.updateComment(editingIdNow, { text })
+        : this.albumReviewsService.createComment(id, { text })
       ).pipe(take(1)).subscribe({
         next: () => {
           this.loadComments(id);
@@ -691,7 +691,9 @@ export class AlbumDetailsComponent {
     const text = String(raw).trim();
     if (!text) return;
 
-    this.api.updateComment(commentId, { text }).pipe(take(1)).subscribe({
+    // Inline edit should NOT update rating - only comment text
+    // Rating is updated separately via the modal
+    this.albumReviewsService.updateComment(commentId, { text }).pipe(take(1)).subscribe({
       next: () => {
         this.loadComments(this.albumId());
       },
@@ -777,7 +779,7 @@ export class AlbumDetailsComponent {
       ),
     );
 
-    this.api.addReply(parentId, { text, albumId: this.albumId() }).pipe(take(1)).subscribe({
+    this.albumReviewsService.addReply(parentId, { text, albumId: this.albumId() }).pipe(take(1)).subscribe({
       next: (serverReply: unknown) => {
         this.comments.update(list =>
           list.map(c => {
@@ -836,8 +838,8 @@ export class AlbumDetailsComponent {
     const newReaction: Reaction = currentReaction === 'like' ? null : 'like';
 
     const apiCall = newReaction === 'like'
-      ? this.api.likeComment(targetId)
-      : this.api.unlikeComment(targetId);
+      ? this.albumReviewsService.likeComment(targetId)  // POST
+      : this.albumReviewsService.unlikeComment(targetId); // DELETE
 
     apiCall.pipe(take(1)).subscribe({
       next: () => {
