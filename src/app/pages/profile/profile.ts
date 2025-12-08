@@ -97,6 +97,14 @@ export class ProfileComponent implements OnInit {
 
   // LOAD FAVORITE ARTISTS
   loadFavoriteArtists(): void {
-    // Replace with actual API call to fetch favorite artists
+    this.accountService.favoriteArtists().subscribe({
+      next: (artists) => {
+        this.favoriteArtists.set(artists);
+        console.log('Favorite artists loaded:', artists);
+      },
+      error: (error) => {
+        console.error('Error loading favorite artists:', error);
+      }
+    })
   }
 }

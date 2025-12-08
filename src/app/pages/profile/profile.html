@@ -41,7 +41,7 @@
     <div class="divider" role="separator"></div>
     <ul class="fav-artists">
       <li *ngFor="let a of favoriteArtists()">
-        <!-- <a routerLink="/artist/{{ a | lowercase }}">{{ a }}</a> -->
+        <a routerLink="/artist/{{ a.artistName| lowercase }}">{{ a.artistName }}</a>
       </li>
     </ul>
   </aside>
