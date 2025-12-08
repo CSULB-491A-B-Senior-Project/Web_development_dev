@@ -198,6 +198,19 @@
           
           <img ngOptimizedImage [ngSrc]="artist.artistImage || placeholderArtist" width="48" height="48" [alt]="artist.artistName || 'Artist image'" />
           <span class="artist-name">{{ artist.artistName || 'Unknown artist' }}</span>
+
+          <!-- NEW: heart button to remove from favorites -->
+          <button
+            type="button"
+            class="heart-btn"
+            (click)="$event.stopPropagation(); removeArtistFromFavorites(artist)"
+            [attr.aria-pressed]="true"
+            title="Remove from favorites"
+            [class.hearted]="true">
+            <i class="fa-heart fa-solid" aria-hidden="true"></i>
+            <span class="visually-hidden">Remove favorite</span>
+          </button>
+
           <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
         </div>
       </ng-container>

@@ -824,14 +824,14 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     });
   }
 
-  removeArtistFromFavorites(artist: Artist): void {
-    const updated = this.favoriteArtists().filter(a => a.id !== artist.id);
-    this.favoriteArtists.set(updated);
-    const ranked = updated.slice(0, 10).map((a, idx) => ({ artistId: a.id, rank: idx + 1 }));
-    this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
-      error: () => this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(a ?? []))
-    });
-  }
+  // removeArtistFromFavorites(artist: Artist): void {
+  //   const updated = this.favoriteArtists().filter(a => a.id !== artist.id);
+  //   this.favoriteArtists.set(updated);
+  //   const ranked = updated.slice(0, 10).map((a, idx) => ({ artistId: a.id, rank: idx + 1 }));
+  //   this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
+  //     error: () => this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(a ?? []))
+  //   });
+  // }
 
   addAlbumToFavorites(album: Album): void {
     const updated = [album, ...this.favoriteAlbums().filter(a => a.id !== album.id)];
@@ -968,4 +968,37 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     this.followedArtistSearchQuery.set('');
     this.showFollowedArtistResults.set(false);
   }
+
+  removeArtistFromFavorites(artist: Artist): void {
+    const id = (artist as unknown as { artistId?: string }).artistId ?? artist.id;
+    if (!id) return;
+
+    const current = this.favoriteArtists();
+    const next = current.filter(a => ((a as unknown as { artistId?: string }).artistId ?? a.id) !== id);
+
+    // Update local UI
+    this.favoriteArtists.set(next);
+
+    // Recompute ranks (top 10) and persist
+    const ranked = next.slice(0, 10)
+      .map((a, i) => ({
+        artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
+        rank: i + 1
+      }))
+      .filter(r => typeof r.artistId === 'string' && r.artistId.length > 0);
+
+    // Keep artistRanks signal in sync if present
+    this.artistRanks?.set(ranked);
+
+    if (ranked.length === 0) {
+      // No favorites left; avoid PUT if backend rejects empty
+      console.warn('[SettingsProfile] Skipping PUT favorite-artists: empty after removal.');
+      return;
+    }
+
+    this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
+      error: (err) => console.error('[SettingsProfile] Remove favorite artist save failed:', err?.status ?? 0, err?.error ?? err)
+    });
+  }
 }
+
