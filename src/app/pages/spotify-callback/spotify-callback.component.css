@@ -1,0 +1,119 @@
+.callback-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.callback-card {
+  background: white;
+  border-radius: 16px;
+  padding: 48px 32px;
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.status-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  height: 80px;
+}
+
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1DB954;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.status-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.status-title.processing {
+  color: #666;
+}
+
+.status-title.success {
+  color: #1DB954;
+}
+
+.status-title.error {
+  color: #dc3545;
+}
+
+.status-message {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0 0 24px 0;
+}
+
+.redirect-info {
+  padding: 16px;
+  background-color: #e8f5e9;
+  border-radius: 8px;
+  margin-top: 24px;
+}
+
+.redirect-info p {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 14px;
+}
+
+.error-actions {
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 12px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}

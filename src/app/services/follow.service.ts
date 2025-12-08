@@ -3,6 +3,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../api.service';
 
+interface FollowStatusResponse {
+  artistId: string;
+  isFollowing: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FollowService {
     constructor(private api: ApiService) {}
@@ -29,8 +34,8 @@ export class FollowService {
         return this.api.get<number>(`/UserFollows/artist/${artistId}/count`);
     }
     // GET - CHECK IF THE CURRENT USER FOLLOWS THE ARTIST
-    isFollowingArtist(artistId: string): Observable<boolean> {
-        return this.api.get<boolean>(`/UserFollows/artist/${artistId}/status`);
+    isFollowingArtist(artistId: string): Observable<FollowStatusResponse> {
+        return this.api.get<FollowStatusResponse>(`/UserFollows/artist/${artistId}/status`);
     }
 
     // USERS

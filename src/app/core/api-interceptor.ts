@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
-const BASE_URL = 'https://api.crescendo.chat';
+const BASE_URL = 'https://api.crescendo.chat/v1';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
   if (req.url.startsWith('/v1/')) {
