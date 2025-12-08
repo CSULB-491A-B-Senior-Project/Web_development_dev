@@ -2,7 +2,6 @@
   <div class="row header">
     <div class="username-follow">
       <div class="username">{{ username() }}</div>
-      <button *ngIf="isArtist()" class="follow" type="button">Follow</button>
       <!-- Post Type Badge -->
       <div class="post-type-badge" [ngClass]="badgeClass()">
         <svg *ngIf="postTypeIcon() === 'comment'" viewBox="0 0 24 24" aria-hidden="true">

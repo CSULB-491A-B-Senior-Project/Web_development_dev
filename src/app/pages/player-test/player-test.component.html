@@ -1,0 +1,119 @@
+<div class="test-container">
+  <div class="header">
+    <h1>🎵 Spotify Web Player Test</h1>
+    <p class="subtitle">Test the floating player with these sample tracks</p>
+  </div>
+
+  <!-- Test Tracks Section -->
+  <div class="section">
+    <h2>Test Tracks</h2>
+    <div class="track-list">
+      <div *ngFor="let track of testTracks" class="track-item">
+        <button (click)="playTrack(track.uri)" class="play-btn">
+          ▶
+        </button>
+        <div class="track-info">
+          <div class="track-name">{{ track.name }}</div>
+          <div class="track-artist">{{ track.artist }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Controls Section -->
+  <div class="section">
+    <h2>Player Controls</h2>
+    <div class="controls-grid">
+      <button (click)="togglePlayback()" class="control-btn">
+        ⏯ Toggle Play/Pause
+      </button>
+      <button (click)="setVolume(0.3)" class="control-btn">
+        🔉 Volume 30%
+      </button>
+      <button (click)="setVolume(0.5)" class="control-btn">
+        🔊 Volume 50%
+      </button>
+      <button (click)="setVolume(1.0)" class="control-btn">
+        🔊 Volume 100%
+      </button>
+      <button (click)="seekTo(30)" class="control-btn">
+        ⏩ Seek to 30s
+      </button>
+      <button (click)="seekTo(60)" class="control-btn">
+        ⏩ Seek to 60s
+      </button>
+    </div>
+  </div>
+
+  <!-- Player Status Section -->
+  <div class="section">
+    <h2>Player Status</h2>
+    <div class="status-card" *ngIf="playerState$ | async as state; else noPlayer">
+      <div class="status-row">
+        <span class="status-label">Track:</span>
+        <span class="status-value">{{ state.trackName }}</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Artist:</span>
+        <span class="status-value">{{ state.artistName }}</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Album:</span>
+        <span class="status-value">{{ state.albumName }}</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Status:</span>
+        <span class="status-value" [class.playing]="state.isPlaying">
+          {{ state.isPlaying ? '▶ Playing' : '⏸ Paused' }}
+        </span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Position:</span>
+        <span class="status-value">
+          {{ (state.position / 1000).toFixed(0) }}s / {{ (state.duration / 1000).toFixed(0) }}s
+        </span>
+      </div>
+    </div>
+    <ng-template #noPlayer>
+      <div class="status-card empty">
+        <p>🎵 No track playing</p>
+        <p class="hint">Click a play button above to start</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Instructions Section -->
+  <div class="section instructions">
+    <h2>Instructions</h2>
+    <ol>
+      <li>Click any <strong>▶ Play</strong> button to start a track</li>
+      <li>The <strong>floating player</strong> will appear in the bottom-right corner</li>
+      <li>You can <strong>drag</strong> the player around the screen</li>
+      <li>Use the <strong>minimize</strong> button to collapse the player</li>
+      <li>Navigate to other pages - the player will <strong>persist</strong></li>
+      <li>Music continues playing across all pages</li>
+    </ol>
+  </div>
+
+  <!-- Troubleshooting Section -->
+  <div class="section troubleshooting">
+    <h2>Troubleshooting</h2>
+    <div class="info-box">
+      <h3>Player not appearing?</h3>
+      <ul>
+        <li>Open browser console (F12) and check for errors</li>
+        <li>Look for "Spotify SDK loaded" message</li>
+        <li>Look for "Ready with Device ID" message</li>
+        <li>Ensure you have Spotify Premium (required)</li>
+      </ul>
+    </div>
+    <div class="info-box">
+      <h3>No sound?</h3>
+      <ul>
+        <li>Check if browser audio is muted</li>
+        <li>Verify Spotify Premium account is active</li>
+        <li>Check browser console for playback errors</li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -65,6 +65,12 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "configurations": {
+            "options": {
+              "host": "0.0.0.0",
+              "allowedHosts": [
+                "avis-unpersecutive-negatively.ngrok-free.dev"
+              ]
+            },
             "production": {
               "buildTarget": "crescendo:build:production"
             },
