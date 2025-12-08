@@ -333,7 +333,22 @@ export class SettingsProfile implements AfterViewInit {
         this.backgroundImageUrl.set(bgUrl);
         this.selectedFileName.set(this.deriveFileNameFromUrl(bgUrl));
 
-        this.favoriteSong.set(p.favoriteSong ?? null);
+        // Hydrate favorite song from favoriteSongId if present
+        const favSongId = (p.favoriteSongId ?? p.favoriteSong?.id) as string | undefined;
+        if (favSongId) {
+          // If you have a dedicated lookup by ID, use it here. Otherwise, fall back to minimal stub.
+          this.#musicSearchService.getSongById?.(favSongId).pipe(take(1)).subscribe({
+            next: (song: any) => {
+              const normalized = this.normalizeTrackFromApi(song ?? { id: favSongId, name: 'Favorite song' });
+              this.favoriteSong.set(normalized);
+            },
+            error: () => {
+              this.favoriteSong.set({ id: favSongId, name: 'Favorite song', artistName: '', albumCoverUrl: this.placeholderAlbum, trackNumber: 0, raw: { id: favSongId } } as unknown as Song);
+            }
+          });
+        } else {
+          this.favoriteSong.set(p.favoriteSong ?? null);
+        }
 
         // const artists = (p.favoriteArtists ?? []).map((a: any) => ({
         //   id: a.id,
@@ -772,10 +787,8 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     next: () => {
       const normalized = this.normalizeTrackFromApi(song.raw ?? song);
       this.favoriteSong.set(normalized);
-
       this.songSearchForm.controls.query.setValue('');
       this.songResults.set([]);
-
       console.log('favoriteSong after set:', this.favoriteSong());
     },
     error: (err) => {

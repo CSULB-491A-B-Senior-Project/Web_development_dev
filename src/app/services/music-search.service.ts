@@ -131,7 +131,7 @@ searchSongs(term: string, page = 1, pageSize = 50): Observable<Song[]> {
         return forkJoin(albumCoverRequests);
       })
     );
-}
+  }
 
 
   searchArtists(term: string): Observable<Artist[]> {
@@ -156,7 +156,7 @@ searchSongs(term: string, page = 1, pageSize = 50): Observable<Song[]> {
     return this.listAlbums();
   }
 
-  private fetchAlbumCover(albumId: string): Observable<string | null> {
+  fetchAlbumCover(albumId: string): Observable<string | null> {
     if (!albumId) return of(null);
 
     // If cached, return immediately
@@ -174,6 +174,25 @@ searchSongs(term: string, page = 1, pageSize = 50): Observable<Song[]> {
       }),
       catchError(() => {
         this.albumCoverCache.set(albumId, null);
+        return of(null);
+      })
+    );
+  }
+
+   getSongById(id: string): Observable<Song | null> {
+    if (!id) return of(null);
+
+    return this.#http.get<unknown>(`${this.#apiUrl}/v1/Tracks/${id}`).pipe(
+      map(raw => ({
+        id: (raw as { id?: string }).id ?? id,
+        name: (raw as { name?: string }).name ?? '',
+        artistName: (raw as { artistName?: string, artistNames?: string }).artistName ?? (raw as { artistNames?: string }).artistNames ?? '',
+        albumCoverUrl: (raw as { albumCoverUrl?: string, albumCover?: string }).albumCoverUrl ?? (raw as { albumCover?: string }).albumCover ?? '',
+        trackNumber: (raw as { trackNumber?: number }).trackNumber ?? 0,
+        raw
+      })),
+      catchError(err => {
+        console.error('[ProfileService] getSongById failed:', err?.status ?? 0, err?.error ?? err);
         return of(null);
       })
     );

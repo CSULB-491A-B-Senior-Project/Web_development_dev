@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
 
@@ -20,6 +20,7 @@ export interface UserProfile {
 
 type FavoriteArtistRankUpdate = { artistId: string; rank: number };
 type UpdateFavoriteArtistsRequest = { artists: FavoriteArtistRankUpdate[] };
+type UpdateFavoriteSongRequest = { favoriteSongId: string | null };
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
@@ -83,20 +84,20 @@ export class ProfileService {
     return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/bio`, { bio });
   }
 
+  // Update the user's favorite song
   updateFavoriteSong(songId: string | null): Observable<void> {
-  if (this.#mock) return of(void 0);
-  return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/favorite-song`, { favoriteSongId: songId });
-}
+    const base = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
+    const url = `${base}/v1/Users/me/favorite-song`;
 
-  // followArtist(): Observable<void> {
-  //   if (this.#mock) return of(void 0);
-  //   throw new Error('Follow artist is not defined in Crescendo v1. Add backend support or remove UI.');
-  // }
+    const payload: UpdateFavoriteSongRequest = { favoriteSongId: songId };
 
-  // unfollowArtist(): Observable<void> {
-  //   if (this.#mock) return of(void 0);
-  //   throw new Error('Unfollow artist is not defined in Crescendo v1. Add backend support or remove UI.');
-  // }
+    return this.#http.put<void>(url, payload).pipe(
+      catchError(err => {
+        console.error('[ProfileService] favorite-song PUT failed:', err?.status ?? 0, err?.error ?? err);
+        throw err;
+      })
+    );
+  }
 
   getFavoriteArtists(): Observable<Artist[]> {
     if (this.#mock) return of(this.#mockProfile().favoriteArtists ?? []);
