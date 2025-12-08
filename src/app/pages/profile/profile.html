@@ -49,12 +49,15 @@
   <section class="albums">
     <h2>Favorite Albums</h2>
     <div class="album-grid">
-      <app-album-card *ngFor="let it of favoriteAlbums(); trackBy: trackById"
+      <a *ngFor="let it of favoriteAlbums(); trackBy: trackById"
+          [routerLink]="['/albums', it.albumId]">
+        <app-album-card 
                       [title]="it.albumName"
                       [artist]="it.artistName"
                       [releaseYear]="it.createdAt.toString().slice(0,4)"
                       [albumCover]="it.albumImageUrl">
-      </app-album-card>
+        </app-album-card>
+      </a>
     </div>
 
     <!-- <h2>Recent Albums</h2>

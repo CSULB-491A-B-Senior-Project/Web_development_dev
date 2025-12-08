@@ -26,9 +26,7 @@ export class AccountService {
     favoriteArtists(): Observable<Artist[]> {
         return this.api.get<Artist[]>('/Users/me/favorite-artists/');
     }
-
     favoriteAlbums(): Observable<Album[]> {
         return this.api.get<Album[]>('/Users/me/favorite-albums/');
     }
-    
 }

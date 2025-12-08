@@ -5,6 +5,8 @@ import { AlbumCard } from '../../ui/album-card/album-card';
 
 import { AccountService } from '../../services/account.service';
 import { FollowService } from '../../services/follow.service';
+import { PlaylistService } from '../../services/playlist.service';
+
 import { UserAccount } from '../../models/account.models';
 import { Artist, Album } from '../../models/playlist.models';
 
@@ -28,7 +30,8 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private accountService: AccountService,
-    private followService: FollowService
+    private followService: FollowService,
+    private playlistService: PlaylistService
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +48,7 @@ export class ProfileComponent implements OnInit {
 
         // LOAD FOLLOWING COUNT
         this.loadFollowingCount(account.id);
+        this.loadPlaylistCount();
         this.loadFavoriteAlbums();
         this.loadFavoriteArtists();
         
@@ -62,6 +66,21 @@ export class ProfileComponent implements OnInit {
       console.log('Following count loaded:', count);
     });
   }
+
+  // GET PLAYLIST COUNT
+  loadPlaylistCount(): void {
+    this.playlistService.getUserPlaylists().subscribe({
+      next: (playlists) => {
+        this.albumCount.set(playlists.length);
+        console.log('Playlist count loaded:', playlists.length);
+      },
+      error: (err) => {
+        console.error('Error loading playlist count:', err);
+      }
+    });
+  }
+
+
 
   // LOAD FAVORITE ALBUMS
   loadFavoriteAlbums(): void {
