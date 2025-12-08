@@ -1,7 +1,7 @@
 <body>
-  <app-sidebar [activeSection]="'account'" (logout)="onLogout()"></app-sidebar>
+<app-sidebar [activeSection]="'account'" (logout)="onLogout()"></app-sidebar>
 
-  <div class="settings-container">
+<div class="settings-container">
     <!-- DISPLAY USER ACCOUNT INFO -->
     <h1>Account info</h1>
     <h3>Name: {{ firstName() }} {{ lastName() }}</h3>
@@ -78,5 +78,5 @@
         </div>
     </form>
     <br><br><br>
-  </div>
+</div>
 </body>
