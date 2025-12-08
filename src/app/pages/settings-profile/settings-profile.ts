@@ -777,33 +777,49 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   }
 
   addArtistToFavorites(artist: Artist): void {
-    const id = (artist as unknown as { artistId?: string }).artistId ?? artist?.id;
-    if (!id) return;
+    if (!artist?.id) return;
+    if (this.favoriteArtists().some(a => a.id === artist.id)) return;
 
-    const current = this.favoriteArtists();
-    if (current.some(a => (a as unknown as { artistId?: string }).artistId === id || a.id === id)) return;
+    const prev = this.favoriteArtists();
+    const updated = [artist, ...prev.filter(a => a.id !== artist.id)];
+    const top10 = updated.slice(0, 10);
 
-    const updated = [...current, { ...artist, id } as Artist];
-    this.favoriteArtists.set(updated);
-
-    const ranked = updated.slice(0, 10)
-      .map((a, i) => ({
-        artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
-        rank: i + 1
+    // Prefer artistId if present on the item, fallback to id
+    const ranked = top10
+      .map((a, idx) => ({
+        artistId: (a as any).artistId ?? a.id,
+        rank: idx + 1
       }))
-      .filter(r => typeof r.artistId === 'string' && r.artistId.length > 0);
+      .filter(r => !!r.artistId);
+
+    console.log('[SettingsProfile] Ranked favorite artists payload (PUT):', ranked);
+
+    // Optimistic UI
+    this.favoriteArtists.set(updated);
+    this.artistRanks.set(ranked);
 
     if (ranked.length === 0) {
-      console.warn('[SettingsProfile] Skipping PUT favorite-artists: no valid items');
+      console.warn('[SettingsProfile] Skipping PUT (no valid artistId values).');
       return;
     }
 
-    console.log('[SettingsProfile] Saving favorite artist ranks:', ranked);
-
-    this.#profileService.updateFavoriteArtistRanks(ranked).subscribe({
+    this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
+      next: () => {},
       error: (err) => {
-        console.error('Update favorite artist ranks failed:', err?.status, err?.error);
-        this.favoriteArtists.set(current); // revert on error
+        console.error('Update favorite artist ranks failed:', err);
+        this.favoriteArtists.set(prev);
+        this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => {
+          const normalized = (a ?? []).map((x: any) => ({
+            id: x.artistId ?? x.id,
+            artistName: x.artistName ?? x.name ?? '',
+            artistImage: x.artistImageUrl ?? x.artistImage ?? x.imageUrl ?? this.placeholderArtist,
+            rank: x.rank
+          })).filter((z: Artist) => !!z.id);
+          this.favoriteArtists.set(normalized);
+          this.artistRanks.set(
+            normalized.filter(z => typeof z.rank === 'number').map(z => ({ artistId: z.id, rank: z.rank as number }))
+          );
+        });
       }
     });
   }
