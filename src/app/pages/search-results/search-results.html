@@ -32,23 +32,9 @@
     <div class="right-controls">
       <select [(ngModel)]="sortValue">
         <option value="relevance">Relevance</option>
-        <option value="recent">Recent</option>
-        <option value="popular">Most liked</option>
-        <option value="rating">Highest rated</option>
+        <option value="alpha">Alphabetical</option>
+        <option value="date">Date (Newest)</option>
       </select>
-
-      <div class="view-toggle" role="tablist" aria-label="View toggle">
-        <button [class.active]="view() === 'grid'"
-                (click)="setView('grid')"
-                [attr.aria-pressed]="view() === 'grid'">
-          Grid
-        </button>
-        <button [class.active]="view() === 'list'"
-                (click)="setView('list')"
-                [attr.aria-pressed]="view() === 'list'">
-          List
-        </button>
-      </div>
     </div>
   </header>
 
@@ -176,7 +162,7 @@
       </div>
 
       <!-- Pagination -->
-      <div class="pagination" *ngIf="totalPages() > 1">
+      <!--<div class="pagination" *ngIf="totalPages() > 1">
         <button (click)="previousPage()" [disabled]="currentPage() === 1">
           ‹ Previous
         </button>
@@ -188,20 +174,17 @@
         <button (click)="nextPage()" [disabled]="!hasMorePages()">
           Next ›
         </button>
-      </div>
+      </div>-->
     </div>
   </div>
-
-  <!-- LIST VIEW (simple text list) -->
-  <ul *ngIf="view() === 'list' && !loading()" class="list">
-    <li *ngFor="let it of items(); trackBy: trackById" class="row">
-      <span>{{ it.title || it.username }}</span>
-    </li>
-  </ul>
 
   <!-- Empty state -->
   <div class="empty" *ngIf="!loading() && resultCount() === 0 && query()">
     <img src="/assets/placeholder.jpg" alt="No results" />
-    <p>No results for "{{ query() }}". Try different keywords.</p>
+    <p *ngIf="tab() === 'all'">No results for "{{ query() }}". Try different keywords.</p>
+    <p *ngIf="tab() === 'albums'">No albums found for "{{ query() }}".</p>
+    <p *ngIf="tab() === 'artists'">No artists found for "{{ query() }}".</p>
+    <p *ngIf="tab() === 'users'">No users found for "{{ query() }}".</p>
+    <p *ngIf="tab() === 'reviews'">No posts found for "{{ query() }}".</p>
   </div>
 </div>
