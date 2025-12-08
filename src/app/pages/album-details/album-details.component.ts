@@ -8,6 +8,7 @@ import { AccountService } from '../../services/account.service';
 import { UserAccount } from '../../models/account.models';
 import { ProfileService } from '../../services/profile.service';
 import { Artist } from '../../models/playlist.models';
+import { SpotifyPlayerService, PlayerState } from '../../services/spotify-player.service';
 
 // Local types
 type Reaction = 'like' | null;
@@ -39,6 +40,7 @@ interface TrackItem {
   id: string;
   title: string;
   duration?: string;
+  spotifyUri?: string;
 }
 
 @Component({
@@ -52,7 +54,6 @@ export class AlbumDetailsComponent {
   // Album header fields
   title = 'Album Name';
   year: number | null = null;
-  // private albumArtists = signal<string>('Artist Names');
   coverUrl = '';
   albumArtists = signal<Artist[]>([]);
 
@@ -112,6 +113,14 @@ export class AlbumDetailsComponent {
   private readonly api = inject(AlbumReviewsService);
   private readonly route = inject(ActivatedRoute);
 
+  // Spotify Player Service
+  readonly spotifyPlayer = inject(SpotifyPlayerService);
+  readonly playerState$ = this.spotifyPlayer.playerState$;
+
+  // Track current player state for checking if a track is playing
+  private currentPlayerState = signal<PlayerState | null>(null);
+  private currentTrackUri = signal<string | null>(null);
+
   albumId = signal<string>('');
   loading = signal(false);
   error = signal<string | null>(null);
@@ -127,6 +136,16 @@ export class AlbumDetailsComponent {
       return;
     }
 
+    // Subscribe to player state changes to track current playing track
+    this.spotifyPlayer.playerState$.subscribe(state => {
+      this.currentPlayerState.set(state);
+      // Store the current track URI for comparison (we'll need to derive this from the track)
+      if (state) {
+        // The PlayerState doesn't have trackUri, so we need to store it when we play
+        // This will be updated in playTrack method
+      }
+    });
+
     // Load current user
     this.accountService.getAccount().subscribe({
       next: (account: UserAccount) => {
@@ -141,9 +160,29 @@ export class AlbumDetailsComponent {
 
     this.loadAlbum(id);
     this.loadComments(id);
-    this.loadTracks(id);
     this.loadAlbumRatings(id);
     this.checkIfFavorited(id);
+  }
+
+  // ================ Spotify Playback Methods ================
+
+  playTrack(track: TrackItem): void {
+    if (!track.spotifyUri) {
+      console.warn("No Spotify URI for track:", track.title);
+      return;
+    }
+    console.log("Playing track:", track.title, track.spotifyUri);
+    this.currentTrackUri.set(track.spotifyUri);
+    this.spotifyPlayer.play(track.spotifyUri);
+  }
+
+  isTrackPlaying(track: TrackItem): boolean {
+    if (!track.spotifyUri) return false;
+    const state = this.currentPlayerState();
+    if (!state) return false;
+    // Check if this track's URI matches the currently playing track URI
+    // and that playback is active
+    return this.currentTrackUri() === track.spotifyUri && state.isPlaying;
   }
 
   // ================ Album Loading ================
@@ -152,7 +191,6 @@ export class AlbumDetailsComponent {
     this.profileService.getFavoriteAlbums().pipe(take(1)).subscribe({
       next: (albums) => {
         const isFav = albums.some((album: any) => {
-          // Try different possible ID properties
           const aid = album.albumId;
           return aid === albumId;
         });
@@ -160,7 +198,7 @@ export class AlbumDetailsComponent {
       },
       error: (err) => {
         console.error('Failed to check if album is favorited:', err);
-        this.isFavorited.set(false); // Default to not favorited on error
+        this.isFavorited.set(false);
       }
     });
   }
@@ -170,28 +208,21 @@ export class AlbumDetailsComponent {
     if (!albumId) return;
 
     const wasFavorited = this.isFavorited();
-    // Optimistic update
     this.isFavorited.set(!wasFavorited);
 
     if (wasFavorited) {
-      // Remove from favorites
       this.profileService.removeFavoriteAlbum(albumId).pipe(take(1)).subscribe({
-        next: () => {
-        },
+        next: () => { },
         error: (err) => {
           console.error('Failed to remove from favorites:', err);
-          // Revert on error
           this.isFavorited.set(wasFavorited);
         }
       });
     } else {
-      // Add to favorites
       this.profileService.addFavoriteAlbum(albumId).pipe(take(1)).subscribe({
-        next: () => {
-        },
+        next: () => { },
         error: (err) => {
           console.error('Failed to add to favorites:', err);
-          // Revert on error
           this.isFavorited.set(wasFavorited);
         }
       });
@@ -204,12 +235,9 @@ export class AlbumDetailsComponent {
         const a = album as Record<string, unknown>;
         console.log('Loaded album data:', a);
 
-        // Title
         this.title = this.readString(a, 'title') || 'Unknown Album';
 
-        // Artists
         const rawArtists = this.readUnknown(a, 'artists');
-
         if (Array.isArray(rawArtists)) {
           const artists = rawArtists
             .map(art => {
@@ -223,39 +251,20 @@ export class AlbumDetailsComponent {
               return null;
             })
             .filter((x): x is Artist => !!x);
-          
           this.albumArtists.set(artists);
         }
 
-        // const artistNames =
-        //   this.readString(a, 'artistNames') ||
-        //   (Array.isArray(a?.['artists'])
-        //     ? (a['artists'] as unknown[])
-        //       .map(v => (typeof v === 'string'
-        //         ? v
-        //         : (v && typeof v === 'object' && typeof (v as { name?: string }).name === 'string')
-        //           ? (v as { name: string }).name
-        //           : ''))
-        //       .filter(Boolean)
-        //       .join(', ')
-        //     : '');
-        // this.albumArtists.set(artistNames || 'Unknown Artist');
+        const releaseDateStr = this.readString(a, 'releaseDate');
+        if (releaseDateStr) {
+          const yearMatch = releaseDateStr.match(/^(\d{4})/);
+          if (yearMatch) {
+            this.year = parseInt(yearMatch[1], 10);
+          }
+        }
 
-        // Year
-        const rawYear = a?.['year'];
-        const parsedYear =
-          typeof rawYear === 'number'
-            ? rawYear
-            : typeof rawYear === 'string'
-              ? Number.parseInt(rawYear, 10)
-              : null;
-        this.year = Number.isFinite(parsedYear as number) ? (parsedYear as number) : null;
-
-        // Cover
         const cover = this.readString(a, 'coverArt');
         this.coverUrl = cover;
 
-        // Tracks embedded in album payload
         const mapped = this.mapTracksFromAlbumObject(a);
         if (mapped.length) this.tracks.set(mapped);
       },
@@ -268,15 +277,13 @@ export class AlbumDetailsComponent {
 
   // ================ Tracks ================
 
-  private loadTracks(id: string): void {
-    // Check if getAlbumTracks exists on the service
+  /*private loadTracks(id: string): void {
     if (typeof this.api.getAlbumTracks !== 'function') {
       return;
     }
 
     this.api.getAlbumTracks(id).pipe(take(1)).subscribe({
       next: (res: unknown) => {
-        // Handle both array and {items: []} formats
         const list: unknown[] = Array.isArray(res) ? res : [];
         const tracks = list.map((t, idx) => this.mapTrackDto(t, idx));
         if (tracks.length) this.tracks.set(tracks);
@@ -285,7 +292,7 @@ export class AlbumDetailsComponent {
         console.warn('Failed to load tracks (non-fatal):', err);
       },
     });
-  }
+  }*/
 
   private mapTracksFromAlbumObject(a: Record<string, unknown>): TrackItem[] {
     const raw = (Array.isArray(a['tracks']) && a['tracks']);
@@ -304,7 +311,25 @@ export class AlbumDetailsComponent {
       Number.isFinite(durationSec) ? this.formatSeconds(durationSec) :
         this.readString(raw, 'durationText', '') ||
         this.readString(raw, 'length', '');
-    return { id, title, duration: durationStr || undefined };
+    const spotifyUrl = this.readString(raw, 'spotifyUrl') || this.readString(raw, 'spotifyUri') || this.readString(raw, 'uri');
+    let spotifyUri: string | undefined = undefined;
+
+    if (spotifyUrl) {
+      if (spotifyUrl.startsWith('spotify:')) {
+        // Already in URI format
+        spotifyUri = spotifyUrl;
+      } else if (spotifyUrl.includes('open.spotify.com/track/')) {
+        // Convert URL to URI
+        const trackId = spotifyUrl.split('/track/')[1]?.split('?')[0];
+        if (trackId) {
+          spotifyUri = `spotify:track:${trackId}`;
+        }
+      }
+    }
+
+    console.log(`Track: ${title}, URL: ${spotifyUrl}, URI: ${spotifyUri}`);
+
+    return { id, title, duration: durationStr || undefined, spotifyUri };
   }
 
   private formatSeconds(totalSeconds: number): string {
@@ -328,10 +353,8 @@ export class AlbumDetailsComponent {
         const mapped = list.map(dto => this.mapCommentDtoToItem(dto));
         this.comments.set(mapped);
 
-        // After we have the comments, hydrate their like counts
         mapped.forEach(c => {
           this.loadCommentLikeCount(c.id);
-          // If replies can have likes, you can also loop:
           c.replies.forEach(r => this.loadCommentLikeCount(r.id));
         });
         this.loadRatingsForComments(id);
@@ -345,7 +368,6 @@ export class AlbumDetailsComponent {
     });
   }
 
-
   private loadCommentLikeCount(targetId: string): void {
     this.api.getCommentLikeCount(targetId).pipe(take(1)).subscribe({
       next: (countData: any) => {
@@ -355,7 +377,6 @@ export class AlbumDetailsComponent {
             const userHasLiked = !!statusData.hasLiked;
             this.comments.update(list =>
               list.map(c => {
-                // top-level comment
                 if (c.id === targetId) {
                   return {
                     ...c,
@@ -363,7 +384,6 @@ export class AlbumDetailsComponent {
                     userReaction: userHasLiked ? 'like' as Reaction : null,
                   };
                 }
-                // replies
                 if (c.replies?.length) {
                   const replies = c.replies.map(r =>
                     r.id === targetId
@@ -396,14 +416,12 @@ export class AlbumDetailsComponent {
   private loadRatingsForComments(albumId: string): void {
     this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
       next: (ratings: any[]) => {
-        // Create a map of userId -> ratingValue
         const ratingsMap = new Map<string, number>();
         ratings.forEach(r => {
           if (r.userId && r.ratingValue) {
             ratingsMap.set(r.userId, r.ratingValue);
           }
         });
-        // Update comments with their associated ratings
         this.comments.update(list =>
           list.map(c => {
             const rating = ratingsMap.get(c.userId);
@@ -423,7 +441,6 @@ export class AlbumDetailsComponent {
   private loadAlbumRatings(albumId: string): void {
     this.api.getAlbumRatings(albumId).pipe(take(1)).subscribe({
       next: (ratings: any[]) => {
-        // Calculate average from the array of ratings
         if (Array.isArray(ratings) && ratings.length > 0) {
           const ratingValues = ratings
             .map(r => r.ratingValue)
@@ -451,15 +468,13 @@ export class AlbumDetailsComponent {
     });
   }
 
-
   private loadUserRating(albumId: string, userId: string): void {
     this.api.getUserRating(albumId, userId).pipe(take(1)).subscribe({
       next: (rating) => {
         this.userAlbumRating.set(rating.ratingValue);
-        this.commentRating.set(rating.ratingValue); // Pre-fill modal
+        this.commentRating.set(rating.ratingValue);
       },
       error: (err) => {
-        // 404 means user hasn't rated yet - this is normal
         this.userAlbumRating.set(0);
       }
     });
@@ -528,13 +543,6 @@ export class AlbumDetailsComponent {
 
   // ================ Template Helpers ================
 
-  // splitArtists(): string[] {
-  //   return (this.albumArtists() || '')
-  //     .split(',')
-  //     .map(s => s.trim())
-  //     .filter(Boolean);
-  // }
-
   slugify(text: string): string {
     return text
       .toLowerCase()
@@ -570,7 +578,6 @@ export class AlbumDetailsComponent {
       this.confirmOverwrite.set(false);
     } else {
       this.commentForm.patchValue({ text: '' });
-      // Use the user's existing album rating if they have one
       this.commentRating.set(this.userAlbumRating());
       this.confirmOverwrite.set(false);
     }
@@ -620,16 +627,13 @@ export class AlbumDetailsComponent {
     const text = String(raw).trim() || '';
     const ratingToSubmit = this.commentRating() || undefined;
 
-    // STEP 1: Save rating separately (if provided)
     if (ratingToSubmit) {
       this.api.createOrUpdateRating(this.albumId(), ratingToSubmit)
         .pipe(take(1))
         .subscribe({
           next: () => {
             this.userAlbumRating.set(ratingToSubmit);
-            // Reload album ratings to update average
             this.loadAlbumRatings(this.albumId());
-            // Reload comments to update the visual display of ratings next to comments
             this.loadComments(this.albumId());
           },
           error: (err) => {
@@ -639,13 +643,11 @@ export class AlbumDetailsComponent {
         });
     }
 
-    // STEP 2: If no text provided and not editing, just close modal (rating was saved above)
     if (!text && !this.editingId()) {
       this.closeCommentModal();
       return;
     }
 
-    // STEP 3: Save comment separately (without rating attached to comment)
     const id = this.albumId();
     const editingIdNow = this.editingId();
     if (id && text) {
@@ -654,7 +656,6 @@ export class AlbumDetailsComponent {
         : this.api.createComment(id, { text })
       ).pipe(take(1)).subscribe({
         next: () => {
-          // Reload comments to get server state (which will include user's rating visually)
           this.loadComments(id);
         },
         error: (err) => {
@@ -664,7 +665,6 @@ export class AlbumDetailsComponent {
       });
     }
 
-    // Reset modal
     this.commentForm.reset();
     this.commentRating.set(0);
     this.confirmOverwrite.set(false);
@@ -693,11 +693,8 @@ export class AlbumDetailsComponent {
     const text = String(raw).trim();
     if (!text) return;
 
-    // Inline edit should NOT update rating - only comment text
-    // Rating is updated separately via the modal
     this.api.updateComment(commentId, { text }).pipe(take(1)).subscribe({
       next: () => {
-        // Reload comments to get updated state
         this.loadComments(this.albumId());
       },
       error: (err) => {
@@ -819,7 +816,6 @@ export class AlbumDetailsComponent {
   // ================ Reactions ================
 
   toggleLike(targetId: string): void {
-    // Find if it's a comment or reply and get current state
     let currentReaction: Reaction = null;
     this.comments().forEach(c => {
       if (c.id === targetId) currentReaction = c.userReaction;
@@ -828,7 +824,6 @@ export class AlbumDetailsComponent {
       });
     });
 
-    // Optimistically update UI
     this.comments.update(list =>
       list.map(c => {
         if (c.id === targetId) return this.applyReaction(c, 'like');
@@ -840,23 +835,19 @@ export class AlbumDetailsComponent {
       }),
     );
 
-    // Determine what API call to make
     const newReaction: Reaction = currentReaction === 'like' ? null : 'like';
 
-    // Persist to backend using new POST/DELETE endpoints
     const apiCall = newReaction === 'like'
-      ? this.api.likeComment(targetId)  // POST
-      : this.api.unlikeComment(targetId); // DELETE
+      ? this.api.likeComment(targetId)
+      : this.api.unlikeComment(targetId);
 
     apiCall.pipe(take(1)).subscribe({
       next: () => {
-        // Reload the like count for this specific comment
         this.loadCommentLikeCount(targetId);
       },
       error: (err) => {
         console.error('Failed to update like:', err);
         this.error.set('Failed to update like');
-        // Revert the optimistic update
         this.comments.update(list =>
           list.map(c => {
             if (c.id === targetId) {
@@ -875,8 +866,6 @@ export class AlbumDetailsComponent {
     });
   }
 
-
-
   private applyReaction<T extends { likes: number; userReaction: Reaction }>(
     item: T,
     action: 'like',
@@ -887,11 +876,9 @@ export class AlbumDetailsComponent {
 
     if (action === 'like') {
       if (current === 'like') {
-        // Unlike - remove the like
         likes = Math.max(0, likes - 1);
         next = null;
       } else {
-        // Add like
         likes += 1;
         next = 'like';
       }
@@ -899,9 +886,6 @@ export class AlbumDetailsComponent {
 
     return { ...item, likes, userReaction: next };
   }
-
-
-
 
   // ================ Utilities ================
 
