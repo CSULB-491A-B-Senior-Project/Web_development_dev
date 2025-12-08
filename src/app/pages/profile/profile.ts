@@ -63,9 +63,9 @@ export class ProfileComponent implements OnInit {
   }
   // GET FOLLOWING COUNT
   loadFollowingCount(userId: string): void {
-    this.followService.getUserFollowCount(userId).subscribe((count) => {
-      this.followingCount.set(count.followingCount);
-      console.log('Following count loaded:', count);
+    this.followService.getUserFollowCount(userId).subscribe((list) => {
+      this.followingCount.set(list.length);
+      console.log('Following count loaded:', this.followingCount);
     });
   }
 

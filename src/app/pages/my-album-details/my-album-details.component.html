@@ -1,0 +1,333 @@
+<div class="page-wrapper">
+  <div class="album-review-container">
+    <section class="album-header">
+      <div class="album-artwork"
+            aria-label="Album artwork"
+            [style.background-image]="coverUrl ? 'url(' + coverUrl + ')' : null"></div>
+
+      <div class="album-details">
+        <header>
+          <div class="album-summary">
+            <div class="title-container">
+              <h1>
+                {{ title }}
+                <span class="year">{{ year }}</span>
+              </h1>
+              <button class="favorite-button"
+                      (click)="toggleFavorite()"
+                      [class.is-favorited]="isFavorited()"
+                      [attr.aria-pressed]="isFavorited()"
+                      [title]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'">
+                <i class="fa-heart" [class.fa-solid]="isFavorited()" [class.fa-regular]="!isFavorited()" aria-hidden="true"></i>
+              </button>
+            </div>
+            <h3 class="artist-names">
+              <!-- @for (name of splitArtists(); track name; let last = $last) {
+              <a class="artist-link" [routerLink]="['/artists', slugify(name)]">{{ name }}</a>@if (!last) {<span class="sep">, </span>}
+              } -->
+              @for (artist of albumArtists(); track artist.id; let last = $last) {
+                <a class="artist-link" [routerLink]="['/artist', artist.id]">
+                  {{ artist.artistName }}
+                </a>
+                @if (!last) { <span class="sep">, </span> }
+              }
+
+            </h3>
+            <div class="album-meta">
+              <!-- Average (read-only) star rating for the album -->
+              <div class="star-rating avg" aria-label="Average album rating">
+                @for (star of stars; track $index; let i = $index) {
+                <span class="star-container"
+                      role="img"
+                      aria-hidden="true">
+                  @if (averageRating() >= (i + 1)) {
+                  <!-- Full star -->
+                  <i class="fa-solid fa-star filled"></i>
+                  } @else if (averageRating() > i) {
+                  <!-- Partial star -->
+                  <span class="star-partial-wrapper">
+                    <i class="fa-regular fa-star empty"></i>
+                    <i class="fa-solid fa-star filled" [style.clip-path]="'inset(0 ' + (100 - ((averageRating() - i) * 100)) + '% 0 0)'"></i>
+                  </span>
+                  } @else {
+                  <!-- Empty star -->
+                  <i class="fa-regular fa-star empty"></i>
+                  }
+                  <span class="visually-hidden">{{ i + 1 }} star{{ i + 1 > 1 ? 's' : '' }}</span>
+                </span>
+                }
+                <span class="current-rating" aria-live="polite">
+                  {{ averageRating() ? (averageRating() + ' / 5') : 'No ratings yet' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+    </section>
+
+    <section class="tracklist">
+      <h3>Tracklist</h3>
+      @if (tracks().length) {
+      <ul>
+        @for (t of tracks(); track t.id) {
+        <li>
+          <span class="track-name">{{ t.title }}</span>
+          <span class="duration">{{ t.duration || '0:00' }}</span>
+        </li>
+        }
+      </ul>
+      } @else {
+      <ul>
+        <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
+        <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
+      </ul>
+      }
+    </section>
+
+    <section class="comment-section">
+      <!-- actions row: Add comment button only (rating moved to modal) -->
+      <div class="comment-actions">
+        <button class="add-comment-button" type="button" (click)="openCommentModal()">Add Review</button>
+      </div>
+
+      <div class="comments">
+        @for (c of comments(); track c.id) {
+        <article class="comment">
+          <div class="comment-header">
+            <a class="username" [routerLink]="userLink(c.author)">{{ c.author || 'username' }}</a>
+            @if (c.userRating) {
+            <span class="user-rating-stars">
+              @for (star of [1,2,3,4,5]; track $index) {
+              @if ($index < c.userRating) {
+              <i class="fa-solid fa-star"></i>
+              }
+              }
+            </span>
+            }
+          </div>
+          @if (editTargetId() === c.id) {
+          <!-- inline edit form for comment author (kept as optional inline edit) -->
+          <div>
+            <form [formGroup]="editForm" (ngSubmit)="submitEdit(c.id)">
+              <label>
+                <textarea formControlName="text" maxlength="1000" rows="3" class="expanding-textarea" (input)="autoResize($event)"></textarea>
+              </label>
+
+              <div class="comment-rating" style="margin-top:0.5rem;" aria-label="Edit rating for this comment">
+                @for (star of stars; track $index; let i = $index) {
+                <button type="button"
+                        class="star-button"
+                        (click)="setEditRating(i + 1)"
+                        [class.filled]="editRating() >= (i + 1)"
+                        [attr.aria-label]="(i + 1) + ' star'">
+                  <i class="fa-solid fa-star" aria-hidden="true"></i>
+                </button>
+                }
+                <span class="current-rating" aria-live="polite">{{ editRating() ? (editRating() + ' / 5') : 'Rate' }}</span>
+              </div>
+
+              <div class="modal-actions" style="margin-top:0.5rem;">
+                <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
+                <button type="submit" class="btn primary" [disabled]="editForm.invalid">Save</button>
+              </div>
+            </form>
+          </div>
+          } @else {
+          <div>
+            <p class="comment-text">{{ c.text }}</p>
+          </div>
+          }
+
+          <!-- rating badge for posted comment (read-only) -->
+          @if (c.rating) {
+          <div class="comment-rating">
+            @for (star of stars; track $index; let i = $index) {
+            <button type="button"
+                    class="star-button"
+                    aria-hidden="true"
+                    [class.filled]="c.rating >= (i + 1)">
+              <i class="fa-solid fa-star" aria-hidden="true"></i>
+            </button>
+            }
+            <span class="current-rating">{{ c.rating }} / 5</span>
+          </div>
+          }
+
+          <div class="comment-meta">
+            <span class="date">{{ c.createdAt | date:'short' }}</span>
+
+            <button type="button"
+                    class="reply-button like"
+                    (click)="toggleLike(c.id)"
+                    [attr.aria-pressed]="c.userReaction === 'like'">
+              <i class="fa-solid fa-thumbs-up"></i>
+              <span class="count">{{ c.likes }}</span>
+            </button>
+
+            <button type="button"
+                    class="reply-button"
+                    (click)="openReply(c.id)"
+                    [attr.aria-expanded]="replyTargetId() === c.id">
+              Reply
+            </button>
+
+            <!-- Edit button opens the modal for editing this comment -->
+            @if (c.author === username()) {
+            <button type="button"
+                    class="reply-button"
+                    (click)="openEditModal(c.id)"
+                    [attr.aria-pressed]="editingId() === c.id">
+              Edit
+            </button>
+            }
+          </div>
+
+          <!-- existing replies -->
+          @if (c.replies.length) {
+          <div class="replies">
+            @for (r of c.replies; track r.id) {
+            <article class="reply">
+              <a class="username" [routerLink]="userLink(r.author)">{{ r.author || 'username' }}</a>
+
+              @if (editTargetId() === r.id) {
+              <form [formGroup]="editForm" (ngSubmit)="submitEditReply(c.id, r.id)">
+                <label>
+                  <textarea class="form-control" formControlName="text" maxlength="1000" rows="2" (input)="autoResize($event)"></textarea>
+                </label>
+                <div class="modal-actions" style="margin-top:0.5rem;">
+                  <button type="button" class="btn" (click)="cancelEdit()">Cancel</button>
+                  <button type="submit" class="btn primary" [disabled]="editForm.invalid">Save</button>
+                </div>
+              </form>
+              } @else {
+              <p class="comment-text">{{ r.text }}</p>
+              }
+
+              <div class="comment-meta">
+                <span class="date">{{ r.createdAt | date:'short' }}</span>
+
+                <button type="button"
+                        class="reply-button like"
+                        (click)="toggleLike(r.id)"
+                        [attr.aria-pressed]="r.userReaction === 'like'">
+                  <i class="fa-solid fa-thumbs-up"></i>
+                  <span class="count">{{ r.likes }}</span>
+                </button>
+
+                @if (r.author === username() && editTargetId() !== r.id) {
+                <button type="button" class="reply-button" (click)="startEditReply(r)">
+                  Edit
+                </button>
+                }
+              </div>
+            </article>
+            }
+          </div>
+          }
+
+          <!-- reply form shown for this comment -->
+          @if (replyTargetId() === c.id) {
+          <div class="reply-form">
+            <form [formGroup]="replyForm" (ngSubmit)="submitReply(c.id)">
+              <label>
+                <textarea formControlName="text" maxlength="500" rows="3" class="expanding-textarea" (input)="autoResize($event)"></textarea>
+              </label>
+              @if (replyForm.controls['text'].invalid && replyForm.controls['text'].touched) {
+              <div class="error">
+                Reply is required (max 500).
+              </div>
+              }
+              <div class="modal-actions">
+                <button type="button" class="btn" (click)="closeReply()">Cancel</button>
+                <button type="submit" class="btn primary" [disabled]="replyForm.invalid">Submit</button>
+              </div>
+            </form>
+          </div>
+          }
+        </article>
+        }
+      </div>
+    </section>
+
+    <!-- Comment modal (used for create / overwrite / edit) -->
+    @if (showCommentModal()) {
+    <div class="modal-backdrop" (click)="closeCommentModal()">
+      <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" (keydown.escape)="closeCommentModal()" tabindex="0">
+        <h2>{{ editingId() ? 'Edit your review' : (userReviewIndex() !== -1 ? 'Add / Overwrite your review' : 'Add a review') }}</h2>
+
+        <!-- show posting username (not editable) -->
+        <div class="modal-author" aria-hidden="true">
+          Posting as <strong>{{ username() }}</strong>
+          @if (userAlbumRating() > 0) {
+          <span class="current-user-rating">
+            (Your current rating: {{ userAlbumRating() }}/5)
+          </span>
+          }
+        </div>
+
+        <!-- modal rating controls (can submit rating-only) -->
+        <div class="modal-rating" style="margin-top:0.5rem;">
+          <label style="display:block;margin-bottom:0.35rem;"></label>
+          <div class="comment-rating" role="radiogroup" aria-label="Rating in modal" (mouseleave)="hoverRating.set(0)">
+            @for (star of stars; track i; let i = $index) {
+            <button type="button"
+                    class="star-button"
+                    (click)="setCommentRating(i + 1)"
+                    (mouseenter)="hoverRating.set(i + 1)"
+                    (focus)="hoverRating.set(i + 1)"
+                    (blur)="hoverRating.set(0)"
+                    [class.filled]="hoverRating() >= (i + 1) || commentRating() >= (i + 1)"
+                    [attr.aria-label]="(i + 1) + ' star'">
+              <i class="fa-solid fa-star" aria-hidden="true"></i>
+              <span class="visually-hidden">{{ i + 1 }} star{{ i + 1 > 1 ? 's' : '' }}</span>
+            </button>
+            }
+            <span class="current-rating" aria-live="polite" style="margin-left:0.5rem;">
+              {{ commentRating() ? (commentRating() + ' / 5') : 'No rating' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- overwrite confirmation when user already has a review and not editing a specific comment -->
+        @if (!editingId() && userReviewIndex() !== -1) {
+        <div class="overwrite-warning">
+          <p>You already have a comment on this album. Submitting will overwrite it.</p>
+          <p><small>Note: Your rating is saved separately and can be updated anytime.</small></p>
+          <label class="checkbox-label">
+            <input type="checkbox" (change)="confirmOverwrite.set($any($event.target).checked)" />
+            I understand and want to overwrite my previous comment
+          </label>
+        </div>
+        }
+
+        <form [formGroup]="commentForm" (ngSubmit)="submitComment()" style="margin-top:0.75rem;">
+          <label>
+            <!-- Comment (optional) -->
+            <textarea formControlName="text"
+                      maxlength="1000"
+                      rows="4"
+                      class="form-control"
+                      (input)="autoResize($event)"
+                      placeholder="Write your review (optional)"></textarea>
+          </label>
+          @if (commentForm.controls.text.invalid && commentForm.controls.text.touched) {
+          <div class="error">
+            Comment must be at most 1000 characters.
+          </div>
+          }
+
+          <div class="modal-actions" style="margin-top:0.75rem;">
+            <button type="button" (click)="closeCommentModal()">Cancel</button>
+            <button type="submit" [disabled]="!canSubmit()">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    }
+  </div>
+</div>
