@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
 import { ApiService } from '../api.service';
@@ -27,6 +27,7 @@ import { HttpClient } from '@angular/common/http';
 
 type FavoriteArtistRankUpdate = { artistId: string; rank: number };
 type UpdateFavoriteArtistsRequest = { artists: FavoriteArtistRankUpdate[] };
+type UpdateFavoriteSongRequest = { favoriteSongId: string | null };
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
@@ -84,10 +85,20 @@ export class ProfileService {
     return this.api.put<void>(`/Users/me/bio`, { bio });
   }
 
+  // Update the user's favorite song
   updateFavoriteSong(songId: string | null): Observable<void> {
-  // if (this.#mock) return of(void 0);
-  return this.api.put<void>(`/Users/me/favorite-song`, { favoriteSongId: songId });
-}
+    // const base = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
+    // const url = `${this.apiUrl}/v1/Users/me/favorite-song`;
+
+    const payload: UpdateFavoriteSongRequest = { favoriteSongId: songId };
+
+    return this.api.put<void>(`/Users/me/favorite-song`, payload).pipe(
+      catchError(err => {
+        console.error('[ProfileService] favorite-song PUT failed:', err?.status ?? 0, err?.error ?? err);
+        throw err;
+      })
+    );
+  }
 
   getFavoriteArtists(): Observable<Artist[]> {
     // if (this.#mock) return of(this.#mockProfile().favoriteArtists ?? []);
@@ -102,12 +113,12 @@ export class ProfileService {
       return of(void 0);
     }
 
-    const url = `${this.apiUrl}/v1/Users/me/favorite-artists`;
+    // const url = `${this.apiUrl}/v1/Users/me/favorite-artists`;
     const payload: UpdateFavoriteArtistsRequest = { artists: rankedArtists };
 
-    console.log('[ProfileService] PUT:', url, 'payload.artists.length =', payload.artists.length);
+    console.log('[ProfileService] PUT: /Users/me/favorite-artists', 'payload.artists.length =', payload.artists.length);
 
-    return this.http.put<void>(url, payload).pipe(
+    return this.api.put<void>(`/Users/me/favorite-artists`, payload).pipe(
       catchError(err => {
         console.error('[ProfileService] favorite-artists PUT failed:', err?.status, err?.error);
         throw err;

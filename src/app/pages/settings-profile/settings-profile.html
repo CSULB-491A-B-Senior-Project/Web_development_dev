@@ -95,9 +95,10 @@
     </ng-container>
 
     <ng-template #songSearchBlock>
+      <!-- SONG SEARCH -->
       <form [formGroup]="songSearchForm" class="search-container">
         <input class="form-control" type="text" formControlName="query" placeholder="Search for a song..." />
-        <ul class="search-results" *ngIf="songSearchQuery() && songResults().length > 0" (click)="onSearchListClick($event)">
+        <ul class="search-results" *ngIf="songSearchQuery() && songResults().length > 0">
           <li class="result-item" *ngFor="let s of songResults(); trackBy: trackBySong" (click)="selectSong(s)">
             <img
               ngOptimizedImage
@@ -112,10 +113,26 @@
             </div>
           </li>
         </ul>
+        <!-- Loading statement for song search -->
+        @if (loadingSongSearch()) {
+          <div class="search-loading">Searching songs...</div>
+        }
+        @if (songSearchError()) {
+          <div class="search-error">{{ songSearchError() }}</div>
+        }
+        @if (
+          songSearchQuery() &&
+          !loadingSongSearch() &&
+          songResults().length === 0 &&
+          !songSearchError() &&
+          !songSearchForm.pristine
+        ) {
+          <div class="search-empty">No songs found matching "{{ songSearchQuery() }}"</div>
+        }
       </form>
     </ng-template>
 
-    <!-- ARTISTS -->
+     <!-- ARTISTS -->
     <h1>Top 10 Artists</h1>
     <p><b>Rank your icons.</b> Celebrate the artists who inspire you most.</p>
     
@@ -171,9 +188,9 @@
           }
         </ul>
       }
-      <!-- @if (loadingFollowedArtistSearch()) {
+      @if (loadingFollowedArtistSearch()) {
         <div class="search-loading">Searching followed artists...</div>
-      } -->
+      }
       @if (followedArtistSearchError()) {
         <div class="search-error">{{ followedArtistSearchError() }}</div>
       }
@@ -229,6 +246,7 @@
       <h1>Favorite Albums</h1>
       <p><b>Heart what you love.</b> Showcase the albums that define your taste.</p>
 
+      <!-- ALBUM SEARCH -->
       <form [formGroup]="albumSearchForm" class="search-container">
         <input
           type="text"
@@ -254,6 +272,16 @@
             </button>
           </li>
         </ul>
+        <!-- Loading statement for album search -->
+        @if (loadingAlbumSearch()) {
+          <div class="search-loading">Searching albums...</div>
+        }
+        @if (albumSearchError()) {
+          <div class="search-error">{{ albumSearchError() }}</div>
+        }
+        @if (albumSearchQuery() && !loadingAlbumSearch() && albumResults().length === 0) {
+          <div class="search-empty">No albums found matching "{{ albumSearchQuery() }}"</div>
+        }
       </form>
 
         <div class="selection-list album-list" *ngIf="favoriteAlbums().length; else albumsEmpty">

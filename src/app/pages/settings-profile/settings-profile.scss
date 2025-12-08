@@ -236,10 +236,13 @@
     }
   }
 
+  // .search-results {
+  //   display: none;
+  // }
+  // &:focus-within .search-results {
+  //   display: block;
+  // }
   .search-results {
-    display: none;
-  }
-  &:focus-within .search-results {
     display: block;
   }
 
@@ -309,6 +312,8 @@
   max-width: 40rem;
   position: relative;
   margin-bottom: 2.5rem;
+  width: 80%;
+  box-sizing: border-box;
 
   .item-cover {
     width: 50px;
@@ -597,7 +602,7 @@
   .search-container {
     position: relative;
     margin-bottom: 1rem;
-
+    
     .search-results {
       display: none;
     }
