@@ -5,16 +5,9 @@ import { AlbumCard } from '../../ui/album-card/album-card';
 
 import { AccountService } from '../../services/account.service';
 import { FollowService } from '../../services/follow.service';
-import { ProfileService, UserProfile } from '../../services/profile.service';
+import { UserAccount } from '../../models/account.models';
+import { Artist, Album } from '../../models/playlist.models';
 
-// ALBUM TYPE
-type Album = {
-  albumId: number;
-  title: string;
-  artist: string;
-  dateLabel: string;
-  imageUrl: string;
-};
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -24,38 +17,38 @@ type Album = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent implements OnInit {
-  // demo state (swap for real data)
-  username = signal('Username');
-  albumsCount = signal(0);
-  followingCount = signal(0);
 
-  user = signal<UserProfile | null>(null);
-  favoriteAlbums = signal<Album[]>([]);
-  favoriteArtists = signal<string[]>([]);
-  recentAlbums = signal<Album[]>([]);
+  user = signal<UserAccount | null>(null);
+  favoriteArtists = signal<Artist[] | null>(null);
+  favoriteAlbums = signal<Album[] | null>(null);
+  albumCount = signal<number>(0);
+  followingCount = signal<number>(0);
 
-  trackById = (_: number, it: Album) => it.albumId;
+  trackById = (_: number, it: any) => it.id;
 
   constructor(
     private accountService: AccountService,
-    private profileService: ProfileService,
     private followService: FollowService
   ) {}
 
   ngOnInit(): void {
     this.loadUser();
-    this.loadFollowingCount(this.user()?.id || '');
     this.loadFavoriteAlbums();
     this.loadFavoriteArtists();
   }
 
   // LOAD USER
   loadUser(): void {
-    this.profileService.getProfile().subscribe({
-      next: (data: UserProfile) => {
-        this.user.set(data);
-        this.username.set(data.username || 'Username');
-        console.log('User profile loaded:', data);
+    this.accountService.getAccount().subscribe({
+      next: (account: UserAccount) => {
+        this.user.set(account);
+
+        // LOAD FOLLOWING COUNT
+        this.loadFollowingCount(account.id);
+        this.loadFavoriteAlbums();
+        this.loadFavoriteArtists();
+        
+        console.log('User profile loaded:', this.user());
       },
       error: (error) => {
         console.error('Error loading user profile:', error);
@@ -72,15 +65,14 @@ export class ProfileComponent implements OnInit {
 
   // LOAD FAVORITE ALBUMS
   loadFavoriteAlbums(): void {
-    this.profileService.getFavoriteAlbums().subscribe({
-      // next: (data: Album[]) => {
-      //   this.favoriteAlbums.set(data);
-      //   this.albumsCount.set(data.length);
-      //   console.log('Favorite albums loaded:', data);
-      // },
-      // error: (error) => {
-      //   console.error('Error loading favorite albums:', error);
-      // }
+    this.accountService.favoriteAlbums().subscribe({
+      next: (albums) => {
+        this.favoriteAlbums.set(albums);
+        console.log('Favorite albums loaded:', albums);
+      },
+      error: (error) => {
+        console.error('Error loading favorite albums:', error);
+      }
     });
   }
   // LOAD FAVORITE ARTISTS

@@ -21,7 +21,7 @@ export class Artist {
     albums = signal<Album[]>([]);
     followed = signal<boolean>(false);
 
-    trackById = (_: number, it: Album) => it.id;
+    trackById = (_: number, it: Album) => it.albumId;
 
     constructor(
         private artistService: ArtistService,
@@ -35,23 +35,11 @@ export class Artist {
 
             if (artistId) {
                 this.loadArtist(artistId);
-                this.loadAlbums(artistId);
+                //this.loadAlbums(artistId);
                 this.isFollowingArtist(artistId);
             }
         });
     }
-
-    // constructor(
-    //     private artistService: ArtistService, 
-    //     private followService: FollowService, 
-    //     private route: ActivatedRoute ) { 
-    //     const artistId = this.route.snapshot.paramMap.get('id'); 
-    //     if (artistId) { 
-    //         this.loadArtist(artistId); 
-    //         this.loadAlbums(artistId); 
-    //         this.isFollowingArtist(artistId); 
-    //     } 
-    // }
 
     // LOAD ARTIST DATA
     loadArtist(artistId: string): void {
@@ -67,34 +55,34 @@ export class Artist {
     }
 
     // LOAD ALBUM DATA
-    loadAlbums(artistId: string): void {
-        this.artistService.getArtistAlbums(artistId).subscribe({
-            next: (list: any[]) => {
-                console.log('Albums data loaded:', list);
-                this.albums.set(
-                    list.map(dto => {
-                        const first = dto.artists?.[0];
+    // loadAlbums(artistId: string): void {
+    //     this.artistService.getArtistAlbums(artistId).subscribe({
+    //         next: (list: any[]) => {
+    //             console.log('Albums data loaded:', list);
+    //             this.albums.set(
+    //                 list.map(dto => {
+    //                     const first = dto.artists?.[0];
 
-                        const artist: ArtistModel = {
-                            id: first?.id ?? artistId,
-                            artistName: first?.name ?? this.artist()?.name ?? 'Unknown Artist'
-                        };
+    //                     const artist: ArtistModel = {
+    //                         id: first?.id ?? artistId,
+    //                         artistName: first?.name ?? this.artist()?.name ?? 'Unknown Artist'
+    //                     };
                         
-                        return {
-                            id: dto.id,
-                            title: dto.title,
-                            releaseYear: new Date(dto.releaseDate).getFullYear(),
-                            artist,
-                            albumCover: dto.coverArt ?? '/assets/placeholder.png'
-                        } as Album;
-                    })
-                );
-            },
-            error: (err) => {
-                console.error('Error loading albums data:', err);
-            }
-        });
-    }
+    //                     return {
+    //                         albumId: dto.albumId,
+    //                         albumName: dto.title,
+    //                         createdAt: new Date(dto.releaseDate).getFullYear(),
+    //                         artist,
+    //                         albumImageUrl: dto.coverArt ?? '/assets/placeholder.png'
+    //                     } as Album;
+    //                 })
+    //             );
+    //         },
+    //         error: (err) => {
+    //             console.error('Error loading albums data:', err);
+    //         }
+    //     });
+    // }
 
     // LOAD FOLLOW STATE
     isFollowingArtist(artistId: string): void {
@@ -124,22 +112,22 @@ export class Artist {
     
     // SORT BY TITLE
     sortByTitleAsc() {
-        const sorted = [...this.albums()].sort((a, b) => a.title.localeCompare(b.title));
+        const sorted = [...this.albums()].sort((a, b) => a.albumName.localeCompare(b.albumName));
         this.albums.set(sorted);
     }
     sortByTitleDesc() {
-        const sorted = [...this.albums()].sort((a, b) => b.title.localeCompare(a.title));
+        const sorted = [...this.albums()].sort((a, b) => b.albumName.localeCompare(a.albumName));
         this.albums.set(sorted);
     }
     // SORT BY DATE
     sortByDateAsc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(a.releaseYear).getTime() - new Date(b.releaseYear).getTime());
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         this.albums.set(sorted);
     }
     sortByDateDesc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(b.releaseYear).getTime() - new Date(a.releaseYear).getTime());
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         this.albums.set(sorted);
     }
 }

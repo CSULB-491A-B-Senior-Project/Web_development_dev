@@ -3,20 +3,25 @@ import { Observable, of } from 'rxjs';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
 import { ApiService } from '../api.service';
+import { UserAccount } from '../models/account.models';
+// export interface UserProfile {
+//   id: string;
+//   username?: string;
+//   email?: string;
+//   firstName?: string;
+//   lastName?: string;
 
-export interface UserProfile {
-  id: string;
-  bio?: string;
-  profilePictureUrl?: string;
-  backgroundImageUrl?: string;
-  favoriteSong: Song | null;
-  favoriteArtists: Artist[];
-  favoriteAlbums: Album[];
-  username?: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-}
+//   bio?: string;
+//   albumCount: number;
+//   followingCount: number;
+
+//   profilePictureUrl?: string;
+//   backgroundImageUrl?: string;
+
+//   favoriteSong: Song | null;
+//   favoriteArtists: Artist[];
+//   favoriteAlbums: Album[];
+// }
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
@@ -29,63 +34,63 @@ export class ProfileService {
   ) {}
   
   // Mock source
-  #mockProfile(): UserProfile {
-    return {
-      id: 'user-123',
-      bio: 'This is my current bio. I love discovering new music and sharing my favorite tracks.',
-      profilePictureUrl: 'https://picsum.photos/seed/card-1/600/600',
-      backgroundImageUrl: 'https://picsum.photos/seed/background-1/1200/600',
-      favoriteSong: {
-        id: 's1',
-        name: 'The Less I Know The Better',
-        artistName: 'Tame Impala',
-        albumCover: 'https://picsum.photos/seed/card-4/600/600'
-      },
-      favoriteArtists: [
-        { id: '3', artistName: 'Daft Punk', artistImage: 'https://picsum.photos/seed/card-2/600/600' },
-        { id: '1', artistName: 'Tame Impala', artistImage: 'https://picsum.photos/seed/card-3/600/600' },
-      ],
-      favoriteAlbums: [
-        { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: 'https://picsum.photos/seed/card-2/600/600' },
-        { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: 'https://picsum.photos/seed/card-3/600/600' },
-      ],
-      username: 'demo_user',
-      email: 'demo@example.com',
-      firstName: 'Demo',
-      lastName: 'User'
-    };
-  }
+  // #mockProfile(): UserProfile {
+  //   return {
+  //     id: 'user-123',
+  //     bio: 'This is my current bio. I love discovering new music and sharing my favorite tracks.',
+  //     profilePictureUrl: 'https://picsum.photos/seed/card-1/600/600',
+  //     backgroundImageUrl: 'https://picsum.photos/seed/background-1/1200/600',
+  //     favoriteSong: {
+  //       id: 's1',
+  //       name: 'The Less I Know The Better',
+  //       artistName: 'Tame Impala',
+  //       albumCover: 'https://picsum.photos/seed/card-4/600/600'
+  //     },
+  //     favoriteArtists: [
+  //       { id: '3', artistName: 'Daft Punk', artistImage: 'https://picsum.photos/seed/card-2/600/600' },
+  //       { id: '1', artistName: 'Tame Impala', artistImage: 'https://picsum.photos/seed/card-3/600/600' },
+  //     ],
+  //     favoriteAlbums: [
+  //       { id: 'a3', name: 'Discovery', releaseYear: 2001, artist: { artistName: 'Daft Punk' }, albumCover: 'https://picsum.photos/seed/card-2/600/600' },
+  //       { id: 'a1', name: 'Currents', releaseYear: 2015, artist: { artistName: 'Tame Impala' }, albumCover: 'https://picsum.photos/seed/card-3/600/600' },
+  //     ],
+  //     username: 'demo_user',
+  //     email: 'demo@example.com',
+  //     firstName: 'Demo',
+  //     lastName: 'User'
+  //   };
+  // }
 
   // Crescendo API: GET /v1/Users/me
-  getProfile(): Observable<UserProfile> {
-    if (this.#mock) return of(this.#mockProfile());
-    return this.api.get<UserProfile>(`/Users/me`);
+  getProfile(): Observable<UserAccount> {
+    // if (this.#mock) return of(this.#mockProfile());
+    return this.api.get<UserAccount>(`/Users/me`);
   }
 
   // Crescendo API: PUT /v1/Users/me
-  updateProfile(payload: Partial<UserProfile>): Observable<void> {
-    if (this.#mock) return of(void 0);
+  updateProfile(payload: Partial<UserAccount>): Observable<void> {
+    // if (this.#mock) return of(void 0);
     const { bio, username, email, firstName, lastName } = payload;
     return this.api.put<void>(`/Users/me`, { bio, username, email, firstName, lastName });
   }
 
   updateBio(bio: string): Observable<void> {
-    if (this.#mock) return of(void 0);
+    // if (this.#mock) return of(void 0);
     return this.api.put<void>(`/Users/me/bio`, { bio });
   }
 
   updateFavoriteSong(songId: string | null): Observable<void> {
-  if (this.#mock) return of(void 0);
+  // if (this.#mock) return of(void 0);
   return this.api.put<void>(`/Users/me/favorite-song`, { favoriteSongId: songId });
 }
 
   getFavoriteArtists(): Observable<Artist[]> {
-    if (this.#mock) return of(this.#mockProfile().favoriteArtists ?? []);
+    // if (this.#mock) return of(this.#mockProfile().favoriteArtists ?? []);
     return this.api.get<Artist[]>(`/Users/me/favorite-artists`);
   }
 
   updateFavoriteArtistRanks(rankedArtists: { artistId: string; rank: number }[]): Observable<void> {
-    if (this.#mock) return of(void 0);
+    // if (this.#mock) return of(void 0);
     return this.api.put<void>(`/Users/me/favorite-artists`, { artists: rankedArtists });
   }
 
@@ -95,12 +100,12 @@ export class ProfileService {
   }
 
   addFavoriteAlbum(albumId: string): Observable<void> {
-    if (this.#mock) return of(void 0);
+    // if (this.#mock) return of(void 0);
     return this.api.post<void>(`/Users/me/favorite-albums`, { albumId });
   }
 
   removeFavoriteAlbum(albumId: string): Observable<void> {
-    if (this.#mock) return of(void 0);
+    // if (this.#mock) return of(void 0);
     return this.api.delete<void>(`/Users/me/favorite-albums/${albumId}`);
   }
 

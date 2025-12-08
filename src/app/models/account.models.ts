@@ -4,8 +4,11 @@ export interface UserAccount {
   lastName: string;
   username: string;
   email: string;
-  bio: string;
-  profileImageUrl: string;
-  backgroundImageUrl: string;
-  favoriteSongId: string;
+
+  bio: string | null;
+
+  profileImageUrl: string | null;
+  backgroundImageUrl: string | null;
+
+  favoriteSongId: string | null;
 }

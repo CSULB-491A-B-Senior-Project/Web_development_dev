@@ -6,7 +6,7 @@
   <section class="profile">
     <div class="avatar-wrap">
       <img
-        [src]="user()?.profilePictureUrl || 'assets/profile.png'"
+        [src]="user()?.profileImageUrl || 'assets/profile.png'"
         class="avatar-img"
         alt="profile avatar" />
       <ng-template #avatarSkeleton>
@@ -21,11 +21,11 @@
 
       <div class="actions">
         <button routerLink="/settings-profile">Edit Profile</button>
-        <img class="settings" aria-label="settings" src="assets/settings.png"/>
+        <a routerLink="/settings-profile"><img class="settings" aria-label="settings" src="assets/settings.png"/></a>
       </div>
 
       <nav class="stats">
-        <a routerLink="/albums"><span class="count">{{ albumsCount() }}</span> albums</a>
+        <a routerLink="/albums"><span class="count">{{ albumCount() }}</span> albums</a>
         <a routerLink="/following"><span class="count">{{ followingCount() }}</span> following</a>
       </nav>
     </div>
@@ -41,7 +41,7 @@
     <div class="divider" role="separator"></div>
     <ul class="fav-artists">
       <li *ngFor="let a of favoriteArtists()">
-        <a routerLink="/artist/{{ a | lowercase }}">{{ a }}</a>
+        <!-- <a routerLink="/artist/{{ a | lowercase }}">{{ a }}</a> -->
       </li>
     </ul>
   </aside>
@@ -49,22 +49,22 @@
   <section class="albums">
     <h2>Favorite Albums</h2>
     <div class="album-grid">
-      <!-- <app-album-card *ngFor="let it of albums(); trackBy: trackById"
-                      [title]="it.title"
-                      [artist]="it.artist"
-                      [releaseYear]="it.dateLabel"
-                      [albumCover]="it.imageUrl">
-      </app-album-card> -->
+      <app-album-card *ngFor="let it of favoriteAlbums(); trackBy: trackById"
+                      [title]="it.albumName"
+                      [artist]="it.artistName"
+                      [releaseYear]="it.createdAt.toString().slice(0,4)"
+                      [albumCover]="it.albumImageUrl">
+      </app-album-card>
     </div>
 
-    <h2>Recent Albums</h2>
-    <div class="album-grid recent">
+    <!-- <h2>Recent Albums</h2>
+    <div class="album-grid recent"> -->
       <!-- <app-album-card *ngFor="let it of albums(); trackBy: trackById"
                       [title]="it.title"
                       [artist]="it.artist"
                       [releaseYear]="it.dateLabel"
                       [albumCover]="it.imageUrl">
       </app-album-card> -->
-    </div>
+    <!-- </div> -->
   </section>
 </main>
