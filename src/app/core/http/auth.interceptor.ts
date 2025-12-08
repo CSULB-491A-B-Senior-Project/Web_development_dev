@@ -7,8 +7,8 @@ import { HttpClient } from '@angular/common/http';
 
 const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
 const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
-const BASE_URL = 'https://avis-unpersecutive-negatively.ngrok-free.dev/api';
-
+// const BASE_URL = 'https://avis-unpersecutive-negatively.ngrok-free.dev/api';
+const BASE_URL = 'https://api.crescendo.chat/v1';
 let isRefreshing = false;
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
