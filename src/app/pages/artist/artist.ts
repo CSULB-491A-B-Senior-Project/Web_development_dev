@@ -81,9 +81,9 @@ export class Artist {
 
     // LOAD FOLLOW STATE
     isFollowingArtist(artistId: string): void {
-        this.followService.isFollowingArtist(artistId).subscribe({
-            next: ({ isFollowing }: { isFollowing: boolean }) => {
-              console.log(`Follow state loaded: ${isFollowing}`);
+      this.followService.isFollowingArtist(artistId).subscribe({
+        next: (isFollowing: boolean) => {
+            console.log(`Follow state loaded: ${isFollowing}`);
               this.followed.set(isFollowing); 
             },
             error: (err) => {

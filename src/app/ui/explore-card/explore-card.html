@@ -2,6 +2,13 @@
   <div class="row header">
     <div class="username-follow">
       <div class="username">{{ username() }}</div>
+      <button *ngIf="showFollowButton() && isArtist() && artistId()"
+              class="follow"
+              type="button"
+              (click)="onFollowClick($event)"
+              [class.following]="followState()">
+        {{ followState() ? 'Following' : 'Follow' }}
+      </button>
       <!-- Post Type Badge -->
       <div class="post-type-badge" [ngClass]="badgeClass()">
         <svg *ngIf="postTypeIcon() === 'comment'" viewBox="0 0 24 24" aria-hidden="true">
@@ -18,11 +25,11 @@
         </svg>
         <span>{{ postTypeLabel() }}</span>
       </div>
-       <span class="rating-stars" *ngIf="rating() > 0">
-         <ng-container *ngFor="let star of [1,2,3,4,5]; let i = index">
-           <i *ngIf="i < rating()" class="fa-solid fa-star"></i>
-         </ng-container>
-       </span>
+      <span class="rating-stars" *ngIf="rating() > 0">
+        <ng-container *ngFor="let star of [1,2,3,4,5]; let i = index">
+          <i *ngIf="i < rating()" class="fa-solid fa-star"></i>
+        </ng-container>
+      </span>
     </div>
     <span class="date" *ngIf="dateLabel()">{{ dateLabel() }}</span>
   </div>
