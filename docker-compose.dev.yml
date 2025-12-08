@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: crescendo-frontend-dev
+    command: npm run start
     volumes:
       - ./src:/app/src
       - ./public:/app/public
@@ -21,14 +22,9 @@ services:
       - "85:85"
     volumes:
       - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf
-      - ./dist/crescendo/browser:/usr/share/nginx/html
     depends_on:
       - frontend
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - crescendo-dev
-
-networks:
-  crescendo-dev:
-    driver: bridge
