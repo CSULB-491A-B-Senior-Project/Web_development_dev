@@ -950,3 +950,47 @@
     gap: 0.75rem;
   }
 }
+
+
+.expanding-textarea {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  font: inherit;
+  font-size: 1rem;
+  resize: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  line-height: 1.5;
+  width: 100%;
+
+  &::placeholder {
+    color: #696d76;
+  }
+
+  &:focus {
+    outline: none;
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(167, 139, 250, 0.5);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+  }
+
+  &:hover:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  // Size variants
+  .comment > form &,
+  .modal & {
+    min-height: 80px;
+    max-height: 220px;
+  }
+
+  .reply-form &,
+  .replies .reply form & {
+    min-height: 60px;
+    max-height: 160px;
+  }
+}
