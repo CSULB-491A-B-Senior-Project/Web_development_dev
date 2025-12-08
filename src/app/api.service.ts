@@ -10,7 +10,7 @@ import { AuthResponse, LoginRequest, RegisterRequest, RefreshTokenRequest } from
 })
 export class ApiService {
   // private readonly baseUrl = 'https://api.crescendo.chat/v1';
-  private readonly baseUrl = 'http://localhost:5050/v1';
+  private readonly baseUrl = 'https://avis-unpersecutive-negatively.ngrok-free.dev/api/v1';
   private readonly ACCESS_TOKEN_COOKIE_NAME = 'access_token';
   private readonly REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
   private tokenSubject!: BehaviorSubject<string | null>;

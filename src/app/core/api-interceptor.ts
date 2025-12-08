@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
-const BASE_URL = 'https://api.crescendo.chat';
+const BASE_URL = 'https://avis-unpersecutive-negatively.ngrok-free.dev';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
   if (req.url.startsWith('/v1/')) {
