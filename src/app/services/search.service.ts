@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
 export interface SearchApiResponse {
   query: string;
   page: number;
@@ -92,6 +93,18 @@ export interface SearchItem {
   type: 'user' | 'album' | 'review' | 'artist';
 }
 
+export interface SearchCategory {
+  type: 'albums' | 'artists' | 'users' | 'reviews';
+  label: string;
+  items: SearchItem[];
+  count: number;
+}
+
+export interface CategorizedSearchResults {
+  categories: SearchCategory[];
+  totalResults: number;
+}
+
 export interface SearchParams {
   query: string;
   tab: 'all' | 'users' | 'albums' | 'reviews' | 'artists';
@@ -101,14 +114,15 @@ export interface SearchParams {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SearchService {
-  private baseUrl = 'https://api.crescendo.chat';
-
   constructor(private http: HttpClient) { }
 
-  search(params: SearchParams): Observable<{ items: SearchItem[]; total: number }> {
+  /**
+   * Search with categorized results (sections for Albums, Artists, Users, Reviews)
+   */
+  searchCategorized(params: SearchParams): Observable<CategorizedSearchResults> {
     const { query, tab, page = 1, pageSize = 20 } = params;
 
     const httpParams = new HttpParams()
@@ -116,53 +130,175 @@ export class SearchService {
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
-    return this.http.get<SearchApiResponse>(`${this.baseUrl}/v1/search`, { params: httpParams }).pipe(
-      map(response => {
-        let items: SearchItem[] = [];
-        let total = 0;
+    return this.http
+      .get<SearchApiResponse>(`/v1/Search`, { params: httpParams })
+      .pipe(
+        map((response) => {
+          const categories: SearchCategory[] = [];
 
-        // Filter results based on tab
-        switch (tab) {
-          case 'all':
-            // Combine all results
-            items = [
-              ...this.transformAlbums(response.albums.results),
-              ...this.transformArtists(response.artists.results),
-              ...this.transformUsers(response.users.results),
-              ...this.transformPosts(response.posts.results)
-            ];
-            total = response.albums.count + response.artists.count +
-              response.users.count + response.posts.count;
-            break;
+          // Only show categories for "all" tab or specific tab
+          if (tab === 'all') {
+            // Show all categories with results
+            if (response.albums.count > 0) {
+              categories.push({
+                type: 'albums',
+                label: 'Albums',
+                items: this.transformAlbums(response.albums.results),
+                count: response.albums.count,
+              });
+            }
 
-          case 'albums':
-            items = this.transformAlbums(response.albums.results);
-            total = response.albums.count;
-            break;
+            if (response.artists.count > 0) {
+              categories.push({
+                type: 'artists',
+                label: 'Artists',
+                items: this.transformArtists(response.artists.results),
+                count: response.artists.count,
+              });
+            }
 
-          case 'artists':
-            items = this.transformArtists(response.artists.results);
-            total = response.artists.count;
-            break;
+            if (response.users.count > 0) {
+              categories.push({
+                type: 'users',
+                label: 'Users',
+                items: this.transformUsers(response.users.results),
+                count: response.users.count,
+              });
+            }
 
-          case 'users':
-            items = this.transformUsers(response.users.results);
-            total = response.users.count;
-            break;
+            if (response.posts.count > 0) {
+              categories.push({
+                type: 'reviews',
+                label: 'Reviews',
+                items: this.transformPosts(response.posts.results),
+                count: response.posts.count,
+              });
+            }
+          } else {
+            // Show only the selected tab as a single category
+            switch (tab) {
+              case 'albums':
+                if (response.albums.count > 0) {
+                  categories.push({
+                    type: 'albums',
+                    label: 'Albums',
+                    items: this.transformAlbums(response.albums.results),
+                    count: response.albums.count,
+                  });
+                }
+                break;
 
-          case 'reviews':
-            items = this.transformPosts(response.posts.results);
-            total = response.posts.count;
-            break;
-        }
+              case 'artists':
+                if (response.artists.count > 0) {
+                  categories.push({
+                    type: 'artists',
+                    label: 'Artists',
+                    items: this.transformArtists(response.artists.results),
+                    count: response.artists.count,
+                  });
+                }
+                break;
 
-        return { items, total };
-      })
-    );
+              case 'users':
+                if (response.users.count > 0) {
+                  categories.push({
+                    type: 'users',
+                    label: 'Users',
+                    items: this.transformUsers(response.users.results),
+                    count: response.users.count,
+                  });
+                }
+                break;
+
+              case 'reviews':
+                if (response.posts.count > 0) {
+                  categories.push({
+                    type: 'reviews',
+                    label: 'Reviews',
+                    items: this.transformPosts(response.posts.results),
+                    count: response.posts.count,
+                  });
+                }
+                break;
+            }
+          }
+
+          const totalResults =
+            response.albums.count +
+            response.artists.count +
+            response.users.count +
+            response.posts.count;
+
+          return {
+            categories,
+            totalResults,
+          };
+        })
+      );
+  }
+
+  search(
+    params: SearchParams
+  ): Observable<{ items: SearchItem[]; total: number }> {
+    const { query, tab, page = 1, pageSize = 20 } = params;
+
+    const httpParams = new HttpParams()
+      .set('query', query)
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    return this.http
+      .get<SearchApiResponse>(`/v1/search`, { params: httpParams })
+      .pipe(
+        map((response) => {
+          let items: SearchItem[] = [];
+          let total = 0;
+
+          // Filter results based on tab
+          switch (tab) {
+            case 'all':
+              // Combine all results
+              items = [
+                ...this.transformAlbums(response.albums.results),
+                ...this.transformArtists(response.artists.results),
+                ...this.transformUsers(response.users.results),
+                ...this.transformPosts(response.posts.results),
+              ];
+              total =
+                response.albums.count +
+                response.artists.count +
+                response.users.count +
+                response.posts.count;
+              break;
+
+            case 'albums':
+              items = this.transformAlbums(response.albums.results);
+              total = response.albums.count;
+              break;
+
+            case 'artists':
+              items = this.transformArtists(response.artists.results);
+              total = response.artists.count;
+              break;
+
+            case 'users':
+              items = this.transformUsers(response.users.results);
+              total = response.users.count;
+              break;
+
+            case 'reviews':
+              items = this.transformPosts(response.posts.results);
+              total = response.posts.count;
+              break;
+          }
+
+          return { items, total };
+        })
+      );
   }
 
   private transformAlbums(albums: AlbumResult[]): SearchItem[] {
-    return albums.map(album => {
+    return albums.map((album) => {
       // Fallback: use artistNames (comma/pipe/semicolon separated) if artistName is missing
       interface AlbumWithArtistNames extends AlbumResult {
         artistNames?: string;
@@ -171,7 +307,10 @@ export class SearchService {
       const artist: string =
         album.artistName ||
         (typeof (album as AlbumWithArtistNames).artistNames === 'string'
-          ? (album as AlbumWithArtistNames).artistNames?.split(/[|,;]/).map((s: string) => s.trim()).filter(Boolean)[0] ?? ''
+          ? (album as AlbumWithArtistNames).artistNames
+            ?.split(/[|,;]/)
+            .map((s: string) => s.trim())
+            .filter(Boolean)[0] ?? ''
           : '');
 
       return {
@@ -179,18 +318,20 @@ export class SearchService {
         username: artist, // normalized artist name
         title: album.title,
         genres: album.genres || [],
-        dateLabel: album.releaseDate ? new Date(album.releaseDate).getFullYear().toString() : '',
+        dateLabel: album.releaseDate
+          ? new Date(album.releaseDate).getFullYear().toString()
+          : '',
         imageUrl: album.coverArt || '/assets/placeholder.png',
         isArtist: false,
         favorites: 0,
         rating: 0,
-        type: 'album' as const
+        type: 'album' as const,
       };
     });
   }
 
   private transformArtists(artists: ArtistResult[]): SearchItem[] {
-    return artists.map(artist => ({
+    return artists.map((artist) => ({
       id: artist.id,
       username: artist.name,
       title: artist.name,
@@ -200,12 +341,12 @@ export class SearchService {
       isArtist: true,
       favorites: 0,
       rating: 0,
-      type: 'artist' as const
+      type: 'artist' as const,
     }));
   }
 
   private transformUsers(users: UserResult[]): SearchItem[] {
-    return users.map(user => ({
+    return users.map((user) => ({
       id: user.id,
       username: user.username,
       title: user.displayName || user.username,
@@ -215,12 +356,12 @@ export class SearchService {
       isArtist: false,
       favorites: user.followerCount || 0,
       rating: 0,
-      type: 'user' as const
+      type: 'user' as const,
     }));
   }
 
   private transformPosts(posts: PostResult[]): SearchItem[] {
-    return posts.map(post => ({
+    return posts.map((post) => ({
       id: post.id,
       username: post.user?.username || post.artistName,
       title: post.album?.title || 'Untitled',
@@ -230,17 +371,23 @@ export class SearchService {
       isArtist: false,
       favorites: 0,
       rating: post.ratingValue || 0,
-      type: 'review' as const
+      type: 'review' as const,
     }));
   }
 
   // Raw API access if needed
-  searchRaw(query: string, page = 1, pageSize = 20): Observable<SearchApiResponse> {
+  searchRaw(
+    query: string,
+    page = 1,
+    pageSize = 20
+  ): Observable<SearchApiResponse> {
     const params = new HttpParams()
       .set('query', query)
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
-    return this.http.get<SearchApiResponse>(`${this.baseUrl}/v1/search`, { params });
+    return this.http.get<SearchApiResponse>(`/v1/search`, {
+      params,
+    });
   }
 }

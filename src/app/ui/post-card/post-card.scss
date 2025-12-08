@@ -1,0 +1,92 @@
+.post-card {
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #111;
+  display: block;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.post-main {
+  display: flex;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cover-wrapper {
+  width: 72px;
+  height: 72px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #222;
+}
+
+  .cover-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+.post-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.post-header {
+  margin-bottom: 0.25rem;
+}
+
+.album-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist-name {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-bottom: 0.25rem;
+}
+
+  .post-meta .dot {
+    opacity: 0.6;
+  }
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+}
+
+  .rating .fa-star {
+    font-size: 0.8rem;
+    color: var(--primary);
+  }
+
+.rating-value {
+  opacity: 0.85;
+}
+
+.comment-text {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  max-height: 3.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

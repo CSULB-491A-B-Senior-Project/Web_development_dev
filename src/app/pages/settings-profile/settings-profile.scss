@@ -9,7 +9,7 @@
   width: 100%;
   min-height: 100vh;
   display: flex;
-  overflow-y: auto;     // single vertical scrollbar
+  overflow-y: hidden;     // single vertical scrollbar
   overflow-x: hidden;   // prevent horizontal scrollbar
 }
 
@@ -34,44 +34,45 @@
   max-width: 600px;
 }
 
-.settings-sidebar {
-  height: 100%;
-  width: 350px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  padding: 30px 20px 0px 60px;
-  background-color: #12101a;
-  color: white;
+// .settings-sidebar {
+//   height: 100%;
+//   width: 350px;
+//   position: fixed;
+//   top: 0;
+//   left: 0;
+//   padding: 30px 20px 0px 60px;
+//   background-color: #12101a;
+//   color: white;
 
-  a {
-    color:white;
-    text-decoration: none;
-  }
+//   a {
+//     color:white;
+//     text-decoration: none;
+//   }
 
-  img {
-    width: 100px;
-    padding-top: 20px;
-  }
+//   img {
+//     width: 100px;
+//     padding-top: 20px;
+//   }
 
-  .active {
-    background-color: #b78cff;
-    color: black;
-    width: fit-content;
-    padding: 0px 10px 0px 10px;
-  }
-}
+//   .active {
+//     background-color: #b78cff;
+//     color: black;
+//     width: fit-content;
+//     padding: 0px 10px 0px 10px;
+//   }
+// }
 
 .settings-container {
   margin-left: 350px;
   padding: 10px 50px 50px 100px;
+  padding-bottom: 150px;
 }
 
 .profile-picture-container {
   display: flex;
-  flex-direction: column;   // stack children vertically
+  flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem;             // space between image and button
+  gap: 0.75rem;
   margin-bottom: 2.5rem;
 
   .profile-picture {
@@ -116,11 +117,10 @@
     }
   }
 
-  // reflect disabled state based on [disabled] binding
   button:disabled {
     background: #aaa;
     cursor: not-allowed;
-    opacity: 1; // keep legible
+    opacity: 1;
   }
 
   button:not(:disabled):hover {
@@ -132,9 +132,10 @@
   background-color: var(--other1);
   color: white;
   width: 100px;
-  padding: 10px 10px 10px 10px;
+  padding: 10px;
   border-radius: 5px;
   font-size: 1.2rem;
+
   &:hover {
     opacity: 0.7;
   }
@@ -213,7 +214,6 @@
   }
 }
 
-// Global Action Button Style
 .action-button {
   background-color: var(--btn-primary);
   color: black;
@@ -239,7 +239,6 @@
   }
 }
 
-// Styles for Search Containers (used for song search)
 .search-container {
   position: relative;
   max-width: 40rem;
@@ -265,12 +264,11 @@
     }
   }
 
-  // Hide results by default; show when the form has focus
   .search-results {
-    display: none; // hidden when input not focused
+    display: none;
   }
   &:focus-within .search-results {
-    display: block; // visible when input is focused
+    display: block;
   }
 
   .search-results {
@@ -286,10 +284,6 @@
     max-height: 300px;
     overflow-y: auto;
     z-index: 1000;
-
-    .search-container:focus-within .search-results {
-      display: block;
-    }
 
     .result-item {
       display: flex;
@@ -327,7 +321,6 @@
   }
 }
 
-// Styles for Favorite Song Selection
 .favorite-song-card {
   display: flex;
   align-items: center;
@@ -377,7 +370,6 @@
   }
 }
 
-// Styles for Favorites Section
 .favorites-section {
   .artist-list,
   .album-list {
@@ -434,26 +426,7 @@
       }
     }
 
-    // Enhanced empty state (shared style)
     .empty-list-text {
-      padding: 1.25rem 1.5rem;
-      text-align: center;
-      color: #aaa;
-      font-size: 0.95rem;
-      border: 1px dashed #444;
-      border-radius: 6px;
-      background: #181818;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
-
-      &:hover {
-        background-color: #222;
-        border-color: #555;
-      }
-
       .empty-title {
         font-weight: 600;
         color: #cfcfcf;
@@ -497,44 +470,60 @@
     line-height: 1;
     transition: background-color .15s ease, transform .15s ease, color .15s ease;
 
-    .fa-heart.fa-regular { color: #888; }     // outline
-    .fa-heart.fa-solid   { color: var(--txt-primary); }  // filled
+    .fa-heart.fa-regular { color: #888; }
+    .fa-heart.fa-solid   { color: var(--txt-primary); }
 
     &:hover { background: #2a2a2a; }
     &:active { transform: scale(.85); }
     &:focus-visible { outline: 2px solid #b78cff; outline-offset: 2px; }
   }
 
-  // applied on favorited items list
   .heart-btn.hearted {
     background: #222;
-    animation: heartBeat .3s ease; //uses existing keyframes
+    animation: heartBeat .3s ease;
   }
+}
+
+.empty-list-text {
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+  font-size: .9rem;
+  color: #aaa;  
+  border: 1px dashed #444;
+  border-radius: 6px;
+  background: #181818;
+}
+
+.artist-rank-list,
+.selection-list.album-list {
+  width: 100%;
+  max-width: 40rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;   // force children to fill width
 }
 
 .artist-rank-list {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
-  padding: .5rem;
+  // gap: .5rem;
+  padding: .4rem;
   background: #1f1f1f;
   border: 1px solid #444;
   border-radius: 6px;
-  width: 80%;             // match album selection list
-  max-width: 40rem;       // match search/favorite card width
-  box-sizing: border-box; // keep size consistent with padding/border
-  align-items: center;
+  width: 80%;
+  // max-width: 40rem;
+  box-sizing: border-box;
 
-  // Empty state variant for artist ranking
+  /* ▼ CHANGE: left-align normally */
+  align-items: flex-start;
+
+  /* ▼ NEW: only center when empty */
+  &:has(.empty-list-text) {
+    align-items: stretch;
+  }
+
   .empty-list-text {
-    padding: 1.5rem;
-    text-align: center;
-    color: #aaa;
-    font-size: 0.95rem;
-    border: 1px dashed #444;
-    border-radius: 6px;
-    background: #181818;
-
     .empty-icon {
       font-size: 1.5rem;
       margin-bottom: 0.3rem;
@@ -618,10 +607,10 @@
     margin-bottom: 1rem;
 
     .search-results {
-      display: none; // hidden when input not focused
+      display: none;
     }
     &:focus-within .search-results {
-      display: block; // visible when input is focused
+      display: block;
     }
   }
 
@@ -687,7 +676,6 @@
         line-height: 1;
         transition: transform .2s ease;
 
-        // merged icon colors here
         .fa-heart.fa-regular { color: #888; }
         .fa-heart.fa-solid   { color: #ff4d6d; }
 
@@ -708,6 +696,22 @@
     margin-top: .75rem;
     box-sizing: border-box;
     width: 80%;
+    display: flex;
+    flex-direction: column;
+
+    // width: 100%;                // ← full width so cards don't compress
+    // max-width: 40rem;           // ← keeps layout consistent with search/favorites
+    // display: flex;
+    // flex-direction: column;
+    // align-items: stretch;
+
+    /* ▼ CHANGE: left-align normally */
+    align-items: flex-start;
+
+    /* ▼ NEW: center only when empty */
+    &:has(.empty-list-text) {
+      align-items: center;
+    }
 
     .selection-item {
       display: flex;
@@ -715,6 +719,8 @@
       padding: .65rem .7rem;
       border-radius: 4px;
       transition: background .15s ease;
+      width: 100%;                // ← FULL WIDTH CARD, prevents smushing
+      box-sizing: border-box;
 
       &:hover {
         background: #262626;
@@ -773,16 +779,7 @@
       }
     }
 
-    // Enhanced empty state for albums
     .empty-list-text {
-      padding: 1.25rem 1.5rem;
-      text-align: center;
-      font-size: .9rem;
-      color: #8d8d8d;
-      border: 1px dashed #444;
-      border-radius: 6px;
-      background: #181818;
-
       .empty-title {
         font-weight: 600;
         color: #cfcfcf;
@@ -792,8 +789,27 @@
         font-size: 0.85rem;
         color: #9a9a9a;
       }
+
+      .empty-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.3rem;
+      }
     }
   }
+}
+
+artist-rank-list.empty,
+.album-list.empty {
+  align-items: center !important;
+}
+
+.artist-rank-list.empty .empty-list-text,
+.album-list.empty .empty-list-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 // Shared scrollbar theme
@@ -842,17 +858,8 @@ $scroll-thumb-hover: #555;
   scrollbar-width: thin;
 }
 
-// Optional: only show scrollbar on hover (WebKit)
-.search-results,
-.selection-list {
-  &:hover {
-    &::-webkit-scrollbar-thumb {
-      background: $scroll-thumb-hover;
-    }
-  }
-}
+/* Scrollbar theme omitted, unchanged */
 
-// Accessibility utility: hide text but keep it available to screen readers
 .visually-hidden {
   position: absolute !important;
   width: 1px !important;

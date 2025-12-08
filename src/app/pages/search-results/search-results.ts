@@ -1,46 +1,67 @@
-import { ChangeDetectionStrategy, Component, effect, signal, OnDestroy } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  OnDestroy,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
-import { ExploreCard } from '../../ui/explore-card/explore-card';
-import { SearchService, SearchItem } from '../../services/search.service';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subject, Subscription, of } from 'rxjs';
 import { debounceTime, switchMap, catchError } from 'rxjs/operators';
-import { Subject, of, Subscription } from 'rxjs';
+
+import {
+  SearchService,
+  SearchItem,
+  SearchCategory,
+  SearchParams,
+} from '../../services/search.service';
+import { ExploreCard } from '../../ui/explore-card/explore-card';
+import { UserCard } from '../../ui/user-card/user-card';
+import { PostCard } from '../../ui/post-card/post-card';
 
 @Component({
   standalone: true,
   selector: 'app-search-results',
-  imports: [CommonModule, FormsModule, RouterLink, ExploreCard],
+  imports: [CommonModule, FormsModule, RouterLink, ExploreCard, UserCard, PostCard],
   templateUrl: './search-results.html',
   styleUrl: './search-results.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchResults implements OnDestroy {
   // UI state signals
-  query = signal('');
-  view = signal<'grid' | 'list'>('grid');
-  tab = signal<'all' | 'users' | 'albums' | 'reviews' | 'artists'>('all');
-  sort = signal<'relevance' | 'recent' | 'popular' | 'rating'>('relevance');
+  readonly query = signal('');
+  readonly view = signal<'grid' | 'list'>('grid');
+  readonly tab = signal<'all' | 'users' | 'albums' | 'reviews' | 'artists'>('all');
+  readonly sort = signal<'relevance' | 'recent' | 'popular' | 'rating'>('relevance');
+
+  // Pagination
+  readonly currentPage = signal(1);
+  readonly pageSize = 20;
 
   // Data state signals
-  items = signal<SearchItem[]>([]);
-  loading = signal(false);
-  error = signal<string | null>(null);
-  resultCount = signal(0);
+  readonly categories = signal<SearchCategory[]>([]);
+  readonly items = signal<SearchItem[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly resultCount = signal(0);
 
-  // Search trigger subject
-  private searchSubject = new Subject<void>();
+  // Search trigger
+  private readonly searchSubject = new Subject<void>();
   private subscription?: Subscription;
 
   constructor(
-    private searchService: SearchService,
-    private route: ActivatedRoute,
-    private router: Router
+    private readonly searchService: SearchService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
   ) {
     this.initializeFromUrl();
     this.setupSearch();
     this.setupAutoSearch();
   }
+
+  // --- Init / URL sync -------------------------------------------------------
 
   private initializeFromUrl(): void {
     this.route.queryParams.subscribe(params => {
@@ -56,63 +77,82 @@ export class SearchResults implements OnDestroy {
       if (params['sort'] && ['relevance', 'recent', 'popular', 'rating'].includes(params['sort'])) {
         this.sort.set(params['sort']);
       }
-    });
-  }
-
-  private setupSearch(): void {
-    this.subscription = this.searchSubject.pipe(
-      debounceTime(300),
-      switchMap(() => {
-        const q = this.query().trim();
-
-        // If no query, clear results
-        if (!q) {
-          return of({ items: [], total: 0 });
-        }
-
-        // Set loading state
-        this.loading.set(true);
-        this.error.set(null);
-
-        // Execute search
-        return this.searchService.search({
-          query: q,
-          tab: this.tab(),
-          sort: this.sort()
-        }).pipe(
-          catchError((err) => {
-            console.error('Search error:', err);
-            this.error.set('Failed to load search results. Please try again.');
-            this.loading.set(false);
-            return of({ items: [], total: 0 });
-          })
-        );
-      })
-    ).subscribe({
-      next: (response) => {
-        this.items.set(response.items);
-        this.resultCount.set(response.total);
-        this.loading.set(false);
+      if (params['page']) {
+        this.currentPage.set(parseInt(params['page'], 10) || 1);
       }
     });
   }
 
+  private setupSearch(): void {
+    this.subscription = this.searchSubject
+      .pipe(
+        debounceTime(300),
+        switchMap(() => {
+          const q = this.query().trim();
+
+          if (!q) {
+            this.loading.set(false);
+            this.categories.set([]);
+            this.items.set([]);
+            this.resultCount.set(0);
+            return of(null);
+          }
+
+          this.loading.set(true);
+          this.error.set(null);
+
+          const params: SearchParams = {
+            query: q,
+            tab: this.tab(),
+            sort: this.sort(),
+            page: this.currentPage(),
+            pageSize: this.pageSize,
+          };
+
+          return this.searchService
+            .searchCategorized(params)
+            .pipe(catchError(err => this.handleError(err)));
+        }),
+      )
+      .subscribe(response => {
+        if (!response) {
+          return;
+        }
+
+        this.categories.set(response.categories || []);
+
+        const allItems = (response.categories || []).flatMap(
+          (cat: SearchCategory) => cat.items,
+        );
+
+        this.items.set(allItems);
+        this.resultCount.set(response.totalResults || 0);
+        this.loading.set(false);
+      });
+  }
+
+  private handleError(err: unknown) {
+    console.error('Search error:', err);
+    this.error.set('Failed to load search results. Please try again.');
+    this.loading.set(false);
+    return of({ categories: [], totalResults: 0 });
+  }
+
   private setupAutoSearch(): void {
-    // Trigger search when query, tab, or sort changes
+    // Trigger search + keep URL in sync whenever state changes
     effect(() => {
       const q = this.query();
       const t = this.tab();
       const s = this.sort();
       const v = this.view();
+      const p = this.currentPage();
 
-      // Update URL with current search state
-      this.updateUrl(q, t, s, v);
+      this.updateUrl(q, t, s, v, p);
 
-      // Trigger search if we have a query
       if (q.trim()) {
         this.searchSubject.next();
       } else {
-        // Clear results if no query
+        this.categories.set([]);
         this.items.set([]);
         this.resultCount.set(0);
         this.loading.set(false);
@@ -120,35 +160,55 @@ export class SearchResults implements OnDestroy {
     });
   }
 
-  private updateUrl(query: string, tab: string, sort: string, view: string): void {
+  private updateUrl(
+    query: string,
+    tab: string,
+    sort: string,
+    view: string,
+    page: number,
+  ): void {
     const queryParams: any = {};
 
     if (query) queryParams['q'] = query;
     if (tab !== 'all') queryParams['tab'] = tab;
     if (sort !== 'relevance') queryParams['sort'] = sort;
     if (view !== 'grid') queryParams['view'] = view;
+    if (page !== 1) queryParams['page'] = page.toString();
 
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,
-      replaceUrl: true
+      replaceUrl: true,
     });
   }
 
-  // Public methods for template
-  setTab(t: 'all' | 'users' | 'albums' | 'reviews' | 'artists'): void {
-    this.tab.set(t);
+  // --- Public methods used in the template ----------------------------------
+
+  setTab(tab: 'all' | 'users' | 'albums' | 'reviews' | 'artists'): void {
+    this.tab.set(tab);
+    this.currentPage.set(1);
   }
 
-  setView(v: 'grid' | 'list'): void {
-    this.view.set(v);
+  setView(view: 'grid' | 'list'): void {
+    this.view.set(view);
   }
 
   retrySearch(): void {
     this.searchSubject.next();
   }
 
-  // Getter/setter for ngModel two-way binding with signals
+  nextPage(): void {
+    this.currentPage.update(p => p + 1);
+  }
+
+  previousPage(): void {
+    this.currentPage.update(p => Math.max(1, p - 1));
+  }
+
+  totalPages = () => Math.ceil(this.resultCount() / this.pageSize);
+  hasMorePages = () => this.currentPage() < this.totalPages();
+
+  // ngModel bridge
   get sortValue(): 'relevance' | 'recent' | 'popular' | 'rating' {
     return this.sort();
   }
@@ -157,7 +217,7 @@ export class SearchResults implements OnDestroy {
     this.sort.set(value);
   }
 
-  // TrackBy function for ngFor optimization (IDs are now strings)
+  // TrackBy
   trackById = (_index: number, item: SearchItem): string => item.id;
 
   ngOnDestroy(): void {
