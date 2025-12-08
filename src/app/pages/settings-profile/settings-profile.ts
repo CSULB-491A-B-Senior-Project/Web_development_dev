@@ -781,13 +781,15 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     if (this.favoriteArtists().some(a => a.id === artist.id)) return;
 
     const prev = this.favoriteArtists();
-    const updated = [artist, ...prev.filter(a => a.id !== artist.id)];
-    const top10 = updated.slice(0, 10);
 
-    // Prefer artistId if present on the item, fallback to id
+    // Append to the bottom (end of the list)
+    const updated = [...prev, artist];
+
+    // Recompute top 10 ranks from the updated list
+    const top10 = updated.slice(0, 10);
     const ranked = top10
       .map((a, idx) => ({
-        artistId: (a as any).artistId ?? a.id,
+        artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
         rank: idx + 1
       }))
       .filter(r => !!r.artistId);
@@ -806,7 +808,7 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
     this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
       next: () => {},
       error: (err) => {
-        console.error('Update favorite artist ranks failed:', err);
+        console.error('Update favorite artist ranks failed:', err?.status ?? 0, err?.error ?? err);
         this.favoriteArtists.set(prev);
         this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => {
           const normalized = (a ?? []).map((x: any) => ({
@@ -817,7 +819,9 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
           })).filter((z: Artist) => !!z.id);
           this.favoriteArtists.set(normalized);
           this.artistRanks.set(
-            normalized.filter(z => typeof z.rank === 'number').map(z => ({ artistId: z.id, rank: z.rank as number }))
+            normalized
+              .filter(z => typeof z.rank === 'number')
+              .map(z => ({ artistId: z.id, rank: z.rank as number }))
           );
         });
       }
