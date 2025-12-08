@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  inject,
   OnDestroy,
   signal,
   computed,
@@ -9,8 +10,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Subject, Subscription, of } from 'rxjs';
-import { debounceTime, switchMap, catchError } from 'rxjs/operators';
+import { Subject, Subscription, of, forkJoin } from 'rxjs';
+import { debounceTime, switchMap, catchError, take } from 'rxjs/operators';
 
 import {
   SearchService,
@@ -21,6 +22,7 @@ import {
 import { ExploreCard } from '../../ui/explore-card/explore-card';
 import { UserCard } from '../../ui/user-card/user-card';
 import { PostCard } from '../../ui/post-card/post-card';
+import { FollowService } from '../../services/follow.service';
 
 @Component({
   standalone: true,
@@ -48,6 +50,8 @@ export class SearchResults implements OnDestroy {
   readonly error = signal<string | null>(null);
   readonly resultCount = signal(0);
 
+  private readonly followStates = signal<Map<string, boolean>>(new Map());
+
   // Sorted/computed data
   readonly categories = computed(() => this.sortCategories(this.rawCategories()));
   readonly items = computed(() => this.sortItems(this.rawItems()));
@@ -60,6 +64,7 @@ export class SearchResults implements OnDestroy {
     private readonly searchService: SearchService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly followService: FollowService,
   ) {
     this.initializeFromUrl();
     this.setupSearch();
@@ -164,6 +169,7 @@ export class SearchResults implements OnDestroy {
         this.rawItems.set(allItems);
         this.resultCount.set(response.totalResults || 0);
         this.loading.set(false);
+        this.loadFollowStates();
       });
   }
 
@@ -213,6 +219,78 @@ export class SearchResults implements OnDestroy {
       queryParams,
       replaceUrl: true,
     });
+  }
+
+  // --- Follow functionality --------------------------------------------------
+
+  private loadFollowStates(): void {
+    // Get unique artist IDs from items where type is 'artist'
+    const allItems = this.rawCategories().flatMap(cat => cat.items);
+    const artistIds = [...new Set(
+      allItems
+        .filter(item => item.type === 'artist')
+        .map(item => item.id)
+    )];
+
+    if (artistIds.length === 0) return;
+
+    // Fetch follow status for each artist
+    const followRequests = artistIds.map(artistId =>
+      this.followService.isFollowingArtist(artistId).pipe(take(1))
+    );
+
+    forkJoin(followRequests).subscribe({
+      next: (followResponses: boolean[]) => {
+        // Create a map of artistId -> isFollowing
+        const followMap = new Map<string, boolean>();
+
+        artistIds.forEach((artistId, index) => {
+          followMap.set(artistId, followResponses[index]);
+        });
+
+        this.followStates.set(followMap);
+      },
+      error: (err) => {
+        console.error('Failed to load follow states:', err);
+      }
+    });
+  }
+
+  handleFollowToggle(event: { artistId: string; shouldFollow: boolean }): void {
+    console.log('Follow toggle:', event.shouldFollow ? 'FOLLOW' : 'UNFOLLOW', event.artistId);
+
+    // Optimistically update the UI immediately
+    this.followStates.update(map => {
+      const newMap = new Map(map);
+      newMap.set(event.artistId, event.shouldFollow);
+      return newMap;
+    });
+
+    // Make the API call
+    const call = event.shouldFollow
+      ? this.followService.followArtist(event.artistId)
+      : this.followService.unfollowArtist(event.artistId);
+
+    call.subscribe({
+      next: () => {
+        console.log('Follow API success!');
+        // State already updated optimistically, nothing more to do
+      },
+      error: (err) => {
+        console.error('Error toggling follow:', err);
+        // Revert the optimistic update on error
+        this.followStates.update(map => {
+          const newMap = new Map(map);
+          newMap.set(event.artistId, !event.shouldFollow);
+          return newMap;
+        });
+      }
+    });
+  }
+
+  // Helper to get follow state for an artist
+  getFollowState(artistId: string): boolean {
+    return this.followStates().get(artistId) ?? false;
   }
 
   // --- Public methods used in the template ----------------------------------

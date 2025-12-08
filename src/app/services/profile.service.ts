@@ -1,9 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
 import { ApiService } from '../api.service';
 import { UserAccount } from '../models/account.models';
+import { HttpClient } from '@angular/common/http';
 // export interface UserProfile {
 //   id: string;
 //   username?: string;
@@ -23,10 +25,13 @@ import { UserAccount } from '../models/account.models';
 //   favoriteAlbums: Album[];
 // }
 
+type FavoriteArtistRankUpdate = { artistId: string; rank: number };
+type UpdateFavoriteArtistsRequest = { artists: FavoriteArtistRankUpdate[] };
+
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
-  // #http = inject(HttpClient);
-  // #apiUrl = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
+  http = inject(HttpClient);
+  apiUrl = (environment.apiBaseUrl ?? '').replace(/\/$/, '');
   #mock = (environment as unknown as { useMocks?: boolean }).useMocks === true;
 
   constructor (
@@ -89,9 +94,25 @@ export class ProfileService {
     return this.api.get<Artist[]>(`/Users/me/favorite-artists`);
   }
 
-  updateFavoriteArtistRanks(rankedArtists: { artistId: string; rank: number }[]): Observable<void> {
-    // if (this.#mock) return of(void 0);
-    return this.api.put<void>(`/Users/me/favorite-artists`, { artists: rankedArtists });
+  updateFavoriteArtistRanks(rankedArtists: FavoriteArtistRankUpdate[]): Observable<void> {
+    if (this.#mock) return of(void 0);
+
+    if (!Array.isArray(rankedArtists) || rankedArtists.length === 0) {
+      console.warn('[ProfileService] Skipping PUT favorite-artists: empty rankedArtists payload');
+      return of(void 0);
+    }
+
+    const url = `${this.apiUrl}/v1/Users/me/favorite-artists`;
+    const payload: UpdateFavoriteArtistsRequest = { artists: rankedArtists };
+
+    console.log('[ProfileService] PUT:', url, 'payload.artists.length =', payload.artists.length);
+
+    return this.http.put<void>(url, payload).pipe(
+      catchError(err => {
+        console.error('[ProfileService] favorite-artists PUT failed:', err?.status, err?.error);
+        throw err;
+      })
+    );
   }
 
   getFavoriteAlbums(): Observable<Album[]> {

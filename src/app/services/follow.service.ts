@@ -1,6 +1,7 @@
 // src/app/services/user-follows.service.ts
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from '../api.service';
 
 interface FollowStatusResponse {
@@ -34,8 +35,11 @@ export class FollowService {
         return this.api.get<number>(`/UserFollows/artist/${artistId}/count`);
     }
     // GET - CHECK IF THE CURRENT USER FOLLOWS THE ARTIST
-    isFollowingArtist(artistId: string): Observable<FollowStatusResponse> {
-        return this.api.get<FollowStatusResponse>(`/UserFollows/artist/${artistId}/status`);
+  isFollowingArtist(artistId: string): Observable<boolean> {
+        return this.api.get<{ artistId: string; isFollowing: boolean }>(
+          `/UserFollows/artist/${artistId}/status`).pipe(
+            map(response => response.isFollowing)
+          );
     }
     // USERS
     getUserFollowCount(userId: string): Observable<any[]> {
