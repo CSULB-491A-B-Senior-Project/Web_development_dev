@@ -9,6 +9,7 @@ import { ListCreateComponent } from './pages/list-create/list-create';
 import { SettingsProfile } from './pages/settings-profile/settings-profile';
 import { SettingsAccount } from './pages/settings-account/settings-account';
 import { PlayerTestComponent } from './pages/player-test/player-test.component';
+import { SpotifyCallbackComponent } from './pages/spotify-callback/spotify-callback.component';
 import { AdminUser } from './pages/admin/admin-user';
 import { AdminPost } from './pages/admin/admin-post';
 import { AlbumDetailsComponent } from './pages/album-details/album-details.component';
@@ -68,7 +69,11 @@ export const routes: Routes = [
       {
         path: 'player-test',
         component: PlayerTestComponent
-      }
+      },
+      {
+        path: 'spotify/callback',
+        component: SpotifyCallbackComponent
+      } ,
     ]
   },
   { path: 'profile', loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent) },

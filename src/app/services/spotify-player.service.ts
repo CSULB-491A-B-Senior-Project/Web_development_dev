@@ -1,4 +1,3 @@
-
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
@@ -27,12 +26,21 @@ export class SpotifyPlayerService {
   private player: any;
   private deviceId: string | null = null;
   private playerState = new BehaviorSubject<PlayerState | null>(null);
+  private currentAccessToken: string | null = null;
 
   public playerState$ = this.playerState.asObservable();
 
   constructor() { }
 
   initializePlayer(accessToken: string): void {
+    this.currentAccessToken = accessToken;
+    
+    // Check if SDK is already loaded
+    if (window.Spotify) {
+      this.createPlayer();
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
     script.type = 'text/javascript';
@@ -42,22 +50,40 @@ export class SpotifyPlayerService {
     document.head.appendChild(script);
 
     window.onSpotifyWebPlaybackSDKReady = () => {
-      this.player = new window.Spotify.Player({
-        name: 'Crescendo Web Player',
-        getOAuthToken: (cb: (token: string) => void) => {
-          cb(accessToken);
-        },
-        volume: 0.5
-      });
-
-      this.addPlayerListeners();
-
-      this.player.connect().then((success: boolean) => {
-        if (success) {
-          console.log('The Spotify player has been connected successfully!');
-        }
-      });
+      this.createPlayer();
     };
+  }
+
+  private createPlayer(): void {
+    if (!this.currentAccessToken) {
+      console.error('No access token available');
+      return;
+    }
+
+    this.player = new window.Spotify.Player({
+      name: 'Crescendo Web Player',
+      getOAuthToken: (cb: (token: string) => void) => {
+        cb(this.currentAccessToken!);
+      },
+      volume: 0.5
+    });
+
+    this.addPlayerListeners();
+
+    this.player.connect().then((success: boolean) => {
+      if (success) {
+        console.log('The Spotify player has been connected successfully!');
+      }
+    });
+  }
+
+  updateToken(newAccessToken: string): void {
+    this.currentAccessToken = newAccessToken;
+    
+    // If player exists, we need to update its token
+    // The Spotify SDK will call getOAuthToken when it needs a token
+    // So we just need to update our stored token
+    console.log('Spotify access token updated');
   }
 
   private addPlayerListeners(): void {
@@ -89,6 +115,12 @@ export class SpotifyPlayerService {
 
       this.playerState.next(playerState);
     });
+
+    this.player.addListener('authentication_error', ({ message }: { message: string }) => {
+      console.error('Authentication error:', message);
+      // Token may have expired, trigger refresh in app component
+      window.dispatchEvent(new CustomEvent('spotify-auth-error'));
+    });
   }
 
   play(spotify_uri: string): void {
@@ -97,13 +129,20 @@ export class SpotifyPlayerService {
         return;
     }
 
+    if (!this.currentAccessToken) {
+        console.error('No access token available.');
+        return;
+    }
+
     fetch(`https://api.spotify.com/v1/me/player/play?device_id=${this.deviceId}`, {
       method: 'PUT',
       body: JSON.stringify({ uris: [spotify_uri] }),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.player._options.getOAuthToken((token: any) => token)}`
+        'Authorization': `Bearer ${this.currentAccessToken}`
       },
+    }).catch(error => {
+      console.error('Error playing track:', error);
     });
   }
 
@@ -118,4 +157,11 @@ export class SpotifyPlayerService {
   setVolume(volume: number): void {
     this.player.setVolume(volume);
   }
+
+  disconnect(): void {
+    if (this.player) {
+      this.player.disconnect();
+    }
+  }
 }
+
