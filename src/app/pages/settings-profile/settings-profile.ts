@@ -117,6 +117,7 @@ export class SettingsProfile implements AfterViewInit {
 
     const coverRaw = src['albumImageUrl'] ?? src['imageUrl'] ?? src['coverArt'] ?? src['albumCover'] ?? '';
     const albumCover = this.resolveImageUrl(coverRaw);
+    // console.log('Album raw:', artistName);
 
     const releaseDate = src['releaseDate'] ?? src['year'] ?? src['releaseYear'] ?? src['dateLabel'];
     const year =
@@ -336,14 +337,56 @@ export class SettingsProfile implements AfterViewInit {
         // Hydrate favorite song from favoriteSongId if present
         const favSongId = (p.favoriteSongId ?? p.favoriteSong?.id) as string | undefined;
         if (favSongId) {
-          // If you have a dedicated lookup by ID, use it here. Otherwise, fall back to minimal stub.
-          this.#musicSearchService.getSongById?.(favSongId).pipe(take(1)).subscribe({
-            next: (song: any) => {
-              const normalized = this.normalizeTrackFromApi(song ?? { id: favSongId, name: 'Favorite song' });
-              this.favoriteSong.set(normalized);
+          this.#musicSearchService.getSongById(favSongId).pipe(take(1)).subscribe({
+            next: (song: Song | null) => {
+              // Safely extract albumId from song.raw
+              const albumId =
+                song && song.raw && typeof song.raw === 'object' && song.raw !== null && 'albumId' in song.raw
+                  ? (song.raw as { albumId?: string }).albumId
+                  : undefined;
+
+              if (song && albumId) {
+                this.#albumReviews.getAlbumById(albumId).pipe(take(1)).subscribe(albumRaw => {
+                  const album = this.normalizeAlbumFromApi(albumRaw);
+                  this.favoriteSong.set({
+                    id: song.id,
+                    name: song.name,
+                    artistName: album.artist?.artistName ?? '',
+                    albumCoverUrl: album.albumCover ?? this.placeholderAlbum,
+                    trackNumber: song.trackNumber,
+                    durationMs: song.durationMs,
+                    previewUrl: song.previewUrl,
+                    raw: song.raw
+                  });
+                });
+              } else if (song) {
+                // Fallback if no albumId
+                this.favoriteSong.set({
+                  ...song,
+                  artistName: song.artistName ?? '',
+                  albumCoverUrl: song.albumCoverUrl ?? this.placeholderAlbum
+                });
+              } else {
+                // Fallback if song not found
+                this.favoriteSong.set({
+                  id: favSongId,
+                  name: 'Favorite song',
+                  artistName: '',
+                  albumCoverUrl: this.placeholderAlbum,
+                  trackNumber: 0,
+                  raw: { id: favSongId }
+                });
+              }
             },
             error: () => {
-              this.favoriteSong.set({ id: favSongId, name: 'Favorite song', artistName: '', albumCoverUrl: this.placeholderAlbum, trackNumber: 0, raw: { id: favSongId } } as unknown as Song);
+              this.favoriteSong.set({
+                id: favSongId,
+                name: 'Favorite song',
+                artistName: '',
+                albumCoverUrl: this.placeholderAlbum,
+                trackNumber: 0,
+                raw: { id: favSongId }
+              });
             }
           });
         } else {
