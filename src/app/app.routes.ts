@@ -47,6 +47,12 @@ export const routes: Routes = [
         component: AlbumDetailsComponent
       },
       {
+        path: 'my-album-details/:id',
+        loadComponent: () =>
+          import('./pages/my-album-details/my-album-details.component')
+            .then(m => m.MyAlbumDetailsComponent)
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./pages/profile/profile')
           .then(m => m.ProfileComponent)

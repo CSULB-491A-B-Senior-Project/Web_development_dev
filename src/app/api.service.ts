@@ -193,12 +193,13 @@ export class ApiService {
    * Logout user
    */
   public logout(): void {
+    // Remove tokens immediately for instant logout
+    this.removeTokens();
+
+    // Then revoke on server (fire and forget)
     this.revokeToken().subscribe({
       next: () => {},
-      error: () => {
-        // Remove tokens even if revoke fails
-        this.removeTokens();
-      }
+      error: () => {}
     });
   }
 

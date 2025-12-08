@@ -1,62 +1,77 @@
 <div class="banner">
-  <img src="https://picsum.photos/seed/card-15/3000/300/" />
+  <img [src]="user()?.backgroundImageUrl || 'https://picsum.photos/seed/card-15/3000/300/'" />
 </div>
 
 <main class="page">
   <section class="profile">
     <div class="avatar-wrap">
-      <img *ngIf="avatarUrl(); else avatarSkeleton" class="avatar-img" [src]="avatarUrl()" alt="profile avatar" />
+      <img
+        [src]="user()?.profileImageUrl || 'assets/profile.png'"
+        class="avatar-img"
+        alt="profile avatar" />
       <ng-template #avatarSkeleton>
         <div class="avatar-img img-skeleton"></div>
       </ng-template>
 
-      <div class="chip">music</div>
+      <div class="chip">@{{ user()?.username }}</div>
     </div>
 
     <div class="meta">
-      <h1 class="username">{{ username() }}</h1>
+      <h1 class="username">{{ user()?.firstName }} {{ user()?.lastName }}</h1>
 
       <div class="actions">
         <button routerLink="/settings-profile">Edit Profile</button>
-        <img class="settings" aria-label="settings" src="assets/settings.png"/>
+        <a routerLink="/settings-profile"><img class="settings" aria-label="settings" src="assets/settings.png"/></a>
       </div>
 
       <nav class="stats">
-        <a routerLink="/albums"><span class="count">{{ albumsCount() }}</span> albums</a>
+        <a routerLink="/albums"><span class="count">{{ albumCount() }}</span> albums</a>
         <a routerLink="/following"><span class="count">{{ followingCount() }}</span> following</a>
       </nav>
     </div>
   </section>
 
-  <aside class="sidebar">
-    <h2>Favorite Artist</h2>
-    <div class="divider" role="separator"></div>
-    <ul class="fav-artists">
-      <li *ngFor="let a of favoriteArtists()">
-        <a routerLink="/artist/{{ a | lowercase }}">{{ a }}</a>
-      </li>
-    </ul>
-  </aside>
+  <section class="bio">
+    <h2>About Me</h2>
+    <p>{{ user()?.bio }}</p>
+  </section>
+
+  <section class="favorite-song">
+    <p>My favorite song is </p>
+  </section>
 
   <section class="albums">
     <h2>Favorite Albums</h2>
     <div class="album-grid">
-      <app-album-card *ngFor="let it of albums(); trackBy: trackById"
-                      [title]="it.title"
-                      [artist]="it.artist"
-                      [releaseYear]="it.dateLabel"
-                      [albumCover]="it.imageUrl">
-      </app-album-card>
+      <a *ngFor="let it of favoriteAlbums(); trackBy: trackById"
+          [routerLink]="['/albums', it.albumId]">
+        <app-album-card 
+                      [title]="it.albumName"
+                      [artist]="it.artistName"
+                      [releaseYear]="it.createdAt.toString().slice(0,4)"
+                      [albumCover]="it.albumImageUrl">
+        </app-album-card>
+      </a>
     </div>
 
-    <h2>Recent Albums</h2>
+    <h2>My Albums</h2>
     <div class="album-grid recent">
-      <app-album-card *ngFor="let it of albums(); trackBy: trackById"
-                      [title]="it.title"
-                      [artist]="it.artist"
-                      [releaseYear]="it.dateLabel"
-                      [albumCover]="it.imageUrl">
-      </app-album-card>
+      <app-my-album-card *ngFor="let it of myAlbums(); trackBy: trackById"
+                      [id]="it.id"
+                      [name]="it.name"
+                      [description]="it.description ?? ''">
+      </app-my-album-card>
     </div>
   </section>
+  
+  <aside class="sidebar">
+    <h2>Favorite Artists</h2>
+    <div class="divider" role="separator"></div>
+    <ul class="fav-artists">
+      <a *ngFor="let a of favoriteArtists()"
+        [routerLink]="['/artist', a.id]">
+        <li>{{ a.artistName }}</li>
+      </a>
+    </ul>
+  </aside>
 </main>

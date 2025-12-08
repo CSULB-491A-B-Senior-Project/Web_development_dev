@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { AlbumCard } from '../../ui/album-card/album-card';
-import { ArtistDetails, Album, Artist as ArtistModel } from '../../models/playlist.models';
+import { ArtistDetails, Album, ArtistAlbum } from '../../models/playlist.models';
 import { ArtistService } from '../../services/artist.service';
 import { FollowService } from '../../services/follow.service';
 
@@ -18,22 +18,27 @@ import { FollowService } from '../../services/follow.service';
 export class Artist {
 
     artist = signal<ArtistDetails | null>(null);
-    albums = signal<Album[]>([]);
+    albums = signal<ArtistAlbum[]>([]);
     followed = signal<boolean>(false);
 
-    trackById = (_: number, it: Album) => it.id;
+    trackById = (_: number, it: ArtistAlbum) => it.id;
 
-    private route = inject(ActivatedRoute);
-    private artistService = inject(ArtistService);
-    private followService = inject(FollowService);
+    constructor(
+        private artistService: ArtistService,
+        private followService: FollowService,
+        private route: ActivatedRoute
+    ) {}
 
-    constructor() {
-        const artistId = this.route.snapshot.paramMap.get('id'); // Example artist ID
-        if (artistId) {
-            this.loadArtist(artistId);
-            this.loadAlbums(artistId);
-            this.isFollowingArtist(artistId);
-        }
+    ngOnInit(): void {
+        this.route.paramMap.subscribe(params => {
+            const artistId = params.get('id');
+
+            if (artistId) {
+                this.loadArtist(artistId);
+                this.loadAlbums(artistId);
+                this.isFollowingArtist(artistId);
+            }
+        });
     }
 
     // LOAD ARTIST DATA
@@ -52,26 +57,10 @@ export class Artist {
     // LOAD ALBUM DATA
     loadAlbums(artistId: string): void {
         this.artistService.getArtistAlbums(artistId).subscribe({
-            next: (list: any[]) => {
+            next: (list: ArtistAlbum[]) => {
+                this.albums.set(list);
+                console.log(this.albums());
                 console.log('Albums data loaded:', list);
-                this.albums.set(
-                    list.map(dto => {
-                        const first = dto.artists?.[0];
-
-                        const artist: ArtistModel = {
-                            id: first?.id ?? artistId,
-                            artistName: first?.name ?? this.artist()?.name ?? 'Unknown Artist'
-                        };
-                        
-                        return {
-                            id: dto.id,
-                            title: dto.title,
-                            releaseYear: new Date(dto.releaseDate).getFullYear(),
-                            artist,
-                            albumCover: dto.coverArt ?? '/assets/placeholder.png'
-                        } as Album;
-                    })
-                );
             },
             error: (err) => {
                 console.error('Error loading albums data:', err);
@@ -124,12 +113,12 @@ export class Artist {
     // SORT BY DATE
     sortByDateAsc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(a.releaseYear).getTime() - new Date(b.releaseYear).getTime());
+        (a, b) => new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime());
         this.albums.set(sorted);
     }
     sortByDateDesc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(b.releaseYear).getTime() - new Date(a.releaseYear).getTime());
+        (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
         this.albums.set(sorted);
     }
 }

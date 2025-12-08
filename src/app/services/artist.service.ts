@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Artist, Album, ArtistDetails } from '../models/playlist.models';
+import { ArtistAlbum, ArtistDetails } from '../models/playlist.models';
 import { ApiService } from '../api.service';
 
 @Injectable({
@@ -9,17 +9,18 @@ import { ApiService } from '../api.service';
 export class ArtistService {
     constructor(private api: ApiService) {}
 
-    // GET /v1/Artists
+    // GET ARTIST
     getArtists(): Observable<ArtistDetails[]> {
         return this.api.get<ArtistDetails[]>('/Artists');
     }
 
-    // GET /v1/Artists/{id}
+    // GET ARTIST WITH ID
     getArtist(id: string): Observable<ArtistDetails> {
         return this.api.get<ArtistDetails>(`/Artists/${id}`);
     }
 
-    getArtistAlbums(id: string): Observable<Album[]> {
-        return this.api.get<any[]>(`/Artists/${id}/Albums`);
+    // GET ARTIST ALBUMS
+    getArtistAlbums(id: string): Observable<ArtistAlbum[]> {
+        return this.api.get<ArtistAlbum[]>(`/Artists/${id}/Albums`);
     }
 }

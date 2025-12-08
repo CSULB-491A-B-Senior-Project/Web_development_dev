@@ -86,7 +86,7 @@ input {
   color: white;
 
   &:focus {
-    border-color: #c06eff;
+    border-color: var(--primary);
     background: #1f1f1f;
     outline: none;
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 35%, transparent);
