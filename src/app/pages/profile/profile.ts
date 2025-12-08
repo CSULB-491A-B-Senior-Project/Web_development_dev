@@ -5,7 +5,7 @@ import { AlbumCard } from '../../ui/album-card/album-card';
 
 import { AccountService } from '../../services/account.service';
 import { FollowService } from '../../services/follow.service';
-import { PlaylistService } from '../../services/playlist.service';
+import { PlaylistResponse, PlaylistService } from '../../services/playlist.service';
 
 import { UserAccount } from '../../models/account.models';
 import { Artist, Album } from '../../models/playlist.models';
@@ -23,6 +23,7 @@ export class ProfileComponent implements OnInit {
   user = signal<UserAccount | null>(null);
   favoriteArtists = signal<Artist[] | null>(null);
   favoriteAlbums = signal<Album[] | null>(null);
+  myAlbums = signal<PlaylistResponse[] | null>(null);
   albumCount = signal<number>(0);
   followingCount = signal<number>(0);
 
@@ -48,7 +49,7 @@ export class ProfileComponent implements OnInit {
 
         // LOAD FOLLOWING COUNT
         this.loadFollowingCount(account.id);
-        this.loadPlaylistCount();
+        this.loadMyPlaylistsAndCount();
         this.loadFavoriteAlbums();
         this.loadFavoriteArtists();
         
@@ -67,10 +68,11 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  // GET PLAYLIST COUNT
-  loadPlaylistCount(): void {
+  // GET MY PLAYLISTS AND COUNT
+  loadMyPlaylistsAndCount(): void {
     this.playlistService.getUserPlaylists().subscribe({
       next: (playlists) => {
+        this.myAlbums.set(playlists);
         this.albumCount.set(playlists.length);
         console.log('Playlist count loaded:', playlists.length);
       },
@@ -79,8 +81,6 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
-
-
 
   // LOAD FAVORITE ALBUMS
   loadFavoriteAlbums(): void {
@@ -94,35 +94,9 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
   // LOAD FAVORITE ARTISTS
   loadFavoriteArtists(): void {
     // Replace with actual API call to fetch favorite artists
   }
-
-  // ALBUM DATA
-  // private readonly originalAlbums: Album[] = [
-  //   {
-  //     albumId: 1,
-  //     title: 'Album D',
-  //     artist: 'Artist D',
-  //     dateLabel: 'Oct. 15, 2025',
-  //     imageUrl: 'https://picsum.photos/seed/card-1/600/600'
-  //   },
-  //   {
-  //     albumId: 2,
-  //     title: 'Album C',
-  //     artist: 'Artist D',
-  //     dateLabel: 'Oct. 11, 2025',
-  //     imageUrl: 'https://picsum.photos/seed/card-2/600/600'
-  //   },
-  //   {
-  //     albumId: 3,
-  //     title: 'Album A',
-  //     artist: 'Artist D',
-  //     dateLabel: 'Oct. 13, 2025',
-  //     imageUrl: 'https://picsum.photos/seed/card-3/600/600'
-  //   },
-  // ];
-  
-
 }
