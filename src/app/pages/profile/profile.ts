@@ -22,6 +22,7 @@ import { MyAlbumCard } from "../../ui/my-album-card/my-album-card";
 export class ProfileComponent implements OnInit {
 
   user = signal<UserAccount | null>(null);
+  favoriteSong = signal<string>("");
   favoriteArtists = signal<Artist[] | null>(null);
   favoriteAlbums = signal<Album[] | null>(null);
   myAlbums = signal<PlaylistResponse[] | null>(null);
@@ -29,6 +30,7 @@ export class ProfileComponent implements OnInit {
   followingCount = signal<number>(0);
 
   trackById = (_: number, it: any) => it.id;
+
 
   constructor(
     private accountService: AccountService,
@@ -51,6 +53,7 @@ export class ProfileComponent implements OnInit {
         // LOAD FOLLOWING COUNT
         this.loadFollowingCount(account.id);
         this.loadMyPlaylistsAndCount();
+        this.loadFavoriteSong(account.favoriteSongId);
         this.loadFavoriteAlbums();
         this.loadFavoriteArtists();
         
@@ -101,11 +104,32 @@ export class ProfileComponent implements OnInit {
   loadFavoriteArtists(): void {
     this.accountService.favoriteArtists().subscribe({
       next: (artists) => {
-        this.favoriteArtists.set(artists);
-        console.log('Favorite artists loaded:', artists);
+        const mapped = artists.map((a: any) => ({
+          ...a,
+          id: a.id ?? a.artistId,   // prefer id if present, fallback to artistId
+        }));
+        this.favoriteArtists.set(mapped);
+        console.log('Favorite artists loaded (mapped):', mapped);
       },
       error: (error) => {
         console.error('Error loading favorite artists:', error);
+      }
+    })
+  }
+
+  // LOAD FAVORITE SONG
+  loadFavoriteSong(songId: string | null): void {
+    if (!songId) {
+      console.log('No favorite song set for this user');
+      return;
+    }
+
+    this.accountService.getFavoriteSong(songId).subscribe({
+      next: (song) => {
+        console.log('Favorite song loaded:', song);
+      },
+      error: (error) => {
+        console.error('Error loading favorite song:', error);
       }
     })
   }

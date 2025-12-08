@@ -36,15 +36,9 @@
     <p>{{ user()?.bio }}</p>
   </section>
 
-  <aside class="sidebar">
-    <h2>Favorite Artists</h2>
-    <div class="divider" role="separator"></div>
-    <ul class="fav-artists">
-      <li *ngFor="let a of favoriteArtists()">
-        <a routerLink="/artist/{{ a.artistName| lowercase }}">{{ a.artistName }}</a>
-      </li>
-    </ul>
-  </aside>
+  <section class="favorite-song">
+    <p>My favorite song is </p>
+  </section>
 
   <section class="albums">
     <h2>Favorite Albums</h2>
@@ -69,4 +63,15 @@
       </app-my-album-card>
     </div>
   </section>
+  
+  <aside class="sidebar">
+    <h2>Favorite Artists</h2>
+    <div class="divider" role="separator"></div>
+    <ul class="fav-artists">
+      <a *ngFor="let a of favoriteArtists()"
+        [routerLink]="['/artist', a.id]">
+        <li>{{ a.artistName }}</li>
+      </a>
+    </ul>
+  </aside>
 </main>

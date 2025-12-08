@@ -23,6 +23,9 @@ export class AccountService {
             currentPassword: oldPassword,
             newPassword: newPassword });
     }
+    getFavoriteSong(id: string): Observable<any> {
+        return this.api.get<any>(`/Tracks/${id}`);
+    }
     favoriteArtists(): Observable<Artist[]> {
         return this.api.get<Artist[]>('/Users/me/favorite-artists/');
     }

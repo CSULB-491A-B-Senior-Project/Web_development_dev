@@ -167,12 +167,12 @@
   gap: 10px;
 
   a {
-    color: var(--txt-secondary);
+    color: var(--primary);
     text-decoration: none;
     transition: color 0.05s ease;
 
     &:hover {
-      color: var(--txt-primary);
+      text-decoration: underline;
     }
   }
 }
@@ -217,4 +217,22 @@
 
 a {
   text-decoration: none;
+}
+
+.favorite-song {
+  width: 100%;
+  grid-column: 1 / -1;
+  background: var(--input-border-purp);
+  color: white;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+
+  width: 100vw;
+  margin-left: 50%;
+  transform: translateX(-50%);
+
+  p {
+    margin: 0;
+  }
 }
