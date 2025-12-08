@@ -9,13 +9,14 @@ import { PlaylistResponse, PlaylistService } from '../../services/playlist.servi
 
 import { UserAccount } from '../../models/account.models';
 import { Artist, Album } from '../../models/playlist.models';
+import { MyAlbumCard } from "../../ui/my-album-card/my-album-card";
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
-  imports: [AlbumCard, CommonModule, RouterLink],
+  imports: [AlbumCard, CommonModule, RouterLink, MyAlbumCard],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent implements OnInit {
@@ -68,7 +69,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  // GET MY PLAYLISTS AND COUNT
+  // GET MY PLAYLISTS AND COUNT AND DISPLAY
   loadMyPlaylistsAndCount(): void {
     this.playlistService.getUserPlaylists().subscribe({
       next: (playlists) => {

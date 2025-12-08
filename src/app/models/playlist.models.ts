@@ -36,3 +36,10 @@ export interface Album {
   createdAt: number;
   albumImageUrl: string;
 }
+
+export interface myAlbum {
+  id: string;
+  name: string;
+  description: string;
+  userId: string;
+}

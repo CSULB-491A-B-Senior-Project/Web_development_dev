@@ -1,0 +1,10 @@
+<div class="card">
+  <div class="title-line">
+    <h3 class="title">{{ name() }}</h3>
+    <p *ngIf="description()">{{ description() }}</p>
+  </div>
+
+  <div class="row meta">
+    <a class="view-more" [routerLink]="viewLink()">View more</a>
+  </div>
+</div>
