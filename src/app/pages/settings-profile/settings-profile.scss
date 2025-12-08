@@ -551,6 +551,8 @@
   border-radius: 6px;
   cursor: grab;
   transition: background-color .15s ease;
+  width: 100%; // Ensure full width
+  box-sizing: border-box;
 
   &:hover {
     background: #2d2d2d;
@@ -678,7 +680,7 @@
         transition: transform .2s ease;
 
         .fa-heart.fa-regular { color: #888; }
-        .fa-heart.fa-solid   { color: #ff4d6d; }
+        .fa-heart.fa-solid   { color: var(--btn-primary); }
 
         &:hover {
           transform: scale(1.2);

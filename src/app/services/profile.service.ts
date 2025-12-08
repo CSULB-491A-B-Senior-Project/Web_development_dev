@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Artist, Album, Song } from '../models/music.models';
 import { environment } from '../../environments/environment';
 
@@ -16,6 +17,9 @@ export interface UserProfile {
   firstName?: string;
   lastName?: string;
 }
+
+type FavoriteArtistRankUpdate = { artistId: string; rank: number };
+type UpdateFavoriteArtistsRequest = { artists: FavoriteArtistRankUpdate[] };
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
@@ -99,9 +103,25 @@ export class ProfileService {
     return this.#http.get<Artist[]>(`${this.#apiUrl}/v1/Users/me/favorite-artists`);
   }
 
-  updateFavoriteArtistRanks(rankedArtists: { artistId: string; rank: number }[]): Observable<void> {
+  updateFavoriteArtistRanks(rankedArtists: FavoriteArtistRankUpdate[]): Observable<void> {
     if (this.#mock) return of(void 0);
-    return this.#http.put<void>(`${this.#apiUrl}/v1/Users/me/favorite-artists`, { artists: rankedArtists });
+
+    if (!Array.isArray(rankedArtists) || rankedArtists.length === 0) {
+      console.warn('[ProfileService] Skipping PUT favorite-artists: empty rankedArtists payload');
+      return of(void 0);
+    }
+
+    const url = `${this.#apiUrl}/v1/Users/me/favorite-artists`;
+    const payload: UpdateFavoriteArtistsRequest = { artists: rankedArtists };
+
+    console.log('[ProfileService] PUT:', url, 'payload.artists.length =', payload.artists.length);
+
+    return this.#http.put<void>(url, payload).pipe(
+      catchError(err => {
+        console.error('[ProfileService] favorite-artists PUT failed:', err?.status, err?.error);
+        throw err;
+      })
+    );
   }
 
   getFavoriteAlbums(): Observable<Album[]> {

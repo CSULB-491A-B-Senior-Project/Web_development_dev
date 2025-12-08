@@ -30,6 +30,8 @@ export interface Artist {
   primaryImage?: string;    // convenience: images[0]
   genres?: string[];
 
+  rank?: number;          
+
   raw?: unknown;
 }
 

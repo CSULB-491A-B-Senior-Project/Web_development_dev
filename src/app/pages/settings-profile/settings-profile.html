@@ -118,6 +118,70 @@
     <!-- ARTISTS -->
     <h1>Top 10 Artists</h1>
     <p><b>Rank your icons.</b> Celebrate the artists who inspire you most.</p>
+    
+    <!-- Search for followed artists to add to favorites -->
+    <form 
+      [formGroup]="followedArtistSearchForm" 
+      class="search-container"
+      (focusout)="handleFollowedArtistSearchFocusOut($event)"
+    >
+      <input 
+        class="form-control" 
+        type="text" 
+        formControlName="query" 
+        placeholder="Search your followed artists to add to favorites..."
+        (focus)="showFollowedArtistResults.set(true)"
+      />
+      @if (showFollowedArtistResults() && followedArtistSearchQuery() && followedArtistResults().length > 0) {
+        <ul class="search-results">
+          @for (artist of followedArtistResults(); track artist.id) {
+            <li class="result-item">
+              <img
+                ngOptimizedImage
+                [ngSrc]="artist.artistImage || placeholderArtist"
+                width="50"
+                height="50"
+                class="item-image"
+                [alt]="artist.artistName" 
+              />
+              <div class="item-meta">
+                <span class="item-title">{{ artist.artistName }}</span>
+                <span class="item-sub">Artist</span>
+              </div>
+              <button 
+                type="button" 
+                class="heart-btn"
+                [class.hearted]="isArtistFavorited(artist.id)"
+                [disabled]="isArtistFavorited(artist.id)"
+                (click)="heartFollowedArtist(artist)"
+                [attr.aria-pressed]="isArtistFavorited(artist.id)"
+                [title]="isArtistFavorited(artist.id) ? 'Already in favorites' : 'Add to favorites'"
+              >
+                <i 
+                  class="fa-heart"
+                  [class.fa-solid]="isArtistFavorited(artist.id)"
+                  [class.fa-regular]="!isArtistFavorited(artist.id)"
+                  aria-hidden="true"
+                ></i>
+                <span class="visually-hidden">
+                  {{ isArtistFavorited(artist.id) ? 'Remove from favorites' : 'Add to favorites' }}
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      <!-- @if (loadingFollowedArtistSearch()) {
+        <div class="search-loading">Searching followed artists...</div>
+      } -->
+      @if (followedArtistSearchError()) {
+        <div class="search-error">{{ followedArtistSearchError() }}</div>
+      }
+      @if (showFollowedArtistResults() && followedArtistSearchQuery() && !loadingFollowedArtistSearch() && followedArtistResults().length === 0) {
+        <div class="search-empty">No followed artists found matching "{{ followedArtistSearchQuery() }}"</div>
+      }
+    </form>
+
     <div
       cdkDropList
       (cdkDropListDropped)="dropFavoriteArtist($event)"
@@ -146,37 +210,6 @@
         </div>
       </ng-template>
     </div>
-
-    <!-- FAVORITE ARTISTS -->
-    <!-- <div class="favorites-section">
-      <h1>Top 10 Artists</h1>
-      <p><b>Rank your icons.</b> Celebrate the artists who inspire you most.</p>
-      <div
-        cdkDropList
-        (cdkDropListDropped)="dropFavoriteArtist($event)"
-        class="artist-rank-list"
-      >
-        <ng-container *ngIf="topTenFavoriteArtistsListArr.length; else artistsEmpty">
-          <div
-            *ngFor="let artist of topTenFavoriteArtistsListArr; let i = index; trackBy: trackByArtist"
-            class="artist-rank-item"
-            cdkDrag
-          >
-            <span class="rank-number">{{ i + 1 }}</span>
-            <img ngOptimizedImage [ngSrc]="artist.artistImage || placeholderArtist" width="48" height="48" [alt]="artist.artistName || 'Artist image'" />
-            <span class="artist-name">{{ artist.artistName || 'Unknown artist' }}</span>
-            <span class="drag-handle" cdkDragHandle aria-label="Drag handle">⋮⋮</span>
-          </div>
-        </ng-container>
-
-        <ng-template #artistsEmpty>
-          <div class="empty-list-text">
-            <div class="empty-icon">🎧</div>
-            <div class="empty-title">No favorite artists to rank</div>
-            <div class="empty-sub">Favorite artists to build your top 10. Changes save automatically.</div>
-          </div>
-        </ng-template>
-      </div> -->
 
     <!-- FAVORITE ALBUMS -->
     <div class="favorites-section album-favorites">

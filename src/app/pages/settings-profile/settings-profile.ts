@@ -17,6 +17,7 @@ import { ApiService } from '../../api.service';
 import { environment } from '../../../environments/environment';
 import { SidebarComponent } from '../../ui/sidebar/sidebar';
 import { ProfilePictureStore } from '../../ui/navbar/profile-picture.store';
+import { FollowService } from '../../services/follow.service';
 
 @Component({
   selector: 'app-settings-profile',
@@ -173,6 +174,15 @@ export class SettingsProfile implements AfterViewInit {
   artistSearchQuery = signal('');
   albumSearchQuery = signal('');
 
+  followedArtistSearchQuery = signal('');
+  followedArtistSearchForm = this.#nfb.group({ query: '' });
+  followedArtistResults = signal<Artist[]>([]);
+  loadingFollowedArtistSearch = signal(false);
+  followedArtistSearchError = signal<string | null>(null);
+  showFollowedArtistResults = signal(false);
+
+  #followService = inject(FollowService);
+
   bioForm = this.#nfb.group({
     bio: ['', [Validators.maxLength(150)]]
   });
@@ -255,7 +265,59 @@ export class SettingsProfile implements AfterViewInit {
     // Load profile
     this.#profileService.getProfile().pipe(take(1)).subscribe({
       next: (p: any) => {
-        this.currentUserKey = String(p?.id ?? p?.userId ?? p?.username ?? 'me');
+        console.log('[SettingsProfile] Loaded profile payload:', p);
+
+        // FIX: normalize favorite artists with artistId / artistImageUrl / rank
+        interface RawFavoriteArtist {
+          artistId?: string;
+          id?: string;
+          artistName?: string;
+          name?: string;
+          artistImageUrl?: string;
+          artistImage?: string;
+          imageUrl?: string;
+          rank?: number;
+        }
+
+        // FIX: keep normalized favorites once
+        interface RawFavoriteArtist {
+          artistId?: string;
+          id?: string;
+          artistName?: string;
+          name?: string;
+          artistImageUrl?: string;
+          artistImage?: string;
+          imageUrl?: string;
+          rank?: number;
+        }
+
+        interface RawFavoriteArtist {
+          artistId?: string;
+          id?: string;
+          artistName?: string;
+          name?: string;
+          artistImageUrl?: string;
+          artistImage?: string;
+          imageUrl?: string;
+          rank?: number;
+        }
+
+        const artistsFromProfile: Artist[] = ((p.favoriteArtists ?? []) as RawFavoriteArtist[]).map((a: RawFavoriteArtist): Artist => ({
+          id: a.artistId ?? a.id ?? '',
+          artistName: a.artistName ?? a.name ?? '',
+          artistImage: a.artistImageUrl ?? a.artistImage ?? a.imageUrl ?? this.placeholderArtist,
+          rank: typeof a.rank === 'number' ? a.rank : undefined
+        } as Artist)).filter((a: Artist): boolean => !!a.id);
+
+        if (artistsFromProfile.length) {
+          this.favoriteArtists.set(artistsFromProfile);
+          this.artistRanks.set(
+            artistsFromProfile
+              .filter(a => typeof a.rank === 'number')
+              .map(a => ({ artistId: a.id, rank: a.rank as number }))
+          );
+        }
+
         const bio = p.bio ?? '';
         this.bioForm.patchValue({ bio }, { emitEvent: false });
         this.bioForm.markAsPristine();
@@ -273,27 +335,48 @@ export class SettingsProfile implements AfterViewInit {
 
         this.favoriteSong.set(p.favoriteSong ?? null);
 
-        const artists = (p.favoriteArtists ?? []).map((a: any) => ({
-          id: a.id,
-          artistName: a.artistName ?? a.name ?? '',
-          artistImage: a.artistImage ?? a.imageUrl ?? this.placeholderArtist
-        } as Artist));
-        this.favoriteArtists.set(artists);
+        // const artists = (p.favoriteArtists ?? []).map((a: any) => ({
+        //   id: a.id,
+        //   artistName: a.artistName ?? a.name ?? '',
+        //   artistImage: a.artistImage ?? a.imageUrl ?? this.placeholderArtist
+        // } as Artist));
+        // this.favoriteArtists.set(artists);
 
         const albums = (p.favoriteAlbums ?? []).map((al: any) => this.normalizeAlbumFromApi(al));
         this.favoriteAlbums.set(albums);
+
+        // Store the real user id if present
+        const uid = (p?.id ?? p?.userId)?.toString();
+        if (uid) this.currentUserKey = uid;
       },
       error: (err) => console.error('Failed to load profile', err)
     });
 
+    // Load favorites via dedicated endpoint, but avoid overwriting with empty
     this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe({
       next: (artists) => {
-        if (artists && artists.length) {
-          this.favoriteArtists.set(artists.map(a => ({
-            id: a.id,
-            artistName: a.artistName ?? '',
-            artistImage: a.artistImage ?? this.placeholderArtist
-          } as Artist)));
+        console.log('[SettingsProfile] Favorite Artists endpoint payload:', artists);
+
+        const normalized = (artists ?? []).map((x: unknown) => {
+          const src = x as Record<string, unknown>;
+          const id = (src['artistId'] as string) ?? (src['id'] as string) ?? '';
+          return {
+            id,
+            artistName: (src['artistName'] as string) ?? (src['name'] as string) ?? '',
+            artistImage: (src['artistImageUrl'] as string) ?? (src['artistImage'] as string) ?? (src['imageUrl'] as string) ?? this.placeholderArtist,
+            rank: typeof src['rank'] === 'number' ? (src['rank'] as number) : undefined
+          } as Artist;
+        }).filter(a => !!a.id);
+
+        if (normalized.length) {
+          this.favoriteArtists.set(normalized);
+          this.artistRanks.set(
+            normalized
+              .filter(a => typeof a.rank === 'number')
+              .map(a => ({ artistId: a.id, rank: a.rank as number }))
+          );
+        } else {
+          console.log('[SettingsProfile] Endpoint returned empty favorites; keeping existing state.');
         }
       },
       error: (err) => console.error('Failed to load favorite artists', err)
@@ -301,8 +384,8 @@ export class SettingsProfile implements AfterViewInit {
 
     this.#profileService.getFavoriteAlbums().pipe(take(1)).subscribe({
       next: (albums) => {
-        if (albums && albums.length) {
-          const normalized = (albums as unknown[]).map(a => this.normalizeAlbumFromApi(a));
+        if(albums && albums.length) {
+          const normalized = (albums ?? []).map((al: unknown) => this.normalizeAlbumFromApi(al));
           this.favoriteAlbums.set(normalized);
           this.enrichFavoriteAlbumsViaDetails(normalized);
         }
@@ -439,12 +522,66 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
 });
 
 
-      this.destroyRef.onDestroy(() => {
-        songSub.unsubscribe();
-        albumSub.unsubscribe();
-        artistSub.unsubscribe();
-        trackSub.unsubscribe();
-      });
+      // Followed artist search
+    const followedArtistSub = this.followedArtistSearchForm.controls.query.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(query => {
+        this.followedArtistSearchQuery.set(query ?? '');
+        if (!query?.trim()) {
+          this.followedArtistResults.set([]);
+          this.loadingFollowedArtistSearch.set(false);
+        }
+      }),
+      switchMap(raw => {
+        const term = (raw ?? '').toString().trim();
+        if (!term) return of<Artist[]>([]);
+        
+        this.loadingFollowedArtistSearch.set(true);
+        this.followedArtistSearchError.set(null);
+        
+        // Get the user's actual followed artists first
+        return this.#followService.getUserArtistFollowList(this.currentUserKey).pipe(
+          map(followedList => {
+            // Filter the followed artists by the search term
+            const searchTerm = term.toLowerCase();
+            return followedList
+              .filter((artistData: any) => {
+                const artistName = (artistData.artistName ?? artistData.name ?? '').toLowerCase();
+                return artistName.includes(searchTerm);
+              })
+              .map((artistData: any) => ({
+                id: artistData.id ?? artistData.artistId,
+                artistName: artistData.artistName ?? artistData.name ?? 'Unknown Artist',
+                artistImage: artistData.artistImage ?? artistData.imageUrl ?? this.placeholderArtist
+              } as Artist))
+              // Filter out artists already in favorites
+              .filter(artist => !this.favoriteArtists().some(fav => fav.id === artist.id));
+          }),
+          catchError(err => {
+            console.error('Failed to load followed artists', err);
+            this.followedArtistSearchError.set('Failed to load followed artists.');
+            return of<Artist[]>([]);
+          })
+        );
+      })
+    ).subscribe({
+      next: results => {
+        this.loadingFollowedArtistSearch.set(false);
+        this.followedArtistResults.set(results);
+      },
+      error: () => {
+        this.loadingFollowedArtistSearch.set(false);
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      songSub.unsubscribe();
+      albumSub.unsubscribe();
+      artistSub.unsubscribe();
+      trackSub.unsubscribe();
+      followedArtistSub.unsubscribe();
+    });
     }
 
   ngAfterViewInit(): void {
@@ -608,7 +745,8 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   }
 
   selectSong(song: Song): void {
-    // if (!song?.id) return;
+    if (!song?.id) return;
+    console.log('[SettingsProfile] selectSong called with:', song);
 
     const prev = this.favoriteSong();
 
@@ -623,10 +761,8 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   }
 
 
-  // Keep track selection consistent (delegates to selectSong)
-  selectTrack(t: Song): void {
-    if (!t?.id) return;
-    this.selectSong(t);
+  isArtistFavorited(artistId: string): boolean {
+    return this.favoriteArtists().some(fav => fav.id === artistId);
   }
 
   clearFavoriteSong(): void {
@@ -641,15 +777,34 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   }
 
   addArtistToFavorites(artist: Artist): void {
-    if (this.favoriteArtists().some(a => a.id === artist.id)) return;
-    const updated = [artist, ...this.favoriteArtists().filter(a => a.id !== artist.id)];
-    this.favoriteArtists.set(updated);
-    this.artistSearchForm.controls.query.setValue('');
-    this._artistResultsRaw.set([]);
+    const id = (artist as unknown as { artistId?: string }).artistId ?? artist?.id;
+    if (!id) return;
 
-    const ranked = updated.slice(0, 10).map((a, idx) => ({ artistId: a.id, rank: idx + 1 }));
-    this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
-      error: () => this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(a ?? []))
+    const current = this.favoriteArtists();
+    if (current.some(a => (a as unknown as { artistId?: string }).artistId === id || a.id === id)) return;
+
+    const updated = [...current, { ...artist, id } as Artist];
+    this.favoriteArtists.set(updated);
+
+    const ranked = updated.slice(0, 10)
+      .map((a, i) => ({
+        artistId: (a as unknown as { artistId?: string }).artistId ?? a.id,
+        rank: i + 1
+      }))
+      .filter(r => typeof r.artistId === 'string' && r.artistId.length > 0);
+
+    if (ranked.length === 0) {
+      console.warn('[SettingsProfile] Skipping PUT favorite-artists: no valid items');
+      return;
+    }
+
+    console.log('[SettingsProfile] Saving favorite artist ranks:', ranked);
+
+    this.#profileService.updateFavoriteArtistRanks(ranked).subscribe({
+      error: (err) => {
+        console.error('Update favorite artist ranks failed:', err?.status, err?.error);
+        this.favoriteArtists.set(current); // revert on error
+      }
     });
   }
 
@@ -711,21 +866,45 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   trackBySong(index: number, song: Song | null) {
     return song?.id ?? index;
   }
-  trackByTrack(index: number, track: Song | { id?: string } | null) {
-    return track?.id ?? index;
-  }
 
   dropFavoriteArtist(event: CdkDragDrop<Artist[]>) {
     const current = this.favoriteArtists();
+    if (!current.length) return;
+
     const top = [...current.slice(0, 10)];
     moveItemInArray(top, event.previousIndex, event.currentIndex);
     const updated = [...top, ...current.slice(10)];
     this.favoriteArtists.set(updated);
 
-    const ranked = updated.slice(0, 10).map((a, idx) => ({ artistId: a.id, rank: idx + 1 }));
+    // Build ranked payload safely
+    const ranked = updated.slice(0, 10)
+      .map((a, idx) => ({
+        artistId: (a as any).artistId ?? a.id,
+        rank: idx + 1
+      }))
+      .filter(r => !!r.artistId);
+
+    console.log('[SettingsProfile] DnD ranked payload:', ranked);
+
+    if (ranked.length === 0) {
+      console.warn('[SettingsProfile] Skipping PUT after DnD (no valid artistId).');
+      return;
+    }
+
     this.artistRanks.set(ranked);
     this.#profileService.updateFavoriteArtistRanks(ranked).pipe(take(1)).subscribe({
-      error: () => this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(a ?? []))
+      error: (err) => {
+        console.error('DnD update failed:', err?.status, err?.error);
+        // Reload from server to restore consistent state
+        this.#profileService.getFavoriteArtists().pipe(take(1)).subscribe(a => this.favoriteArtists.set(
+          (a ?? []).map((x: any) => ({
+            id: x.artistId ?? x.id,
+            artistName: x.artistName ?? x.name ?? '',
+            artistImage: x.artistImageUrl ?? x.artistImage ?? x.imageUrl ?? this.placeholderArtist,
+            rank: x.rank
+          })).filter((z: Artist) => !!z.id)
+        ));
+      }
     });
   }
 
@@ -752,5 +931,25 @@ const songSub = this.songSearchForm.controls.query.valueChanges.pipe(
   ngOnDestroy() {
     const prev = this.localBlobUrl();
     if (prev) URL.revokeObjectURL(prev);
+  }
+
+  handleFollowedArtistSearchFocusOut(event: FocusEvent): void {
+    const relatedTarget = event.relatedTarget as HTMLElement | null;
+    const currentTarget = event.currentTarget as HTMLElement | null;
+    if (currentTarget && !currentTarget.contains(relatedTarget)) {
+      setTimeout(() => this.showFollowedArtistResults.set(false), 150);
+    }
+  }
+
+  heartFollowedArtist(artist: Artist): void {
+    if (!artist?.id) return;
+    
+    this.addArtistToFavorites(artist);
+    
+    // Clear the search after hearting
+    this.followedArtistSearchForm.controls.query.setValue('');
+    this.followedArtistResults.set([]);
+    this.followedArtistSearchQuery.set('');
+    this.showFollowedArtistResults.set(false);
   }
 }
