@@ -53,6 +53,9 @@ export class ExploreCard {
 
   // Computed properties for post type display
   postTypeLabel = computed(() => {
+    if (this.isArtist()) {
+      return 'artist';
+    }
     const type = this.postType();
     switch (type) {
       case 'comment_post':
@@ -67,6 +70,9 @@ export class ExploreCard {
   });
 
   postTypeIcon = computed(() => {
+    if (this.isArtist()) {
+      return 'artist';
+    }
     const type = this.postType();
     switch (type) {
       case 'comment_post':
@@ -79,7 +85,10 @@ export class ExploreCard {
         return '';
     }
   });
-
+  badgeClass = computed(() => {
+    if (this.isArtist()) return 'badge-artist_post';
+    return `badge-${this.postType()}`;
+  });
   showPostContent = computed(() => {
     return this.postType() === 'comment_post' && this.postContent();
   });
