@@ -115,7 +115,6 @@ export class AlbumDetailsComponent {
 
   // Spotify Player Service
   readonly spotifyPlayer = inject(SpotifyPlayerService);
-  readonly playerState$ = this.spotifyPlayer.playerState$;
 
   // Track current player state for checking if a track is playing
   private currentPlayerState = signal<PlayerState | null>(null);
@@ -135,7 +134,6 @@ export class AlbumDetailsComponent {
       console.warn('No album ID provided');
       return;
     }
-
     // Subscribe to player state changes to track current playing track
     this.spotifyPlayer.playerState$.subscribe(state => {
       this.currentPlayerState.set(state);
