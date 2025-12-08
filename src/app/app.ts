@@ -23,11 +23,12 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     if (this.apiService.isAuthenticated()) {
-      this.initializeSpotifyPlayer();
+      this.checkSpotifyConnection();  // Changed from initializeSpotifyPlayer()
     }
   }
 
   private checkSpotifyConnection(): void {
+    console.log("checking connection...")
     // Check if user has connected their Spotify account
     this.apiService.get<{ isConnected: boolean }>('/SpotifyAuth/status')
       .subscribe({
