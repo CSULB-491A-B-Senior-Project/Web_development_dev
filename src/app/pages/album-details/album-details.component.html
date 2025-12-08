@@ -26,10 +26,10 @@
               <a class="artist-link" [routerLink]="['/artists', slugify(name)]">{{ name }}</a>@if (!last) {<span class="sep">, </span>}
               } -->
               @for (artist of albumArtists(); track artist.id; let last = $last) {
-                <a class="artist-link" [routerLink]="['/artist', artist.id]">
-                  {{ artist.artistName }}
-                </a>
-                @if (!last) { <span class="sep">, </span> }
+              <a class="artist-link" [routerLink]="['/artist', artist.id]">
+                {{ artist.artistName }}
+              </a>
+              @if (!last) { <span class="sep">, </span> }
               }
 
             </h3>
@@ -65,13 +65,20 @@
         </header>
       </div>
     </section>
-
     <section class="tracklist">
       <h3>Tracklist</h3>
       @if (tracks().length) {
       <ul>
         @for (t of tracks(); track t.id) {
         <li>
+          <button class="play-btn"
+                  (click)="playTrack(t)"
+                  [class.playing]="isTrackPlaying(t)"
+                  [attr.aria-label]="isTrackPlaying(t) ? 'Currently playing ' + t.title : 'Play ' + t.title">
+            <i class="fa-solid"
+               [class.fa-play]="!isTrackPlaying(t)"
+               [class.fa-pause]="isTrackPlaying(t)"></i>
+          </button>
           <span class="track-name">{{ t.title }}</span>
           <span class="duration">{{ t.duration || '0:00' }}</span>
         </li>
@@ -79,15 +86,34 @@
       </ul>
       } @else {
       <ul>
-        <li><span class="track-name">Song 1</span><span class="duration">0:00</span></li>
-        <li><span class="track-name">Song 2</span><span class="duration">0:00</span></li>
-        <li><span class="track-name">Song 3</span><span class="duration">0:00</span></li>
-        <li><span class="track-name">Song 4</span><span class="duration">0:00</span></li>
-        <li><span class="track-name">Song 5</span><span class="duration">0:00</span></li>
-        <li><span class="track-name">Song 6</span><span class="duration">0:00</span></li>
+        <li>
+          <button class="play-btn" disabled><i class="fa-solid fa-play"></i></button>
+          <span class="track-name">Song 1</span><span class="duration">0:00</span>
+        </li>
+        <li>
+          <button class="play-btn" disabled><i class="fa-solid fa-play"></i></button>
+          <span class="track-name">Song 2</span><span class="duration">0:00</span>
+        </li>
+        <li>
+          <button class="play-btn" disabled><i class="fa-solid fa-play"></i></button>
+          <span class="track-name">Song 3</span><span class="duration">0:00</span>
+        </li>
+        <li>
+          <button class="play-btn" disabled><i class="fa-solid fa-play"></i></button>
+          <span class="track-name">Song 4</span><span class="duration">0:00</span>
+        </li>
+        <li>
+          <button class="play-btn" disabled><i class="fa-solid fa-play"></i></button>
+          <span class="track-name">Song 5</span><span class="duration">0:00</span>
+        </li>
+        <li>
+          <button class="play-btn" disabled><i class="fa-solid fa-play"></i></button>
+          <span class="track-name">Song 6</span><span class="duration">0:00</span>
+        </li>
       </ul>
       }
     </section>
+
 
     <section class="comment-section">
       <!-- actions row: Add comment button only (rating moved to modal) -->

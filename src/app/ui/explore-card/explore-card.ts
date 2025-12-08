@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -23,6 +23,39 @@ export class ExploreCard {
   viewLink = input<any[] | string>(['/explore']);
   postType = input<'comment_post' | 'rating_post' | 'album_post'>('album_post');
   postContent = input<string | undefined>(undefined);
+  artistId = input<string | undefined>(undefined);
+  isFollowing = input<boolean>(false);
+  showFollowButton = input<boolean>(true); // Control whether to show follow button
+
+  // Output event for follow toggle
+  followToggled = output<{ artistId: string; shouldFollow: boolean }>();
+
+  // Local follow state
+  followState = signal<boolean>(false);
+
+  constructor() {
+    // Sync followState with input whenever it changes
+    effect(() => {
+      this.followState.set(this.isFollowing());
+    });
+  }
+
+  onFollowClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const id = this.artistId();
+    if (!id) {
+      console.warn('No artistId provided for follow action');
+      return;
+    }
+    const newFollowState = !this.followState();
+    // Emit event to parent
+    this.followToggled.emit({
+      artistId: id,
+      shouldFollow: newFollowState
+    });
+  }
 
   private readonly placeholder = '/assets/placeholder.png'; // match the default above
   usePlaceholder(ev: Event): void {

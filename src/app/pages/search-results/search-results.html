@@ -72,10 +72,13 @@
                             [favorites]="item.favorites"
                             [rating]="item.rating"
                             [viewLink]="
-              category.type === 'albums'
-                ? ['/albums', item.id]
-                : ['/artists', item.id]
-            ">
+                            category.type === 'albums'
+                            ? ['/albums', item.id]
+                            : ['/artist', item.id]"
+                            [showFollowButton]="category.type === 'artists'"
+                            [artistId]="item.id"
+                            [isFollowing]="getFollowState(item.id)"
+                            (followToggled)="handleFollowToggle($event)">
           </app-explore-card>
         </div>
 
@@ -118,7 +121,8 @@
                           [isArtist]="false"
                           [favorites]="item.favorites"
                           [rating]="item.rating"
-                          [viewLink]="['/albums', item.id]">
+                          [viewLink]="['/albums', item.id]"
+                          [showFollowButton]="false">
         </app-explore-card>
       </div>
 
@@ -133,7 +137,11 @@
                           [isArtist]="true"
                           [favorites]="item.favorites"
                           [rating]="item.rating"
-                          [viewLink]="['/artists', item.id]">
+                          [viewLink]="['/artists', item.id]"
+                          [showFollowButton]="true"
+                          [artistId]="item.id"
+                          [isFollowing]="getFollowState(item.id)"
+                          (followToggled)="handleFollowToggle($event)">
         </app-explore-card>
       </div>
 
