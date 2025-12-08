@@ -21,13 +21,13 @@ export interface Track {
   albumId: string;
 }
 
-// export interface Album {
-//   id: string;
-//   title: string;
-//   artist: Artist;
-//   releaseYear: number;
-//   albumCover: string;
-// }
+export interface ArtistAlbum {
+  id: string;
+  title: string;
+  artist: string;
+  releaseDate: string;
+  coverArt: string;
+}
 
 export interface Album {
   albumId: string;

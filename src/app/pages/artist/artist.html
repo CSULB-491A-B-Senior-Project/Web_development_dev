@@ -29,16 +29,16 @@
         <!--ALBUM GRID-->
         <div class="album-grid">
           <!--ALBUM CARD TEMPLATE-->
-          <!-- <a 
+          <a 
             *ngFor="let it of albums(); trackBy: trackById"
-            [routerLink]="['/albums', it.albumId]">
+            [routerLink]="['/albums', it.id]">
             <app-album-card
-                          [title]="it.albumName"
+                          [title]="it.title"
                           [artist]="it.artist"
-                          [releaseYear]="it.createdAt.toString()"
-                          [albumCover]="it.albumImageUrl">
+                          [releaseYear]="it.releaseDate.slice(0,4)"
+                          [albumCover]="it.coverArt">
             </app-album-card>
-          </a> -->
+          </a>
         </div>
     </div>
 </div>

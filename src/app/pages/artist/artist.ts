@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 import { AlbumCard } from '../../ui/album-card/album-card';
-import { ArtistDetails, Album, Artist as ArtistModel } from '../../models/playlist.models';
+import { ArtistDetails, Album, ArtistAlbum } from '../../models/playlist.models';
 import { ArtistService } from '../../services/artist.service';
 import { FollowService } from '../../services/follow.service';
 
@@ -18,10 +18,10 @@ import { FollowService } from '../../services/follow.service';
 export class Artist {
 
     artist = signal<ArtistDetails | null>(null);
-    albums = signal<Album[]>([]);
+    albums = signal<ArtistAlbum[]>([]);
     followed = signal<boolean>(false);
 
-    trackById = (_: number, it: Album) => it.albumId;
+    trackById = (_: number, it: ArtistAlbum) => it.id;
 
     constructor(
         private artistService: ArtistService,
@@ -35,7 +35,7 @@ export class Artist {
 
             if (artistId) {
                 this.loadArtist(artistId);
-                //this.loadAlbums(artistId);
+                this.loadAlbums(artistId);
                 this.isFollowingArtist(artistId);
             }
         });
@@ -55,34 +55,18 @@ export class Artist {
     }
 
     // LOAD ALBUM DATA
-    // loadAlbums(artistId: string): void {
-    //     this.artistService.getArtistAlbums(artistId).subscribe({
-    //         next: (list: any[]) => {
-    //             console.log('Albums data loaded:', list);
-    //             this.albums.set(
-    //                 list.map(dto => {
-    //                     const first = dto.artists?.[0];
-
-    //                     const artist: ArtistModel = {
-    //                         id: first?.id ?? artistId,
-    //                         artistName: first?.name ?? this.artist()?.name ?? 'Unknown Artist'
-    //                     };
-                        
-    //                     return {
-    //                         albumId: dto.albumId,
-    //                         albumName: dto.title,
-    //                         createdAt: new Date(dto.releaseDate).getFullYear(),
-    //                         artist,
-    //                         albumImageUrl: dto.coverArt ?? '/assets/placeholder.png'
-    //                     } as Album;
-    //                 })
-    //             );
-    //         },
-    //         error: (err) => {
-    //             console.error('Error loading albums data:', err);
-    //         }
-    //     });
-    // }
+    loadAlbums(artistId: string): void {
+        this.artistService.getArtistAlbums(artistId).subscribe({
+            next: (list: ArtistAlbum[]) => {
+                this.albums.set(list);
+                console.log(this.albums());
+                console.log('Albums data loaded:', list);
+            },
+            error: (err) => {
+                console.error('Error loading albums data:', err);
+            }
+        });
+    }
 
     // LOAD FOLLOW STATE
     isFollowingArtist(artistId: string): void {
@@ -112,22 +96,22 @@ export class Artist {
     
     // SORT BY TITLE
     sortByTitleAsc() {
-        const sorted = [...this.albums()].sort((a, b) => a.albumName.localeCompare(b.albumName));
+        const sorted = [...this.albums()].sort((a, b) => a.title.localeCompare(b.title));
         this.albums.set(sorted);
     }
     sortByTitleDesc() {
-        const sorted = [...this.albums()].sort((a, b) => b.albumName.localeCompare(a.albumName));
+        const sorted = [...this.albums()].sort((a, b) => b.title.localeCompare(a.title));
         this.albums.set(sorted);
     }
     // SORT BY DATE
     sortByDateAsc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        (a, b) => new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime());
         this.albums.set(sorted);
     }
     sortByDateDesc() {
         const sorted = [...this.albums()].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime());
         this.albums.set(sorted);
     }
 }
