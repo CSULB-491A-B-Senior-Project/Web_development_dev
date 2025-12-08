@@ -37,7 +37,6 @@ export class FollowService {
     isFollowingArtist(artistId: string): Observable<FollowStatusResponse> {
         return this.api.get<FollowStatusResponse>(`/UserFollows/artist/${artistId}/status`);
     }
-
     // USERS
     getUserFollowCount(userId: string): Observable<any[]> {
         return this.api.get<any[]>(`/UserFollows/artist/following/${userId}`);

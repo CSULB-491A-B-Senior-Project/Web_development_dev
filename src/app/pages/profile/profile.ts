@@ -75,6 +75,7 @@ export class ProfileComponent implements OnInit {
       next: (playlists) => {
         this.myAlbums.set(playlists);
         this.albumCount.set(playlists.length);
+        console.log('My playlists loaded:', playlists);
         console.log('Playlist count loaded:', playlists.length);
       },
       error: (err) => {

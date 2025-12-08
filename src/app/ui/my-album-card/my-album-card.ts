@@ -11,8 +11,14 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MyAlbumCard {
+  id = input.required<string>();
   name = input.required<string>();
   description = input<string | undefined>()
-  viewLink = input<any[] | string>(['/explore']);
+  viewLink = computed(() => ['/my-album-details', this.id()]);
 
+
+  navigationState = computed(() => ({
+    title: this.name(),
+    description: this.description(),
+  }));
 }
