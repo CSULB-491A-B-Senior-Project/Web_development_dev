@@ -32,11 +32,11 @@
 @media (min-width: 981px) {
   .sidebar {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
   }
   .albums {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
   }
 }
 
@@ -221,18 +221,24 @@ a {
 
 .favorite-song {
   width: 100%;
+  // grid-column: 1 / -1;
   grid-column: 1 / -1;
+  grid-row: 2;
   background: var(--input-border-purp);
   color: white;
   text-align: center;
   font-size: 15px;
   font-weight: 600;
 
-  width: 100vw;
-  margin-left: 50%;
-  transform: translateX(-50%);
+  // width: 100vw;
+  // margin-left: 50%;
+  // transform: translateX(-50%);
 
   p {
     margin: 0;
   }
+}
+
+.song-name {
+  color: var(--primary);
 }
